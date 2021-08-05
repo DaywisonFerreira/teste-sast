@@ -5,6 +5,7 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
+        "serve": "node dist/index.js",
         "start": "pm2 start --no-daemon dist/index.js -i max",
         "start:watch": "nodemon --legacy-watch --inspect=0.0.0.0:${DEBUG_PORT} dist",
         "build": "tsc",

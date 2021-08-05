@@ -2,9 +2,8 @@ FROM node:14.17.0-alpine
 
 WORKDIR /app
 
-COPY . .
-
-RUN npm i -g pm2
+COPY package.json package-lock.json ./
+COPY .npmrc ./
 
 RUN npm i --only=prod
 
@@ -12,6 +11,8 @@ RUN npm run build
 
 RUN npm uninstall typescript
 
-EXPOSE 9490
+EXPOSE 3000
 
-CMD ["pm2-runtime", "ecosystem.config.js"]
+COPY . .
+
+CMD ["npm", "run", "serve"]
