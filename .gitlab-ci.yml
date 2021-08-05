@@ -1,114 +1,47 @@
+services:
+  - name: docker:dind
+    entrypoint: ["env", "-u", "DOCKER_HOST"]
+    command: ["dockerd-entrypoint.sh"]
+
 stages:
-  - test
+  - build-dev
   - build
-  - tag
-  - development
-  - staging
-  - production
+  - test
+  - deploy
 
-variables:
-  DOCKER_STAGE_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+include:
+  - project: 'infralabs/cxaas/sourcecode/commontools/devops'
+    file: '/variables.yaml'
+  - project: 'infralabs/cxaas/sourcecode/commontools/devops'
+    file: '/build_dev.yaml'
+  - project: 'infralabs/cxaas/sourcecode/commontools/devops'
+    file: '/deploy_aks.yaml'
 
-# ------
-#  JOBS
-# ------
-
-lint:
-  stage: test
-  image: node:14.17.0-alpine
-  script:
-    - npm ci
-    - npm run lint
-  except:
-    - tags
-
-build:
+Build Code:
   stage: build
-  when: manual
-  image: docker:stable
+  image: docker:latest
   services:
     - docker:dind
-  script:
-    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
-    - docker build -t ${DOCKER_STAGE_IMAGE} .
-    - docker push ${DOCKER_STAGE_IMAGE}
-  except:
-    - tags
-
-deploy development:
-  stage: development
-  variables:
-    GIT_STRATEGY: none
-    DEPLOY_CMD: 'docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    && docker pull $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME
-    && docker stop $CI_PROJECT_NAME || true
-    && docker rm $CI_PROJECT_NAME || true
-    && docker run -p ${SERVICE_PORT}:${SERVICE_PORT} --restart always --env-file ${DIST_PATH}/.env --name $CI_PROJECT_NAME -d $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME'
   before_script:
-    - apt-get update
-    - apt-get install sshpass
+    - export DOCKER_TAG='if [ $CI_COMMIT_BRANCH == 'main' ]; then echo $CI_COMMIT_SHORT_SHA; else echo $CI_COMMIT_TAG; fi;'
+    - export SUBSCRIPTION='if [ $CI_COMMIT_BRANCH == 'main' ]; then echo 9b80411a-6b86-4903-b3c3-6de38998eeea; else echo 9b80411a-6b86-4903-b3c3-6de38998eeea; fi;'
+    - export RESOURCE='if [ $CI_COMMIT_BRANCH == 'main' ]; then echo rg-containers-hml; else echo rg-containers; fi;'
+    - export CLUSTER='if [ $CI_COMMIT_BRANCH == 'main' ]; then echo aks-cxaas-hml; else echo aks-cxaas; fi;'
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
   script:
-    - 'printf "${AZURE_DEV_ENV}" > .env'
-    - 'sshpass -p "${STAGING_PASSWORD}" scp -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ./.env ${USER}@${AZURE_DEV_HOST}:${DIST_PATH}'
-    - 'sshpass -p ${STAGING_PASSWORD} ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ${USER}@${AZURE_DEV_HOST} "${DEPLOY_CMD}"'
-  except:
+    - cp "${NPMRC_FILE}" >> .npmrc
+    - cp "${ENV_FILE}" .env
+    - docker build -t ${CI_REGISTRY_IMAGE}:${DOCKER_TAG} .
+    - docker push ${CI_REGISTRY_IMAGE}:${DOCKER_TAG}
+  only:
+    - main
     - tags
   when: manual
 
-deploy staging:
-  stage: staging
-  image: $CI_REGISTRY/infralabs/ihub/docker/ihub-vpn:master
-  variables:
-    GIT_STRATEGY: none
-    DEPLOY_CMD: 'docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    && docker pull $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME
-    && docker stop $CI_PROJECT_NAME || true
-    && docker rm $CI_PROJECT_NAME || true
-    && docker run -p ${SERVICE_PORT}:${SERVICE_PORT} --restart always --env-file ${DIST_PATH}/.env --name $CI_PROJECT_NAME -d $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME'
+Test Coverage:
+  stage: test
   script:
-    - /entrypoint.sh &
-    - sleep 10
-    - 'printf "${STAGING_ENV}" > .env'
-    - 'sshpass -p "${STAGING_PASSWORD}" scp -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ./.env ${USER}@${STAGING_HOST}:${DIST_PATH}'
-    - 'sshpass -p ${STAGING_PASSWORD} ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ${USER}@${STAGING_HOST} "${DEPLOY_CMD}"'
-  except:
-    - tags
+    - echo teste
+  only:
+    - main
   when: manual
-
-tag:
-  stage: tag
-  image: docker:stable
-  services:
-    - docker:dind
-  variables:
-    GIT_STRATEGY: none
-    CI_REGISTRY_RELEASE: $CI_REGISTRY_IMAGE:release-$CI_COMMIT_REF_NAME
-  script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull $CI_REGISTRY_RELEASE
-    - docker tag $CI_REGISTRY_RELEASE $DOCKER_STAGE_IMAGE
-    - docker push $DOCKER_STAGE_IMAGE
-  only:
-    - tags
-
-deploy production:
-  stage: production
-  image: $CI_REGISTRY/infralabs/ihub/docker/ihub-vpn:master
-  variables:
-    GIT_STRATEGY: none
-    DEPLOY_CMD: 'docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    && docker pull $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME
-    && docker stop $CI_PROJECT_NAME || true
-    && docker rm $CI_PROJECT_NAME || true
-    && docker run -p ${SERVICE_PORT}:${SERVICE_PORT} --restart always --env-file ${DIST_PATH}/.env --name $CI_PROJECT_NAME -d $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME'
-    MAX_CPUS_CMD: 'docker exec $CI_PROJECT_NAME pm2 scale app ${MAX_CPUS}'
-  script:
-    - /entrypoint.sh &
-    - sleep 10
-    - 'printf "${PRODUCTION_ENV}" > .env'
-    - 'sshpass -p "${PRODUCTION_PASSWORD}" scp -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ./.env ${USER}@${PRODUCTION_HOST}:${DIST_PATH}'
-    - 'sshpass -p ${PRODUCTION_PASSWORD} ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ${USER}@${PRODUCTION_HOST} "${DEPLOY_CMD}"'
-    - sleep 10
-    - 'sshpass -p ${PRODUCTION_PASSWORD} ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ${USER}@${PRODUCTION_HOST} "${MAX_CPUS_CMD}"'
-  only:
-    - tags
