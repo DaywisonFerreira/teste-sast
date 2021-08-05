@@ -24,7 +24,7 @@ routes.push({
 
 routes.push({
     method: 'get',
-    path: '/trackings/orders',
+    path: '/',
     middlewares: keycloakMiddleware,
     controller: getOrders,
 });
