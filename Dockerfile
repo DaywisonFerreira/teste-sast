@@ -7,12 +7,12 @@ COPY .npmrc ./
 
 RUN npm i --only=prod
 
+COPY . .
+
 RUN npm run build
 
 RUN npm uninstall typescript
 
 EXPOSE 3000
-
-COPY . .
 
 CMD ["npm", "run", "serve"]
