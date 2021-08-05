@@ -3,13 +3,13 @@ import task from './task';
 
 const messages: Array<Task> = [];
 
-messages.push({
-    exchange: 'storeNotification',
-    routeKey: '',
-    queue: 'tracking_feed_reload_store_config_q',
-    action: task.processReloadStore,
-    type: 'fanout',
-});
+// messages.push({
+//     exchange: 'storeNotification',
+//     routeKey: '',
+//     queue: 'tracking_feed_reload_store_config_q',
+//     action: task.processReloadStore,
+//     type: 'fanout',
+// });
 
 messages.push({
     exchange: 'orderNotification',

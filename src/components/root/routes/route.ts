@@ -1,5 +1,5 @@
 import { RequestPrivate, Response, Route } from 'ihub-framework-ts';
-import keycloakMiddleware from '../middlewares/keycloakMiddleware';
+// import keycloakMiddleware from '../middlewares/keycloakMiddleware';
 
 import postIntelipost from '../controllers/postIntelipost';
 import getOrders from '../controllers/getOrders';
@@ -25,7 +25,7 @@ routes.push({
 routes.push({
     method: 'get',
     path: '/',
-    middlewares: keycloakMiddleware,
+    // middlewares: keycloakMiddleware,
     controller: getOrders,
 });
 

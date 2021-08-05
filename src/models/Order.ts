@@ -132,7 +132,7 @@ const OrderSchema = new Schema({
 }, { timestamps: {}, autoIndex: false });
 
 const schema: any = new database.Schema(OrderSchema, {
-    collection: 'Order',
+    collection: 'orders',
     timestamps: true
 }).index({ orderId: 1 }, { unique: true });
 
