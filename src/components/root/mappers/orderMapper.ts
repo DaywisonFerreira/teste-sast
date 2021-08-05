@@ -38,7 +38,7 @@ export class OrderMapper {
             order: erpInfo.externalOrderId,
             billingData: packageAttachment.packages,
             logisticInfo: logisticInfo,
-            statusIHUB: status,
+            status: status,
             totalShippingPrice: logisticInfo.length
                 ? logisticInfo.reduce(
                       (t, { sellingPrice }) => t + Number(sellingPrice),
@@ -51,9 +51,9 @@ export class OrderMapper {
             paymentDate,
             dispatchDate: '',
             estimateDeliveryDateDeliveryCompany: '',
-            messageIntelipost: '',
+            partnerMessage: '',
             numberVolumes: '',
-            statusIntelipost: '',
+            partnerStatus: '',
             originZipCode: '',
             square: '',
             physicalWeight: '',
