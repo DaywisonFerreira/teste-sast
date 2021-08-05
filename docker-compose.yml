@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+  ifc-freight-api-orders:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      - PROJECT_NAME
+      - NODE_ENV
+      - DEBUG_PORT
+      - SERVER_HTTP_PORT
+    volumes:
+      - ./:/app/
+    ports:
+      - '${DEBUG_PORT}:${DEBUG_PORT}'
+      - '${SERVER_HTTP_PORT}:${SERVER_HTTP_PORT}'
+    command: npm run dev
+    networks:
+      - ihub-ecosystem-network
+
+networks:
+  ihub-ecosystem-network:
+    external: true
+    name: ihub-ecosystem-network

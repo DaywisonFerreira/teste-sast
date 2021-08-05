@@ -1,0 +1,114 @@
+stages:
+  - test
+  - build
+  - tag
+  - development
+  - staging
+  - production
+
+variables:
+  DOCKER_STAGE_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+
+# ------
+#  JOBS
+# ------
+
+lint:
+  stage: test
+  image: node:14.17.0-alpine
+  script:
+    - npm ci
+    - npm run lint
+  except:
+    - tags
+
+build:
+  stage: build
+  when: manual
+  image: docker:stable
+  services:
+    - docker:dind
+  script:
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    - docker build -t ${DOCKER_STAGE_IMAGE} .
+    - docker push ${DOCKER_STAGE_IMAGE}
+  except:
+    - tags
+
+deploy development:
+  stage: development
+  variables:
+    GIT_STRATEGY: none
+    DEPLOY_CMD: 'docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    && docker pull $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME
+    && docker stop $CI_PROJECT_NAME || true
+    && docker rm $CI_PROJECT_NAME || true
+    && docker run -p ${SERVICE_PORT}:${SERVICE_PORT} --restart always --env-file ${DIST_PATH}/.env --name $CI_PROJECT_NAME -d $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME'
+  before_script:
+    - apt-get update
+    - apt-get install sshpass
+  script:
+    - 'printf "${AZURE_DEV_ENV}" > .env'
+    - 'sshpass -p "${STAGING_PASSWORD}" scp -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ./.env ${USER}@${AZURE_DEV_HOST}:${DIST_PATH}'
+    - 'sshpass -p ${STAGING_PASSWORD} ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ${USER}@${AZURE_DEV_HOST} "${DEPLOY_CMD}"'
+  except:
+    - tags
+  when: manual
+
+deploy staging:
+  stage: staging
+  image: $CI_REGISTRY/infralabs/ihub/docker/ihub-vpn:master
+  variables:
+    GIT_STRATEGY: none
+    DEPLOY_CMD: 'docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    && docker pull $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME
+    && docker stop $CI_PROJECT_NAME || true
+    && docker rm $CI_PROJECT_NAME || true
+    && docker run -p ${SERVICE_PORT}:${SERVICE_PORT} --restart always --env-file ${DIST_PATH}/.env --name $CI_PROJECT_NAME -d $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME'
+  script:
+    - /entrypoint.sh &
+    - sleep 10
+    - 'printf "${STAGING_ENV}" > .env'
+    - 'sshpass -p "${STAGING_PASSWORD}" scp -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ./.env ${USER}@${STAGING_HOST}:${DIST_PATH}'
+    - 'sshpass -p ${STAGING_PASSWORD} ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ${USER}@${STAGING_HOST} "${DEPLOY_CMD}"'
+  except:
+    - tags
+  when: manual
+
+tag:
+  stage: tag
+  image: docker:stable
+  services:
+    - docker:dind
+  variables:
+    GIT_STRATEGY: none
+    CI_REGISTRY_RELEASE: $CI_REGISTRY_IMAGE:release-$CI_COMMIT_REF_NAME
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull $CI_REGISTRY_RELEASE
+    - docker tag $CI_REGISTRY_RELEASE $DOCKER_STAGE_IMAGE
+    - docker push $DOCKER_STAGE_IMAGE
+  only:
+    - tags
+
+deploy production:
+  stage: production
+  image: $CI_REGISTRY/infralabs/ihub/docker/ihub-vpn:master
+  variables:
+    GIT_STRATEGY: none
+    DEPLOY_CMD: 'docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    && docker pull $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME
+    && docker stop $CI_PROJECT_NAME || true
+    && docker rm $CI_PROJECT_NAME || true
+    && docker run -p ${SERVICE_PORT}:${SERVICE_PORT} --restart always --env-file ${DIST_PATH}/.env --name $CI_PROJECT_NAME -d $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_COMMIT_REF_NAME'
+    MAX_CPUS_CMD: 'docker exec $CI_PROJECT_NAME pm2 scale app ${MAX_CPUS}'
+  script:
+    - /entrypoint.sh &
+    - sleep 10
+    - 'printf "${PRODUCTION_ENV}" > .env'
+    - 'sshpass -p "${PRODUCTION_PASSWORD}" scp -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ./.env ${USER}@${PRODUCTION_HOST}:${DIST_PATH}'
+    - 'sshpass -p ${PRODUCTION_PASSWORD} ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ${USER}@${PRODUCTION_HOST} "${DEPLOY_CMD}"'
+    - sleep 10
+    - 'sshpass -p ${PRODUCTION_PASSWORD} ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -o PubkeyAuthentication=no ${USER}@${PRODUCTION_HOST} "${MAX_CPUS_CMD}"'
+  only:
+    - tags

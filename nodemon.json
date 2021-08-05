@@ -1,0 +1,11 @@
+{
+    "restartable": "rs",
+    "ignore": ["node_modules/**/node_modules", "test/*"],
+    "verbose": false,
+    "watch": ["dist/*"],
+    "env": {
+        "NODE_ENV": "development"
+    },
+    "ext": "js,json",
+    "delay": "2500"
+}

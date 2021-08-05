@@ -1,0 +1,50 @@
+{
+    "name": "ifc-freight-api-orders",
+    "version": "1.2.2",
+    "description": "ifc freight api orders - Service communication via rest",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "start": "pm2 start --no-daemon dist/index.js -i max",
+        "start:watch": "nodemon --legacy-watch --inspect=0.0.0.0:${DEBUG_PORT} dist",
+        "build": "tsc",
+        "build:watch": "tsc -w --skipLibCheck",
+        "dev": "concurrently 'npm run build:watch' 'npm run start:watch'",
+        "lint": "eslint src/ --ext .ts,.tsx",
+        "lint:fix": "npm run lint -- --fix",
+        "test": "tsc && NODE_ENV=test jest --runInBand",
+        "test:watch": "tsc --skipLibCheck && NODE_ENV=test jest --runInBand --watch"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@gitlab.com:infralabs/cxaas/sourcecode/freight/ifc.freight.api.orders.git"
+    },
+    "keywords": [
+        "ihub",
+        "freight",
+        "orders"
+    ],
+    "author": "Emerson Brito <emerson.brito@infracommerce.com.br>",
+    "license": "ISC",
+    "dependencies": {
+        "@infralabs/infra-logger": "^1.4.1",
+        "express-session": "^1.17.2",
+        "ihub-framework-ts": "^1.9.7",
+        "keycloak-connect": "^14.0.0",
+        "module-alias": "^2.2.2",
+        "typescript": "^4.2.4"
+    },
+    "devDependencies": {
+        "@types/jest": "^26.0.24",
+        "@typescript-eslint/eslint-plugin": "^4.14.1",
+        "@types/express-session": "^1.17.4",
+        "@typescript-eslint/parser": "^4.14.1",
+        "concurrently": "^5.3.0",
+        "eslint": "^7.18.0",
+        "jest": "^27.0.4",
+        "nodemon": "^2.0.7",
+        "prettier": "^2.3.2",
+        "ts-jest": "^27.0.3",
+        "ts-node": "^10.0.0"
+    }
+}
