@@ -3,6 +3,10 @@ import { StoreRepository } from '../repositories/storeRepository';
 import { OrderRepository } from '../repositories/orderRepository';
 
 import { OrderMapper } from '../mappers/orderMapper';
+import { OrderService } from '../services/orderService';
+import { XlsxMapper } from '../mappers/xlsxMapper';
+import { FileService } from '../services/fileService';
+import { EmailService } from '../services/emailService';
 
 const orderRepository = new OrderRepository();
 
@@ -71,7 +75,49 @@ export async function executeOrderNotification(payload: any, done: Function) {
     }
 }
 
+async function handleExportOrders(payload: any, done: Function) {
+    let file = {
+        path:'',
+        fileName:''
+    }
+
+    try {
+        const { email, filter } = payload;
+
+        const orderService = new OrderService();
+
+        const dataToFormat = await orderService.exportData(filter, { lean: true });
+
+        const dataFormated = XlsxMapper.mapOrderToXlsx(dataToFormat)
+
+        file = FileService.createXlsxLocally(dataFormated)
+
+        const emailSent = await EmailService.send({
+            from: 'infracommerce.notify@infracommerce.com.br',
+            to: email,
+            attachments: [file],
+            subject: "Status_Entregas",
+            body: {
+                text: "Please do not reply this e-mail.",
+                html: "<b>Please do not reply this e-mail.</b>"
+            }
+        });
+
+        logger.debug('Export orders', 'iht.tasks.handleExportOrders', { emailSent });
+    } catch (error) {
+        logger.error(error.message, 'iht.tasks.exportData.Orders', { stack: error.stack });
+    } finally {
+
+        if(FileService.existsLocally(file.path)){
+            FileService.deleteFileLocally(file.path)
+        }
+
+        done()
+    }
+}
+
 export default {
     processReloadStore,
     executeOrderNotification,
+    handleExportOrders
 };

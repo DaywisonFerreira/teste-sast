@@ -1,6 +1,6 @@
 import { common, errors, models } from 'ihub-framework-ts';
 import { ObjectId } from 'mongodb';
-import { startOfDay, endOfDay, differenceInCalendarMonths } from 'date-fns';
+import { startOfDay, endOfDay, differenceInCalendarMonths, isBefore } from 'date-fns';
 // Interfaces
 import { Order } from '../interfaces/Order';
 
@@ -77,7 +77,7 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         if (orderCreatedAtFrom && orderCreatedAtTo) {
             const dateFrom = new Date(orderCreatedAtFrom);
             const dateTo = new Date(orderCreatedAtTo);
-            this.checkDateDiference(dateFrom, dateTo);
+            this.validateRangeOfDates(dateFrom, dateTo);
             conditions['orderCreatedAt'] = {
                 $gte: startOfDay(dateFrom),
                 $lte: endOfDay(dateTo),
@@ -94,7 +94,7 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         if (orderUpdatedAtFrom && orderUpdatedAtTo) {
             const dateFrom = new Date(orderUpdatedAtFrom);
             const dateTo = new Date(orderUpdatedAtTo);
-            this.checkDateDiference(dateFrom, dateTo);
+            this.validateRangeOfDates(dateFrom, dateTo);
             conditions['orderUpdatedAt'] = {
                 $gte: startOfDay(dateFrom),
                 $lte: endOfDay(dateTo),
@@ -117,9 +117,40 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         );
     }
 
-    private checkDateDiference(dateFrom: Date, dateTo: Date) {
-        if (differenceInCalendarMonths(dateTo, dateFrom) !== 1) {
+    async exportData(
+        {
+            orderCreatedAtFrom,
+            orderCreatedAtTo,
+        }: Partial<QueryParamsFilter>,
+        options: any,
+    ){
+
+        const conditions: any = {};
+
+        if (orderCreatedAtFrom && orderCreatedAtTo) {
+            const dateFrom = new Date(orderCreatedAtFrom);
+            const dateTo = new Date(orderCreatedAtTo);
+            this.validateRangeOfDates(dateFrom, dateTo);
+            conditions['orderCreatedAt'] = {
+                $gte: startOfDay(dateFrom),
+                $lte: endOfDay(dateTo),
+            };
+        }
+
+        return this.repository.find(
+            conditions,
+            {},
+            options
+        );
+    }
+
+    public validateRangeOfDates(dateFrom: Date, dateTo: Date) {
+        if (differenceInCalendarMonths(dateTo, dateFrom) > 1) {
             throw new BadRequestError('Date difference greater than 1 month');
+        }
+
+        if (isBefore(dateTo, dateFrom)) {
+            throw new BadRequestError('Invalid range of dates');
         }
     }
 }
