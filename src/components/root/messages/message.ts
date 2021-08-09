@@ -19,4 +19,11 @@ messages.push({
     type: 'fanout',
 });
 
+messages.push({
+	exchange: 'exportOrders',
+	routeKey: 'exportOrders',
+	queue: 'export_orders_q',
+	action: task.handleExportOrders,
+});
+
 export = messages;

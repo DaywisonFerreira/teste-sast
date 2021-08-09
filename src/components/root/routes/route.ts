@@ -3,6 +3,7 @@ import { RequestPrivate, Response, Route } from 'ihub-framework-ts';
 
 import postIntelipost from '../controllers/postIntelipost';
 import getOrders from '../controllers/getOrders';
+import exportOrders from '../controllers/exportOrders';
 
 const routes: Array<Route> = [];
 
@@ -27,6 +28,13 @@ routes.push({
     path: '/',
     // middlewares: keycloakMiddleware,
     controller: getOrders,
+});
+
+routes.push({
+    method: 'post',
+    path: '/orders/export',
+    // middlewares: keyCloakMiddleware,
+    controller: exportOrders,
 });
 
 export = routes;
