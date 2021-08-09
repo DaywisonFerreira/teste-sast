@@ -48,7 +48,12 @@ export class Order extends common.Types.BaseEntity {
         'orderCreatedAt',
         'receiverName',
         'logisticInfo.deliveryCompany',
+        'logisticInfo.shippingEstimateDate',
         'orderUpdatedAt',
+        'orderSale', // pedido VTEX
+        'order', //pedido erp,
+        'status', //status da entrega
+        'billingData.invoiceValue', // valor NF
     ];
 }
 

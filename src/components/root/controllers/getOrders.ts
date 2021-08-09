@@ -12,6 +12,9 @@ import { QueryParamsFilter, OrderService } from '../services/orderService';
 const SORTABLE_FIELDS = [
     'orderCreatedAt', // default
     'orderId',
+    'orderSale',
+    'order',
+    'status',
     'receiverName',
     'deliveryCompany',
     'orderUpdatedAt',
@@ -32,6 +35,7 @@ export default async (req: RequestPrivate, res: Response): Promise<void> => {
             deliveryCompany, //transportadora
             orderUpdatedAtFrom, //data do status
             orderUpdatedAtTo,
+            status, // status Ihub
         } = req.query;
 
         const paginationParams = PaginationHelper.createPaginationParams(
@@ -47,6 +51,7 @@ export default async (req: RequestPrivate, res: Response): Promise<void> => {
             deliveryCompany,
             orderUpdatedAtFrom,
             orderUpdatedAtTo,
+            status,
         } as QueryParamsFilter;
 
         const fields = Order.getPublicFields.reduce((current: any, item) => {

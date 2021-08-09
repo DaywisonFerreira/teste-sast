@@ -19,6 +19,7 @@ export interface QueryParamsFilter {
     deliveryCompany: string;
     orderUpdatedAtFrom: string;
     orderUpdatedAtTo: string;
+    status: string;
 }
 
 export class OrderService extends BaseService<Order, OrderRepository> {
@@ -34,6 +35,7 @@ export class OrderService extends BaseService<Order, OrderRepository> {
             orderCreatedAtTo,
             orderUpdatedAtFrom,
             orderUpdatedAtTo,
+            status,
         }: Partial<QueryParamsFilter>,
         fields: any,
         options: any,
@@ -44,6 +46,12 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         if (receiverName) {
             conditions['receiverName'] = {
                 $regex: `.*${receiverName}.*`,
+                $options: 'i',
+            };
+        }
+        if (status) {
+            conditions['status'] = {
+                $regex: `.*${status}.*`,
                 $options: 'i',
             };
         }
