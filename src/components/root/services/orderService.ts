@@ -1,6 +1,6 @@
 import { common, errors } from 'ihub-framework-ts';
 import { ObjectId } from 'mongodb';
-import { differenceInCalendarMonths, isBefore } from 'date-fns';
+import { differenceInDays, isBefore } from 'date-fns';
 // Interfaces
 import { Order } from '../interfaces/Order';
 
@@ -155,7 +155,8 @@ export class OrderService extends BaseService<Order, OrderRepository> {
     }
 
     public validateRangeOfDates(dateFrom: Date, dateTo: Date) {
-        if (differenceInCalendarMonths(dateTo, dateFrom) > 1) {
+        console.log('differenceInDays', differenceInDays(dateTo, dateFrom), dateTo, dateFrom)
+        if (differenceInDays(dateTo, dateFrom) > 31) {
             throw new BadRequestError('Date difference greater than 1 month');
         }
 
