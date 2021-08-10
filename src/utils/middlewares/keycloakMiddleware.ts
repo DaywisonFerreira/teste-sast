@@ -1,6 +1,6 @@
-import { RouteMiddleware, models, plugins } from 'ihub-framework-ts';
+import { RouteMiddleware } from 'ihub-framework-ts';
 
-import { initKeycloak } from '../../../config/keycloak-config';
+import { initKeycloak } from '../../configs/keycloak-config';
 const keycloak = initKeycloak();
 const keyCloakMiddleware: Array<RouteMiddleware | any> = [];
 

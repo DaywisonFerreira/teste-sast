@@ -6,8 +6,6 @@ import { OrderService, QueryParamsFilter,  } from '../services/orderService';
 
 export = async (req: RequestPrivate, res: Response) => {
     try {
-
-
         const { email } = req.body
 
         const orderService = new OrderService();
