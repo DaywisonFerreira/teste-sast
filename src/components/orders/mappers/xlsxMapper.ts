@@ -2,7 +2,6 @@ interface IReceiverPhones{
     phone: string,
     type: string
 }
-
 export class XlsxMapper{
     static mapOrderToXlsx(xlsxData: unknown[]){
         return xlsxData.map((data:any) => {

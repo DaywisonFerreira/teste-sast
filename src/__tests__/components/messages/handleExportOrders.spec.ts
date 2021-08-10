@@ -1,7 +1,5 @@
 import { mocked } from 'ts-jest/utils';
 
-import { logger } from 'ihub-framework-ts';
-
 import HandleExportOrders from '../../../components/orders/messages/handleExportOrders';
 import { EmailService } from '../../../common/services/emailService';
 import { FileService } from '../../../common/services/fileService';
@@ -36,7 +34,7 @@ describe('Test Export Orders Consumer', () => {
         const spyEmailService = jest.spyOn(MockedEmailService, 'send');
         const spyFileService = jest.spyOn(MockedFileService, 'createXlsxLocally');
 
-        const result = await new HandleExportOrders(logger).execute(payload, () => true)
+        const result = await new HandleExportOrders().execute(payload, () => true)
 
         expect(spyEmailService).toHaveBeenCalled()
         expect(spyFileService).toHaveBeenCalled()

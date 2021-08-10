@@ -1,7 +1,5 @@
 import { mocked } from 'ts-jest/utils';
 
-import { logger } from 'ihub-framework-ts';
-
 import HandleOrderNotification from '../../../components/orders/messages/handleOrderNotification';
 import { OrderMapper } from '../../../components/orders/mappers/orderMapper';
 
@@ -19,7 +17,7 @@ describe('Test Order Notification Consumer', () => {
         const payload = await import('../../mocks/orderNotification.json')
 
         const spyOrderMapper = jest.spyOn(MockedOrderMapper, 'mapMessageToOrder');
-        const result = await new HandleOrderNotification(logger).execute(payload, () => true)
+        const result = await new HandleOrderNotification().execute(payload, () => true)
 
         expect(spyOrderMapper).toHaveBeenCalled()
         expect(result).toBeUndefined()

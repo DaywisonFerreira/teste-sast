@@ -3,10 +3,10 @@ import { EmailService } from '../../../common/services/emailService';
 import { FileService } from '../../../common/services/fileService';
 import { OrderService } from '../services/orderService';
 
-import { IhubLogger } from './interfaces/IhubLogger';
+import { LogService } from '@infralabs/infra-logger';
 
 export default class HandleExportOrders {
-    constructor(private logger: IhubLogger) {}
+    constructor() {}
 
     async execute(payload: any, done: Function): Promise<void> {
         let file = {
@@ -14,7 +14,11 @@ export default class HandleExportOrders {
             fileName:''
         }
 
+        const logger = new LogService();
+
         try {
+            logger.startAt();
+
             const { email, filter } = payload;
 
             const orderService = new OrderService();
@@ -25,7 +29,7 @@ export default class HandleExportOrders {
 
             file = FileService.createXlsxLocally(dataFormated)
 
-            const emailSent = await EmailService.send({
+            await EmailService.send({
                 from: 'infracommerce.notify@infracommerce.com.br',
                 to: email,
                 attachments: [file],
@@ -35,10 +39,10 @@ export default class HandleExportOrders {
                     html: "<b>Please do not reply this e-mail.</b>"
                 }
             });
-
-            this.logger.debug('Export orders', 'iht.tasks.handleExportOrders', { emailSent });
         } catch (error) {
-            this.logger.error(error.message, 'iht.tasks.handleExportOrders', { stack: error.stack });
+            logger.error(error);
+            logger.endAt();
+            await logger.sendLog();
         } finally {
 
             if(FileService.existsLocally(file.path)){

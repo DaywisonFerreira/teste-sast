@@ -1,12 +1,21 @@
 import { RequestPrivate, Response, helpers, tasks } from 'ihub-framework-ts';
+import { LogService } from '@infralabs/infra-logger';
+
+import JWT from '../../../utils/JwtUtils';
 
 const { HttpHelper } = helpers;
 
 import { OrderService, QueryParamsFilter,  } from '../services/orderService';
 
 export = async (req: RequestPrivate, res: Response) => {
+    const logger = new LogService();
+
     try {
-        const { email } = req.body
+        logger.startAt();
+
+        const { authorization } = req.headers
+
+        const { email } = JWT.decode(authorization)
 
         const orderService = new OrderService();
 
@@ -33,6 +42,9 @@ export = async (req: RequestPrivate, res: Response) => {
 
         return res.json({ message: `Export request queued, will sent to: ${email}`});
     } catch (error) {
+        logger.error(error);
+        logger.endAt();
+        await logger.sendLog();
         HttpHelper.fail(res, error);
     }
 };
