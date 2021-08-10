@@ -3,13 +3,12 @@ import { OrderRepository } from '../repositories/orderRepository';
 import { IhubLogger } from './interfaces/IhubLogger';
 
 
-export class HandleOrderNotification {
+export default class HandleOrderNotification {
     constructor(private logger: IhubLogger) {}
 
     async execute(payload: any, done: Function): Promise<void> {
         try {
             const orderRepository = new OrderRepository();
-
             if (payload.status === 'dispatched' || payload.status === 'delivered') {
                 const orderToSave = OrderMapper.mapMessageToOrder(payload);
                 this.logger.debug('Create order', 'iht.tasks.executeOrder', orderToSave);

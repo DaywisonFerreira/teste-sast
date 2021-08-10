@@ -5,7 +5,7 @@ import { OrderService } from '../services/orderService';
 
 import { IhubLogger } from './interfaces/IhubLogger';
 
-export class HandleExportOrders {
+export default class HandleExportOrders {
     constructor(private logger: IhubLogger) {}
 
     async execute(payload: any, done: Function): Promise<void> {

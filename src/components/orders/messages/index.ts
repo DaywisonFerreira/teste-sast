@@ -1,6 +1,6 @@
 import { Task, logger } from 'ihub-framework-ts';
-import { HandleExportOrders } from './handleExportOrders';
-import { HandleOrderNotification } from './handleOrderNotification';
+import HandleExportOrders from './handleExportOrders';
+import HandleOrderNotification from './handleOrderNotification';
 
 export default [
     {

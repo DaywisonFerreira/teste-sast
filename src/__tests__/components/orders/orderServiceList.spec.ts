@@ -1,9 +1,10 @@
 import { errors, models, common } from 'ihub-framework-ts';
 
-import { Order } from '../../../components/root/interfaces/Order';
+import { Order } from '../../../components/orders/interfaces/Order';
 
-import { OrderService } from '../../../components/root/services/orderService';
+import { OrderService } from '../../../components/orders/services/orderService';
 import { orderNew } from './utils.jest';
+
 const SORTABLE_FIELDS = [
     'orderCreatedAt', // default
     'orderId',

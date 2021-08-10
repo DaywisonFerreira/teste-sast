@@ -1,5 +1,4 @@
 import { Order } from '../interfaces/Order';
-
 export class OrderMapper {
     static mapMessageToOrder(payload: Order) {
         const {
