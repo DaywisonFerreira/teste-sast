@@ -16,7 +16,7 @@ export default [
     {
         method: 'get',
         path: '/',
-        // middlewares: keycloakMiddleware,
+        middlewares: keyCloakMiddleware,
         controller: getOrders,
     },
 
