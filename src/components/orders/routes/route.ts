@@ -19,7 +19,7 @@ export default [
         controller: getOrders,
     },
     {
-        method: 'post',
+        method: 'get',
         path: '/export',
         middlewares: keyCloakMiddleware,
         controller: exportOrders,

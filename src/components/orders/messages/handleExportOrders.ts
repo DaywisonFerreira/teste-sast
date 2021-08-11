@@ -30,7 +30,7 @@ export default class HandleExportOrders {
             file = FileService.createXlsxLocally(dataFormated)
 
             await EmailService.send({
-                from: 'infracommerce.notify@infracommerce.com.br',
+                from: 'no-reply@infracommerce.com.br',
                 to: email,
                 attachments: [file],
                 subject: "Status_Entregas",

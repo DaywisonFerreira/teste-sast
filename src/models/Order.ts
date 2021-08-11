@@ -101,6 +101,10 @@ const OrderSchema = new Schema({
         type: String,
         required: false
     },
+    partnerUpdatedAt:{
+        type: String,
+        required: false
+    },
     originZipCode: {
         type: String,
         required: false

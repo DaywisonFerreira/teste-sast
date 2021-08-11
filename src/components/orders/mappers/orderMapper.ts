@@ -60,6 +60,7 @@ export class OrderMapper {
             lastOccurrenceMicro: '',
             lastOccurrenceMessage: '',
             quantityOccurrences: '',
+            partnerUpdatedAt:'',
         };
     }
 }
