@@ -39,6 +39,8 @@ export = async (req: Request, res: Response) => {
                 payload.history.shipment_volume_micro_state.default_name,
             lastOccurrenceMessage:
                 payload.history.shipment_volume_micro_state.description,
+            partnerStatus: payload.history.shipment_order_volume_state_localized,
+            partnerUpdatedAt: payload.history.event_date_iso
         };
         await orderRepository.findOneAndUpdate(
             { order: payload.order_number },
