@@ -1,4 +1,3 @@
-import { uniqueId } from 'lodash';
 export function orderNew(orderId: string, receiverName?: string): any {
     return {
         id: '60f6c2ea273fbe4420e8133a',

@@ -1,4 +1,4 @@
-import postIntelipost from '../../../components/root/controllers/postIntelipost';
+import postIntelipost from '../../../components/orders/controllers/postIntelipost';
 import payloadIntelipost from '../../mocks/payloadIntelipost.json';
 
 const token = ' dGVzdGU6dGVzdGU=';

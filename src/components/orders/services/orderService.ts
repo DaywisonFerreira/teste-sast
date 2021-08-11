@@ -155,7 +155,6 @@ export class OrderService extends BaseService<Order, OrderRepository> {
     }
 
     public validateRangeOfDates(dateFrom: Date, dateTo: Date) {
-        console.log('differenceInDays', differenceInDays(dateTo, dateFrom), dateTo, dateFrom)
         if (differenceInDays(dateTo, dateFrom) > 31) {
             throw new BadRequestError('Date difference greater than 1 month');
         }
