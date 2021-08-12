@@ -9,6 +9,22 @@ const OrderSchema = new Schema({
         index: true,
         required: true
     },
+    storeCode: {
+        type: String,
+        required: true
+    },
+    storeId: {
+        type: String,
+        required: true
+    },
+    sellerCode: {
+        type: String,
+        required: false
+    },
+    sellerId: {
+        type: String,
+        required: false
+    },
     internalOrderId: {
         type: String,
         required: true

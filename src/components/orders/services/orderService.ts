@@ -137,16 +137,6 @@ export class OrderService extends BaseService<Order, OrderRepository> {
             };
         }
 
-        if (orderCreatedAtFrom && orderCreatedAtTo) {
-            const dateFrom = new Date(`${orderCreatedAtFrom} 00:00:00Z`);
-            const dateTo = new Date(`${orderCreatedAtTo} 23:59:59Z`);
-            this.validateRangeOfDates(dateFrom, dateTo);
-            conditions['orderCreatedAt'] = {
-                $gte: dateFrom,
-                $lte: dateTo,
-            };
-        }
-
         return this.repository.find(
             conditions,
             {},
