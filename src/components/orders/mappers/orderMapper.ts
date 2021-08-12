@@ -1,5 +1,7 @@
 import { Order } from '../interfaces/Order';
 export class OrderMapper {
+//     "storeCode": "IFC",
+//    "storeId":  "5bd10dd619c52b0027ad29a5",
     static mapMessageToOrder(payload: Order) {
         const {
             _id: orderId,
@@ -15,6 +17,10 @@ export class OrderMapper {
             internalOrderId,
             status,
             affiliateId,
+            storeCode,
+            storeId,
+            sellerCode,
+            sellerId,
         } = payload;
         const { date: paymentDate } = history.find(
             ({ status }) => status === 'approved-in-origin'
@@ -25,6 +31,10 @@ export class OrderMapper {
 
         return {
             orderId,
+            storeCode,
+            storeId,
+            sellerCode,
+            sellerId,
             internalOrderId,
             receiverName: deliveryAddress.receiverName,
             receiverEmail: customer.email,
