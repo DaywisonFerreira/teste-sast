@@ -6,7 +6,6 @@ import { Order } from '../interfaces/Order';
 
 // Services
 import { OrderRepository } from '../repositories/orderRepository';
-import { isValidObjectId } from '../validations';
 import { BaseService } from '../../../common/services/baseService';
 
 const { BadRequestError } = errors;
@@ -68,10 +67,23 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         }
 
         if (orderId) {
-            if (!isValidObjectId(orderId)) {
-                throw new BadRequestError('Invalid Id');
-            }
-            conditions['orderId'] = new ObjectId(orderId);
+            // orderSale -> pedido VTEX
+            // order -> pedido erp
+            conditions.$or = [
+                {
+                    order: {
+                        $regex: `.*${orderId}.*`,
+                        $options: 'i',
+                    },
+                },
+                {
+                    orderSale: {
+                        $regex: `.*${orderId}.*`,
+                        $options: 'i',
+                    },
+                },
+            ];
+
         }
 
         if (orderCreatedAtFrom && orderCreatedAtTo) {
@@ -123,7 +135,7 @@ export class OrderService extends BaseService<Order, OrderRepository> {
             orderCreatedAtTo,
         }: Partial<QueryParamsFilter>,
         options: any,
-    ){
+    ) {
 
         const conditions: any = {};
 
