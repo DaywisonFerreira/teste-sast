@@ -11,12 +11,13 @@ import { QueryParamsFilter, OrderService } from '../services/orderService';
 
 const SORTABLE_FIELDS = [
     'orderCreatedAt', // default
-    'orderId',
     'orderSale',
     'order',
     'status',
     'receiverName',
-    'deliveryCompany',
+    'logisticInfo.deliveryCompany',
+    'billingData.invoiceValue',
+    'logisticInfo.shippingEstimateDate',
     'orderUpdatedAt',
 ];
 
@@ -28,7 +29,7 @@ export default async (req: RequestPrivate, res: Response): Promise<void> => {
     try {
         logger.startAt();
         const {
-            orderId, //Número do pedido
+            orderId, //Número do pedido ERP/VTEX
             receiverName, // nome do cliente
             orderCreatedAtFrom, //data da compra
             orderCreatedAtTo,

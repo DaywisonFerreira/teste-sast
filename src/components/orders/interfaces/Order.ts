@@ -54,6 +54,7 @@ export class Order extends common.Types.BaseEntity {
         'order', //pedido erp,
         'status', //status da entrega
         'billingData.invoiceValue', // valor NF
+        'billingData.trackingUrl',
     ];
 }
 
