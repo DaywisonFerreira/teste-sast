@@ -1,4 +1,4 @@
-export function orderNew(orderId: string, receiverName?: string): any {
+export function orderNew(orderId: string, receiverName?: string, orderSale?: string): any {
     return {
         id: '60f6c2ea273fbe4420e8133a',
         receiverPhones: [{ phone: '+551155645553', type: 'residential' }],
@@ -49,13 +49,15 @@ export function orderNew(orderId: string, receiverName?: string): any {
             },
         ],
         orderId, //uniqueId(),
+        storeId: 'asdasd',
+        storeCode: 'asdasd',
         internalOrderId: '211629880',
         receiverName: receiverName || 'Teste Teste',
         receiverEmail: 'cb3047054a26455e8a021d9b0c0ae4b2@ct.vtex.com.br',
         deliveryCity: 'São Paulo',
         deliveryState: 'SP',
         deliveryZipCode: '04361-130',
-        orderSale: 'TCM501',
+        orderSale: orderSale || 'TCM501',
         order: 'IHUB2-211629880',
         status: 'delivered',
         totalShippingPrice: 0,

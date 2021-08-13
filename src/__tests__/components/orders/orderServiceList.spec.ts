@@ -27,6 +27,7 @@ const fields = Order.getPublicFields.reduce((current: any, item) => {
 
 const projectionFields = { ...fields, _id: 0 };
 const orderId = '60ecb4d5602b71002b3597aa';
+const orderSale = 'TCM502'
 const receiverName = 'José Silva';
 const deliveryCompany = 'JADLOG';
 const { BadRequestError } = errors;
@@ -41,7 +42,7 @@ describe('Unit Test - Order Service', () => {
         const { Order } = models;
         await Promise.all([Order.deleteMany({})]);
         await Order.insertMany([
-            orderNew(orderId, receiverName),
+            orderNew(orderId, receiverName, orderSale),
             orderNew('60ecb4d5602b71002b3597ab'),
             orderNew('60ecb4d5602b71002b3597ac'),
             orderNew('60ecb4d5602b71002b3597ad'),
@@ -66,23 +67,10 @@ describe('Unit Test - Order Service', () => {
             );
         });
 
-        it('should validate if orderId is valid objectId', async () => {
-            const orderService = new OrderService();
-            const filter = { orderId: 'ashkdjahsdjksadsadshdsadsad' };
-
-            await expect(async () => {
-                await orderService.getList(
-                    filter,
-                    projectionFields,
-                    { lean: true },
-                    paginationParams
-                );
-            }).rejects.toThrow(new BadRequestError('Invalid Id'));
-        });
 
         it('should list orders by orderId', async () => {
             const orderService = new OrderService();
-            const filter = { orderId };
+            const filter = { orderId: orderSale };
             const paginatedResponse = await orderService.getList(
                 filter,
                 projectionFields,
