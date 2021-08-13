@@ -57,8 +57,8 @@ describe('Unit Test - Courier Status and Orders ', () => {
 
         it('should create courier status and Orders: internal error', async () => {
             const error = {
-                code: 'tracking.get.courier.error',
-                error: "Cannot read property 'invoice_number' of undefined",
+                code: 'tracking.get.order.error',
+                error: "Cannot read property 'created_iso' of undefined",
                 status: 500,
             };
             const postIntelipostResponse = await postIntelipost(
