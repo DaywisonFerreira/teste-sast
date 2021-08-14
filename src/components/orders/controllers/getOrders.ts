@@ -22,7 +22,7 @@ const SORTABLE_FIELDS = [
 ];
 
 /**
- * GET /trackings/orders
+ * GET /orders
  */
 export default async (req: RequestPrivate, res: Response): Promise<void> => {
     const logger = new LogService();
