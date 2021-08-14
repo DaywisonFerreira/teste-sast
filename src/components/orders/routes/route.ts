@@ -2,6 +2,7 @@ import { RequestPrivate, Response, Route } from 'ihub-framework-ts';
 
 import postIntelipost from '../controllers/postIntelipost';
 import getOrders from '../controllers/getOrders';
+import getDeliveryCompanies from '../controllers/getDeliveryCompanies';
 import exportOrders from '../controllers/exportOrders';
 import keyCloakMiddleware from '../../../utils/middlewares/keycloakMiddleware';
 
@@ -17,6 +18,13 @@ export default [
         path: '/',
         // middlewares: keycloakMiddleware,
         controller: getOrders,
+    },
+
+    {
+        method: 'get',
+        path: '/delivery-companies',
+        // middlewares: keycloakMiddleware,
+        controller: getDeliveryCompanies,
     },
     {
         method: 'get',
