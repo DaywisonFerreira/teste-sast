@@ -29,7 +29,7 @@ const projectionFields = { ...fields, _id: 0 };
 const orderId = '60ecb4d5602b71002b3597aa';
 const orderSale = 'TCM502'
 const receiverName = 'José Silva';
-const deliveryCompany = 'JADLOG';
+const deliveryCompany2 = 'Loggi';
 const { BadRequestError } = errors;
 
 describe('Unit Test - Order Service', () => {
@@ -42,7 +42,7 @@ describe('Unit Test - Order Service', () => {
         const { Order } = models;
         await Promise.all([Order.deleteMany({})]);
         await Order.insertMany([
-            orderNew(orderId, receiverName, orderSale),
+            orderNew(orderId, receiverName, orderSale, deliveryCompany2),
             orderNew('60ecb4d5602b71002b3597ab'),
             orderNew('60ecb4d5602b71002b3597ac'),
             orderNew('60ecb4d5602b71002b3597ad'),
@@ -52,7 +52,7 @@ describe('Unit Test - Order Service', () => {
     describe('List Orders', () => {
         it('should list orders by receiver name and delivery Company', async () => {
             const orderService = new OrderService();
-            const filter = { receiverName: 'José', deliveryCompany: 'JADL' };
+            const filter = { receiverName: 'José', deliveryCompany: 'Logg' };
             const paginatedResponse = await orderService.getList(
                 filter,
                 projectionFields,
@@ -63,7 +63,7 @@ describe('Unit Test - Order Service', () => {
             expect(paginatedResponse.data.length).toBe(1);
             expect(aux[0].receiverName).toBe(receiverName);
             expect(aux[0].logisticInfo[0].deliveryCompany).toBe(
-                deliveryCompany
+                deliveryCompany2
             );
         });
 
@@ -81,6 +81,28 @@ describe('Unit Test - Order Service', () => {
 
             expect(paginatedResponse.data.length).toBe(1);
             expect(String(aux[0].orderId)).toBe(orderId);
+        });
+
+        it('should list orders by status', async () => {
+            const status = 'dispatched'
+            const { Order } = models;
+            const order = orderNew('60ecb4d5602b71002b3597ae');
+            Object.assign(order, {
+                status
+            });
+            await Order.create(order);
+            const orderService = new OrderService();
+            const filter = { status };
+            const paginatedResponse = await orderService.getList(
+                filter,
+                projectionFields,
+                { lean: true },
+                paginationParams
+            );
+            const aux = paginatedResponse.data as any;
+
+            expect(paginatedResponse.data.length).toBe(1);
+            expect(String(aux[0].status)).toBe(status);
         });
 
         it('should list orders by orderCreatedAtFrom and orderCreatedAtTo', async () => {
@@ -126,6 +148,24 @@ describe('Unit Test - Order Service', () => {
             );
 
             expect(paginatedResponse.data.length).toBe(1);
+        });
+
+        it('should get error list orders by orderCreatedAtFrom and orderCreatedAtTo', async () => {
+            const error = 'Invalid range of dates'
+            const orderService = new OrderService();
+            const filter = {
+                orderCreatedAtFrom: '2020-07-01',
+                orderCreatedAtTo: '2020-05-01',
+            };
+
+            await expect(async () => {
+                await orderService.getList(
+                    filter,
+                    projectionFields,
+                    { lean: true },
+                    paginationParams
+                );
+            }).rejects.toThrow(new BadRequestError(error));
         });
 
         it('should should validate orderCreatedAtFrom and orderCreatedAtTo', async () => {
@@ -198,7 +238,7 @@ describe('Unit Test - Order Service', () => {
             expect(paginatedResponse.data.length).toBe(1);
         });
 
-        it('should should validate orderUpdatedAtFrom and orderUpdatedAtTo', async () => {
+        it('should validate orderUpdatedAtFrom and orderUpdatedAtTo', async () => {
             const error = 'Date difference greater than 1 month';
             const { Order } = models;
             const order = orderNew('60ecb4d5602b71002b3597ae');
@@ -222,5 +262,14 @@ describe('Unit Test - Order Service', () => {
                 );
             }).rejects.toThrow(new BadRequestError(error));
         });
+
+        it('should list delivery companies', async () => {
+            const orderService = new OrderService();
+
+            const list = await orderService.getDeliveryCompanies();
+
+            expect(list.length).toBe(2);
+        });
+
     });
 });

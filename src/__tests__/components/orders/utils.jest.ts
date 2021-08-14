@@ -1,4 +1,4 @@
-export function orderNew(orderId: string, receiverName?: string, orderSale?: string): any {
+export function orderNew(orderId: string, receiverName?: string, orderSale?: string, deliveryCompany?: string): any {
     return {
         id: '60f6c2ea273fbe4420e8133a',
         receiverPhones: [{ phone: '+551155645553', type: 'residential' }],
@@ -41,7 +41,7 @@ export function orderNew(orderId: string, receiverName?: string, orderSale?: str
                 price: 0,
                 listPrice: 0,
                 sellingPrice: 0,
-                deliveryCompany: 'JADLOG',
+                deliveryCompany: deliveryCompany || 'JADLOG',
                 shippingEstimate: '5bd',
                 shippingEstimateDate: '2021-07-06T14:01:00.000Z',
                 deliveryChannel: 'delivery',

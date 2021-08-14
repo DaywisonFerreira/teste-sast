@@ -129,6 +129,10 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         );
     }
 
+    async getDeliveryCompanies(): Promise<string[]> {
+        return this.repository.distinct('logisticInfo.deliveryCompany')
+    }
+
     async exportData(
         {
             orderCreatedAtFrom,
