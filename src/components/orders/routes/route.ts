@@ -1,4 +1,4 @@
-import { RequestPrivate, Response, Route } from 'ihub-framework-ts';
+import { Route } from 'ihub-framework-ts';
 
 import postIntelipost from '../controllers/postIntelipost';
 import getOrders from '../controllers/getOrders';
@@ -16,14 +16,14 @@ export default [
     {
         method: 'get',
         path: '/',
-        // middlewares: keycloakMiddleware,
+        middlewares: keyCloakMiddleware,
         controller: getOrders,
     },
 
     {
         method: 'get',
         path: '/delivery-companies',
-        // middlewares: keycloakMiddleware,
+        middlewares: keyCloakMiddleware,
         controller: getDeliveryCompanies,
     },
     {

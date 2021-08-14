@@ -11,7 +11,6 @@ const keycloakConfig: Keycloak.KeycloakConfig = {
     'confidential-port': process.env.CONFIDENTIAL_PORT,
     'ssl-required': 'false',
 };
-
 export function initKeycloak() {
     if (_keycloak) {
         console.warn('Trying to init Keycloak again!');
