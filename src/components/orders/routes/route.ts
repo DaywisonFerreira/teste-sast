@@ -19,7 +19,6 @@ export default [
         middlewares: keyCloakMiddleware,
         controller: getOrders,
     },
-
     {
         method: 'get',
         path: '/delivery-companies',

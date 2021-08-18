@@ -15,7 +15,7 @@ const JWT: any = {
         const decoded = jwt.decode(value);
 
         if(!decoded){
-            return {}
+            return null
         }
 
         return decoded
