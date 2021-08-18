@@ -5,6 +5,7 @@ import getOrders from '../controllers/getOrders';
 import getDeliveryCompanies from '../controllers/getDeliveryCompanies';
 import exportOrders from '../controllers/exportOrders';
 import keyCloakMiddleware from '../../../utils/middlewares/keycloakMiddleware';
+import configMiddleware from '../../../utils/middlewares/configMiddleware';
 
 export default [
     {
@@ -28,7 +29,7 @@ export default [
     {
         method: 'get',
         path: '/export',
-        middlewares: keyCloakMiddleware,
+        middlewares: [...keyCloakMiddleware, configMiddleware],
         controller: exportOrders,
     }
 ] as Route[];

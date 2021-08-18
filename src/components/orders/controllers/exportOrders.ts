@@ -40,7 +40,12 @@ export = async (req: RequestPrivate, res: Response) => {
             JSON.stringify({ email, filter })
         );
 
-        return res.json({ message: `Export request queued, will sent to: ${email}`});
+        HttpHelper.ok(
+            res,
+            {
+                message: `Export request queued, will sent to: ${email}`,
+            }
+        );
     } catch (error) {
         logger.error(error);
         logger.endAt();
