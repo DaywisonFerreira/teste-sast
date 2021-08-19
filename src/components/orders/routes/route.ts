@@ -17,13 +17,13 @@ export default [
     {
         method: 'get',
         path: '/',
-        middlewares: keyCloakMiddleware,
+        middlewares: [...keyCloakMiddleware, configMiddleware],
         controller: getOrders,
     },
     {
         method: 'get',
         path: '/delivery-companies',
-        middlewares: keyCloakMiddleware,
+        middlewares: [...keyCloakMiddleware, configMiddleware],
         controller: getDeliveryCompanies,
     },
     {

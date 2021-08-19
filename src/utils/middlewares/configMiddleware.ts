@@ -1,31 +1,38 @@
-import { RequestPrivate, Response, Next, helpers } from "ihub-framework-ts";
+import { Response, Next, helpers } from "ihub-framework-ts";
+import { IRequest } from '../../common/interfaces/request';
 import { ConfigService } from "../../components/configs/services/configService";
 
-// Helpers
-const { StoreHelper, HttpHelper } = helpers;
+import JWT from '../JwtUtils';
 
-export default async (req: RequestPrivate, res: Response, next: Next) => {
-  try {
-      console.log("KKKKKK")
-    // const storeId = StoreHelper.getStoreId(req);
-    // const configService = new ConfigService();
-    // const config = await configService.findStoreConfigById(storeId);
-    // const token = req.headers.authorization;
+const { HttpHelper } = helpers;
 
-    // if (!config) {
-    //   HttpHelper.unauthorized(
-    //     res,
-    //     `The configuration wasn't found for this store`
-    //   );
-    //   return;
-    // }
+export default async (req: IRequest, res: Response, next: Next) => {
+    try {
+        const storeId = req.headers["x-cxaas-accountid"];
+        const token = req.headers["authorization"];
 
-    // req["storeId"] = storeId;
-    // req["config"] = config;
-    // req["token"] = token;
+        const { stores, email } = JWT.decode(token)
 
-    next();
-  } catch (error) {
-    HttpHelper.fail(res, error);
-  }
+        if(!stores.includes(storeId)){
+            return HttpHelper.unauthorized(res)
+        }
+
+        const configService = new ConfigService();
+        const config = await configService.findStoreConfigById(String(storeId));
+
+        if (!config || !config.active){
+            return HttpHelper.unauthorized(
+                res,
+                "The configuration wasn't found for this store"
+            );
+        }
+
+        req['storeId'] = storeId
+        req['config'] = config
+        req['email'] = email
+
+        next();
+    } catch (error) {
+        HttpHelper.fail(res, error);
+    }
 };

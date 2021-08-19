@@ -1,25 +1,33 @@
 import fs from 'fs'
 import xlsx from 'xlsx';
+import { lightFormat } from 'date-fns';
 
 import { logger } from 'ihub-framework-ts';
+
+interface IExtraInfoXlsxFile{
+    storeCode: string,
+    filter: any
+}
 
 export class FileService {
     private static directory_path = process.env.NODE_ENV === 'production' ? `${process.cwd()}/dist/tmp` : `${process.cwd()}/src/tmp`;
 
     constructor(){}
 
-	public static createXlsxLocally(data: unknown[]){
-
+	public static createXlsxLocally(data: unknown[], { storeCode, filter }: IExtraInfoXlsxFile){
         if (!fs.existsSync(this.directory_path)){
             fs.mkdirSync(this.directory_path);
         }
 
-		const workbook = xlsx.utils.book_new();
+        const workbook = xlsx.utils.book_new();
         const worksheet = xlsx.utils.json_to_sheet(data);
 
-		xlsx.utils.book_append_sheet(workbook, worksheet);
+        xlsx.utils.book_append_sheet(workbook, worksheet);
 
-        const fileName = `Status_Entregas_${Date.now().toString()}.xlsx`;
+        const from = lightFormat(new Date(`${filter.orderCreatedAtFrom}T00:00:00`), "ddMMyyyy")
+        const to = lightFormat(new Date(`${filter.orderCreatedAtTo}T23:59:59`), "ddMMyyyy")
+
+        const fileName = `${storeCode}_Status_Entregas_${from}à${to}.xlsx`;
 
         xlsx.writeFile(workbook, `${this.directory_path}/${fileName}`);
 

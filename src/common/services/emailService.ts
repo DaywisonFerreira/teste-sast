@@ -1,5 +1,6 @@
-import { logger } from 'ihub-framework-ts';
 import * as nodemailer from 'nodemailer';
+
+import { logger } from 'ihub-framework-ts';
 import IEmail from '../interfaces/Email';
 
 export class EmailService {
@@ -29,7 +30,7 @@ export class EmailService {
             }
             return info.messageId
         } catch (error) {
-            logger.error(error.message, 'iht.emailService.SendEmail', { stack: error.stack });
+            logger.error(error.message, 'ifc.freight.api.orders.emailService.send', { stack: error.stack });
         }
     }
 }

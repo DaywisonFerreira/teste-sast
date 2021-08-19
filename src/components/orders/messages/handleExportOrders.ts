@@ -2,24 +2,28 @@ import { XlsxMapper } from '../mappers/xlsxMapper';
 import { EmailService } from '../../../common/services/emailService';
 import { FileService } from '../../../common/services/fileService';
 import { OrderService } from '../services/orderService';
+import { ConfigService } from '../../../components/configs/services/configService';
 
 import { LogService } from '@infralabs/infra-logger';
-
 export default class HandleExportOrders {
-    constructor() {}
+    private file = {
+        path:'',
+        fileName:''
+    }
+    constructor() {
+        this.file.path = ''
+        this.file.fileName = ''
+    }
 
     async execute(payload: any, done: Function): Promise<void> {
-        let file = {
-            path:'',
-            fileName:''
-        }
-
         const logger = new LogService();
 
         try {
             logger.startAt();
 
-            const { email, filter } = payload;
+            const { email, filter, config } = payload;
+
+            const { storeCode } = config
 
             const orderService = new OrderService();
 
@@ -27,13 +31,13 @@ export default class HandleExportOrders {
 
             const dataFormated = XlsxMapper.mapOrderToXlsx(dataToFormat)
 
-            file = FileService.createXlsxLocally(dataFormated)
+            this.file = FileService.createXlsxLocally(dataFormated, { storeCode, filter })
 
             await EmailService.send({
                 from: 'no-reply@infracommerce.com.br',
                 to: email,
-                attachments: [file],
-                subject: "Status_Entregas",
+                attachments: [this.file],
+                subject: `${storeCode}_Status_Entregas`,
                 body: {
                     text: "Please do not reply this e-mail.",
                     html: "<b>Please do not reply this e-mail.</b>"
@@ -45,8 +49,8 @@ export default class HandleExportOrders {
             await logger.sendLog();
         } finally {
 
-            if(FileService.existsLocally(file.path)){
-                FileService.deleteFileLocally(file.path)
+            if(FileService.existsLocally(this.file.path)){
+                FileService.deleteFileLocally(this.file.path)
             }
 
             done()

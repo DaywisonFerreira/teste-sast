@@ -8,6 +8,7 @@ import { Order } from '../interfaces/Order';
 
 // Services
 import { QueryParamsFilter, OrderService } from '../services/orderService';
+import { IRequest } from '../../../common/interfaces/request';
 
 const SORTABLE_FIELDS = [
     'orderCreatedAt', // default
@@ -24,10 +25,11 @@ const SORTABLE_FIELDS = [
 /**
  * GET /orders
  */
-export default async (req: RequestPrivate, res: Response): Promise<void> => {
+export default async (req: IRequest, res: Response): Promise<void> => {
     const logger = new LogService();
     try {
         logger.startAt();
+        const { storeId } = req
         const {
             orderId, //Número do pedido ERP/VTEX
             receiverName, // nome do cliente
@@ -53,6 +55,7 @@ export default async (req: RequestPrivate, res: Response): Promise<void> => {
             orderUpdatedAtFrom,
             orderUpdatedAtTo,
             status,
+            storeId
         } as QueryParamsFilter;
 
         const fields = Order.getPublicFields.reduce((current: any, item) => {
