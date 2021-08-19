@@ -10,11 +10,15 @@ export default class HandleOrderNotification {
 
         try {
             logger.startAt();
+            logger.add('handleOrderNotification.externalOrderId', payload.externalOrderId)
             const orderRepository = new OrderRepository();
             if (payload.status === 'dispatched' || payload.status === 'delivered') {
                 const orderToSave = OrderMapper.mapMessageToOrder(payload);
                 await orderRepository.create(orderToSave);
+                logger.add('handleOrderNotification.order', orderToSave)
             }
+            logger.endAt();
+            await logger.sendLog();
         } catch (error) {
             logger.error(error);
             logger.endAt();

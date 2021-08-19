@@ -1,7 +1,14 @@
 import { Order } from '../interfaces/Order';
+
 export class OrderMapper {
-//     "storeCode": "IFC",
-//    "storeId":  "5bd10dd619c52b0027ad29a5",
+
+    private static parseFloat(value: any): number {
+        if (!value) {
+            return 0;
+        }
+        return Number.parseFloat(value && value.$numberDecimal ? value.$numberDecimal : value);
+    }
+
     static mapMessageToOrder(payload: Order) {
         const {
             _id: orderId,
@@ -9,7 +16,7 @@ export class OrderMapper {
             erpInfo,
             externalOrderId,
             packageAttachment,
-            logisticInfo,
+            logisticInfo: logisticInfoRaw,
             updatedAt,
             history,
             creationDate,
@@ -22,12 +29,30 @@ export class OrderMapper {
             sellerCode,
             sellerId,
         } = payload;
-        const { date: paymentDate } = history.find(
+        let paymentDate, deliveryDate
+
+        const historyApproved = history.find(
             ({ status }) => status === 'approved-in-origin'
         );
-        const { date: deliveryDate } = history.find(
+        if (historyApproved) {
+            paymentDate = historyApproved.date
+        }
+
+        const historyDelivered = history.find(
             ({ status }) => status === 'delivered'
         );
+        if (historyDelivered) {
+            deliveryDate = historyDelivered.date
+        }
+
+        const logisticInfo = Array.isArray(logisticInfoRaw)
+            ? logisticInfoRaw.map(l => ({
+                ...l,
+                price: this.parseFloat(l.price),
+                listPrice: this.parseFloat(l.listPrice),
+                sellingPrice: this.parseFloat(l.sellingPrice),
+            }))
+            : []
 
         return {
             orderId,
@@ -45,14 +70,25 @@ export class OrderMapper {
             deliveryZipCode: deliveryAddress.postalCode,
             orderSale: externalOrderId,
             order: erpInfo.externalOrderId,
-            billingData: packageAttachment.packages,
-            logisticInfo: logisticInfo,
-            status: status,
+            billingData: Array.isArray(packageAttachment.packages)
+                ? packageAttachment.packages.map(p => ({
+                    ...p,
+                    invoiceValue: this.parseFloat(p.invoiceValue),
+                    items: Array.isArray(p.items)
+                        ? p.items.map((i: Partial<{ price: any }>) => ({
+                            ...i,
+                            price: this.parseFloat(i.price)
+                        }))
+                        : []
+                }))
+                : [],
+            logisticInfo,
+            status,
             totalShippingPrice: logisticInfo.length
                 ? logisticInfo.reduce(
-                      (t, { sellingPrice }) => t + Number(sellingPrice),
-                      0
-                  )
+                    (t, { sellingPrice }) => t + sellingPrice,
+                    0
+                )
                 : 0,
             orderUpdatedAt: updatedAt,
             deliveryDate,
@@ -70,7 +106,7 @@ export class OrderMapper {
             lastOccurrenceMicro: '',
             lastOccurrenceMessage: '',
             quantityOccurrences: '',
-            partnerUpdatedAt:'',
+            partnerUpdatedAt: '',
         };
     }
 }
