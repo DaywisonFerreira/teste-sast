@@ -1,4 +1,4 @@
-import { RequestPrivate, Response, helpers } from 'ihub-framework-ts';
+import { Response, helpers } from 'ihub-framework-ts';
 import { LogService } from '@infralabs/infra-logger';
 // Helpers
 const { PaginationHelper, HttpHelper } = helpers;

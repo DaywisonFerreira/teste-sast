@@ -1,7 +1,8 @@
 import * as nodemailer from 'nodemailer';
-
-import { logger } from 'ihub-framework-ts';
 import IEmail from '../interfaces/Email';
+
+import { LogService } from '@infralabs/infra-logger';
+
 
 export class EmailService {
    constructor(){}
@@ -16,7 +17,9 @@ export class EmailService {
     })
 
     public static async send(data: IEmail){
+        const logger = new LogService();
         try {
+            logger.startAt();
             const { from, to, subject, body, attachments } = data;
 
             const info = await this.transporter.sendMail({
@@ -28,9 +31,14 @@ export class EmailService {
             if(!info.messageId){
                 throw new Error('Email not sent')
             }
+            logger.add(`Email sent to ${to}`, info.messageId);
+            logger.endAt();
+            await logger.sendLog();
             return info.messageId
         } catch (error) {
-            logger.error(error.message, 'ifc.freight.api.orders.emailService.send', { stack: error.stack });
+            logger.error(error);
+            logger.endAt();
+            await logger.sendLog();
         }
     }
 }

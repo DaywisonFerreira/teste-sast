@@ -1,4 +1,4 @@
-import { logger } from 'ihub-framework-ts';
+import { LogService } from '@infralabs/infra-logger';
 
 // Interfaces
 import { Config } from '../../../common/interfaces/config';
@@ -20,6 +20,9 @@ export class ConfigService extends BaseService<Config, ConfigRepository> {
   }
 
   async merge(config: Config) {
+    const logger = new LogService();
+    logger.startAt();
+
     const LOG_ID = 'ifc.freight.api.orders.services.configService.merge';
 
     const configPK: any = { storeId: config.storeId, sellerId: config.sellerId };
@@ -30,6 +33,8 @@ export class ConfigService extends BaseService<Config, ConfigRepository> {
       const update = { $set: { active: config.active } };
       await this.repository.findOneAndUpdate(configPK, update, { runValidators: true, useFindAndModify: false });
     }
-    logger.debug(`Config identified by store code: ${config.storeCode} and seller code: ${config.sellerCode} was merged with success.`, LOG_ID);
+    logger.add(`Config identified by store code: ${config.storeCode} and seller code: ${config.sellerCode} was merged with success.`, LOG_ID);
+    logger.endAt();
+    await logger.sendLog();
   }
 }

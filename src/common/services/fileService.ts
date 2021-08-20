@@ -2,7 +2,8 @@ import fs from 'fs'
 import xlsx from 'xlsx';
 import { lightFormat } from 'date-fns';
 
-import { logger } from 'ihub-framework-ts';
+import { LogService } from '@infralabs/infra-logger';
+
 
 interface IExtraInfoXlsxFile{
     storeCode: string,
@@ -37,11 +38,17 @@ export class FileService {
         }
 	}
 
-	public static deleteFileLocally(path: string){
+	public static async deleteFileLocally(path: string){
+        const logger = new LogService();
         try {
+            logger.startAt();
             fs.unlinkSync(path);
+            logger.endAt();
+            await logger.sendLog();
         } catch (error) {
-            logger.error(error.message, 'fileService.delete.error', { stack: error.stack });
+            logger.error(error);
+            logger.endAt();
+            await logger.sendLog();
         }
 	}
 
