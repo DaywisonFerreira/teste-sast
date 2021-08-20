@@ -14,7 +14,7 @@ const OrderSchema = new Schema({
         required: true
     },
     storeId: {
-        type: String,
+        type: Schema.Types.ObjectId,
         required: true
     },
     sellerCode: {
@@ -22,7 +22,7 @@ const OrderSchema = new Schema({
         required: false
     },
     sellerId: {
-        type: String,
+        type: Schema.Types.ObjectId,
         required: false
     },
     internalOrderId: {
