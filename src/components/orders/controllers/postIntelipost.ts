@@ -1,4 +1,4 @@
-import { Request, Response, models, tasks } from 'ihub-framework-ts';
+import { Request, Response, tasks } from 'ihub-framework-ts';
 import { LogService } from '@infralabs/infra-logger';
 import { OrderRepository } from '../repositories/orderRepository';
 const { USERNAME, PASSWORD, DELIVERED, DELIVERY_FAILURE } = process.env;

@@ -1,5 +1,4 @@
 import { common, errors } from 'ihub-framework-ts';
-import { ObjectId } from 'mongodb';
 import { differenceInDays, isBefore } from 'date-fns';
 // Interfaces
 import { Order } from '../interfaces/Order';
@@ -11,6 +10,7 @@ import { BaseService } from '../../../common/services/baseService';
 const { BadRequestError } = errors;
 
 export interface QueryParamsFilter {
+    storeId: string,
     orderId: string;
     receiverName: string;
     orderCreatedAtFrom: string;
@@ -27,6 +27,7 @@ export class OrderService extends BaseService<Order, OrderRepository> {
     }
     async getList(
         {
+            storeId,
             orderId,
             receiverName,
             deliveryCompany,
@@ -40,7 +41,10 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         options: any,
         paginationParams: common.Types.PaginationParams
     ): Promise<common.Types.PaginatedResponseParams<Order>> {
-        const conditions: any = {};
+
+        const conditions: any = {
+            storeId
+        };
 
         if (receiverName) {
             conditions['receiverName'] = {
@@ -137,11 +141,14 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         {
             orderCreatedAtFrom,
             orderCreatedAtTo,
+            storeId
         }: Partial<QueryParamsFilter>,
         options: any,
     ) {
 
-        const conditions: any = {};
+        const conditions: any = {
+            storeId
+        };
 
         if (orderCreatedAtFrom && orderCreatedAtTo) {
             const dateFrom = new Date(`${orderCreatedAtFrom} 00:00:00Z`);

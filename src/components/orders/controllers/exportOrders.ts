@@ -1,21 +1,19 @@
-import { RequestPrivate, Response, helpers, tasks } from 'ihub-framework-ts';
+import { Response, helpers, tasks } from 'ihub-framework-ts';
 import { LogService } from '@infralabs/infra-logger';
 
-import JWT from '../../../utils/JwtUtils';
+import { IRequest } from '../../../common/interfaces/request';
 
 const { HttpHelper } = helpers;
 
-import { OrderService, QueryParamsFilter,  } from '../services/orderService';
+import { OrderService, QueryParamsFilter  } from '../services/orderService';
 
-export = async (req: RequestPrivate, res: Response) => {
+export = async (req: IRequest, res: Response) => {
     const logger = new LogService();
 
     try {
         logger.startAt();
 
-        const { authorization } = req.headers
-
-        const { email } = JWT.decode(authorization)
+        const { storeId, email, config } = req
 
         const orderService = new OrderService();
 
@@ -32,15 +30,21 @@ export = async (req: RequestPrivate, res: Response) => {
         const filter = {
             orderCreatedAtFrom,
             orderCreatedAtTo,
+            storeId
         } as QueryParamsFilter;
 
         tasks.send(
             'exportOrders',
             'exportOrders',
-            JSON.stringify({ email, filter })
+            JSON.stringify({ email, filter, config })
         );
 
-        return res.json({ message: `Export request queued, will sent to: ${email}`});
+        HttpHelper.ok(
+            res,
+            {
+                message: `Export request queued, will sent to: ${email}`,
+            }
+        );
     } catch (error) {
         logger.error(error);
         logger.endAt();
