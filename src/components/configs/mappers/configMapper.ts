@@ -2,7 +2,7 @@
 import { Config } from '../../../common/interfaces/config'
 import { Seller } from '../../../common/interfaces/seller';
 import { Store } from '../../../common/interfaces/store';
-import { Order } from '../../../components/orders/interfaces/order';
+import { Order } from '../../orders/interfaces/Order';
 
 export class ConfigMapper {
 
