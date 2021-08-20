@@ -1,11 +1,13 @@
 import { common, errors } from 'ihub-framework-ts';
 import { differenceInDays, isBefore } from 'date-fns';
+import { ObjectID } from 'mongodb';
 // Interfaces
 import { Order } from '../interfaces/Order';
 
 // Services
 import { OrderRepository } from '../repositories/orderRepository';
 import { BaseService } from '../../../common/services/baseService';
+import { isValidObjectId } from '../validations';
 
 const { BadRequestError } = errors;
 
@@ -42,9 +44,14 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         paginationParams: common.Types.PaginationParams
     ): Promise<common.Types.PaginatedResponseParams<Order>> {
 
-        const conditions: any = {
-            storeId
-        };
+        const conditions: any = {};
+
+        if (storeId) {
+            if (!isValidObjectId(storeId)) {
+                throw new BadRequestError('Invalid storeId');
+            }
+            conditions['storeId'] = new ObjectID(storeId);
+        }
 
         if (receiverName) {
             conditions['receiverName'] = {
