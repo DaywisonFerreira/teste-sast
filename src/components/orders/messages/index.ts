@@ -7,14 +7,14 @@ export default [
     {
         exchange: 'orderNotification',
         routeKey: '',
-        queue: 'tracking_order_notification_q',
+        queue: 'delivery_hub_order_notification_q',
         type: 'fanout',
         action: (payload, done) => new HandleOrderNotification().execute(payload, done),
     },
     {
-        exchange: 'exportOrders',
+        exchange: 'deliveryHub',
         routeKey: 'exportOrders',
-        queue: 'export_orders_q',
+        queue: 'delivery_hub_export_orders_q',
         action: (payload, done) => new HandleExportOrders().execute(payload, done),
     },
     {
