@@ -154,6 +154,27 @@ const OrderSchema = new Schema({
 const schema: any = new database.Schema(OrderSchema, {
     collection: 'orders',
     timestamps: true
-}).index({ orderId: 1 }, { unique: true });
+})
+    .index({ storeId: 1, orderId: 1 }, { unique: true })
+    .index({ storeId: 1, orderId: 1, receiverName: 1 }, { unique: false })
+    .index({ storeId: 1, orderId: 1, orderUpdatedAt: 1 }, { unique: false })
+    .index({ storeId: 1, orderId: 1, orderCreatedAt: 1 }, { unique: false })
+    .index({ storeId: 1, orderId: 1, "logisticInfo.deliveryCompany": 1 }, { unique: false })
+    .index({ storeId: 1, orderId: 1, receiverName: 1, orderUpdatedAt: 1 }, { unique: false })
+    .index({ storeId: 1, orderId: 1, receiverName: 1, orderUpdatedAt: 1, orderCreatedAt: 1 }, { unique: false })
+    .index({ storeId: 1, orderId: 1, receiverName: 1, orderUpdatedAt: 1, orderCreatedAt: 1, "logisticInfo.deliveryCompany": 1 }, { unique: false })
+    .index({ storeId: 1, receiverName: 1 }, { unique: false })
+    .index({ storeId: 1, receiverName: 1, orderUpdatedAt: 1 }, { unique: false })
+    .index({ storeId: 1, receiverName: 1, orderCreatedAt: 1 }, { unique: false })
+    .index({ storeId: 1, receiverName: 1, "logisticInfo.deliveryCompany": 1 }, { unique: false })
+    .index({ storeId: 1, receiverName: 1, orderUpdatedAt: 1, orderCreatedAt: 1 }, { unique: false })
+    .index({ storeId: 1, receiverName: 1, orderUpdatedAt: 1, orderCreatedAt: 1, "logisticInfo.deliveryCompany": 1 }, { unique: false })
+    .index({ storeId: 1, orderUpdatedAt: 1 }, { unique: false })
+    .index({ storeId: 1, orderUpdatedAt: 1, orderCreatedAt: 1 }, { unique: false })
+    .index({ storeId: 1, orderUpdatedAt: 1, "logisticInfo.deliveryCompany": 1 }, { unique: false })
+    .index({ storeId: 1, orderUpdatedAt: 1, orderCreatedAt: 1, "logisticInfo.deliveryCompany": 1 }, { unique: false })
+    .index({ storeId: 1, orderCreatedAt: 1 }, { unique: false })
+    .index({ storeId: 1, orderCreatedAt: 1, "logisticInfo.deliveryCompany": 1 }, { unique: false })
+    .index({ storeId: 1, "logisticInfo.deliveryCompany": 1 }, { unique: false })
 
 export default schema;
