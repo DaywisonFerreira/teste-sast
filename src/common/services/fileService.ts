@@ -43,6 +43,7 @@ export class FileService {
         try {
             logger.startAt();
             fs.unlinkSync(path);
+            logger.add('ifc.freight.api.orders.fileService.deleteFileLocally', `Delete file ${path}`);
             logger.endAt();
             await logger.sendLog();
         } catch (error) {

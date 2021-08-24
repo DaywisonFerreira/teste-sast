@@ -33,7 +33,7 @@ export class ConfigService extends BaseService<Config, ConfigRepository> {
       const update = { $set: { active: config.active } };
       await this.repository.findOneAndUpdate(configPK, update, { runValidators: true, useFindAndModify: false });
     }
-    logger.add(`Config identified by store code: ${config.storeCode} and seller code: ${config.sellerCode} was merged with success.`, LOG_ID);
+    logger.add(LOG_ID, `Config identified by store code: ${config.storeCode} and seller code: ${config.sellerCode} was merged with success.`);
     logger.endAt();
     await logger.sendLog();
   }

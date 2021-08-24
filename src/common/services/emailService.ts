@@ -5,36 +5,43 @@ import { LogService } from '@infralabs/infra-logger';
 
 
 export class EmailService {
-   constructor(){}
+    constructor() {}
 
     private static transporter = nodemailer.createTransport({
-        host: "smtp.mailtrap.io",
-        port: 2525,
+        host: String(process.env.SMTP_HOST) || '',
+        port: parseInt(process.env.SMTP_PORT) || 465,
         auth: {
-            user: '20f5cf1277f027',
-            pass: 'ca5cac0816b044',
-        },
-    })
+            user: String(process.env.SMTP_USER) || '',
+            pass: String(process.env.SMTP_PASSWORD) || ''
+        }
+    });
 
-    public static async send(data: IEmail){
+    public static async send(data: IEmail) {
         const logger = new LogService();
         try {
             logger.startAt();
-            const { from, to, subject, body, attachments } = data;
+            const {
+                to,
+                subject,
+                body,
+                attachments,
+                from = process.env.SMTP_FROM || '',
+                replyTo = process.env.SMTP_REPLYTO || ''
+            } = data;
 
             const info = await this.transporter.sendMail({
-                from, to, subject, attachments,
+                from, to, subject, attachments, replyTo,
                 text: body.text,
                 html: body.html
-            })
+            });
 
-            if(!info.messageId){
-                throw new Error('Email not sent')
+            if (!info.messageId) {
+                throw new Error('Email not sent');
             }
-            logger.add(`Email sent to ${to}`, info.messageId);
+            logger.add('ifc.freight.api.orders.emailService.send', `Email sent to ${to}: ${info.messageId}`);
             logger.endAt();
             await logger.sendLog();
-            return info.messageId
+            return info.messageId;
         } catch (error) {
             logger.error(error);
             logger.endAt();
