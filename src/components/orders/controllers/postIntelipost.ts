@@ -37,7 +37,7 @@ export = async (req: Request, res: Response) => {
             order: payload.order_number,
             dispatchDate: payload.history.created_iso,
             estimateDeliveryDateDeliveryCompany:
-            payload.estimated_delivery_date.logistic_provider.current_iso,
+            payload.estimated_delivery_date.client.current_iso,
             partnerMessage: payload.history.provider_message,
             numberVolumes: payload.volume_number,
             microStatus: payload.history.shipment_volume_micro_state.name,
