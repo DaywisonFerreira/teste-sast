@@ -10,7 +10,7 @@ import configMiddleware from '../../../utils/middlewares/configMiddleware';
 export default [
     {
         method: 'post',
-        path: '/courier/intelipost',
+        path: '/intelipost',
         private: false,
         controller: postIntelipost,
     },

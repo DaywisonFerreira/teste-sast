@@ -34,7 +34,7 @@ export = async (req: IRequest, res: Response) => {
         } as QueryParamsFilter;
 
         tasks.send(
-            'exportOrders',
+            'deliveryHub',
             'exportOrders',
             JSON.stringify({ email, filter, config })
         );
