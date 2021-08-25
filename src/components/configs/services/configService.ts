@@ -8,11 +8,16 @@ import { ConfigRepository } from '../repositories/configRepository';
 
 // Services
 import { BaseService } from '../../../common/services/baseService';
+import { ObjectId } from 'mongodb';
 
 export class ConfigService extends BaseService<Config, ConfigRepository> {
 
   constructor() {
     super(new ConfigRepository());
+  }
+
+  async findStoresOfUser(stores: string[]){
+    return await this.repository.find({ storeId: { $in: stores }, $and: [{ active: true, sellerId: null }]}, { name: 1, icon: 1, storeCode: 1 })
   }
 
   async findStoreConfigById(storeId: string): Promise<Config> {

@@ -39,6 +39,7 @@ export default async (req: IRequest, res: Response, next: Next) => {
 
         req['storeId'] = storeId
         req['config'] = config
+        req['stores'] = stores
         req['email'] = email
 
         next();
