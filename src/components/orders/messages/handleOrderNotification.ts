@@ -3,7 +3,7 @@ import { OrderMapper } from '../mappers/orderMapper';
 import { OrderRepository } from '../repositories/orderRepository';
 
 export default class HandleOrderNotification {
-    constructor() {}
+    constructor() { }
 
     async execute(payload: any, done: Function): Promise<void> {
         const logger = new LogService();
@@ -14,7 +14,7 @@ export default class HandleOrderNotification {
             const orderRepository = new OrderRepository();
             if (payload.status === 'dispatched' || payload.status === 'delivered') {
                 const orderToSave = OrderMapper.mapMessageToOrder(payload);
-                await orderRepository.create(orderToSave);
+                await orderRepository.merge({ order: orderToSave.order }, orderToSave);
                 logger.add('handleOrderNotification.order', orderToSave)
             }
             logger.endAt();

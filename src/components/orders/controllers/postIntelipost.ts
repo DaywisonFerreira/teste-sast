@@ -37,19 +37,19 @@ export = async (req: Request, res: Response) => {
             order: payload.order_number,
             dispatchDate: payload.history.created_iso,
             estimateDeliveryDateDeliveryCompany:
-            payload.estimated_delivery_date.client.current_iso,
+                payload.estimated_delivery_date.client.current_iso,
             partnerMessage: payload.history.provider_message,
             numberVolumes: payload.volume_number,
             microStatus: payload.history.shipment_volume_micro_state.name,
             lastOccurrenceMacro: payload.history.esprinter_message,
             lastOccurrenceMicro:
-            payload.history.shipment_volume_micro_state.default_name,
+                payload.history.shipment_volume_micro_state.default_name,
             lastOccurrenceMessage:
-            payload.history.shipment_volume_micro_state.description,
+                payload.history.shipment_volume_micro_state.description,
             partnerStatus: payload.history.shipment_order_volume_state_localized,
             partnerUpdatedAt: payload.history.event_date_iso
         };
-        await orderRepository.findOneAndUpdate(
+        await orderRepository.merge(
             { order: payload.order_number },
             order
         );

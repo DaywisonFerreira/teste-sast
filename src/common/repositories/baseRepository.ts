@@ -86,6 +86,19 @@ export abstract class BaseRepository<T extends common.Types.BaseEntity> {
         return await this.model.countDocuments(filter);
     }
 
+    async merge(
+        configPK: any,
+        data: any = {},
+        options: any = { runValidators: true, useFindAndModify: false }
+    ) {
+        const response = await this.model.findOne(configPK);
+        if (!response) {
+            await this.model.create(data);
+        } else {
+            await this.model.findOneAndUpdate(configPK, data, options);
+        }
+    }
+
     /**
      *
      * @param filter
