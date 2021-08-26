@@ -1,15 +1,10 @@
 import { Response, helpers } from 'ihub-framework-ts';
 import { LogService } from '@infralabs/infra-logger';
-// Helpers
-const { PaginationHelper, HttpHelper } = helpers;
-
-// // Interfaces
-// import { Order } from '../interfaces/Order';
-
-// // Services
-// import { QueryParamsFilter, OrderService } from '../services/orderService';
 import { IRequest } from '../../../common/interfaces/request';
+
 import { ConfigService } from '../services/configService';
+
+const { HttpHelper } = helpers;
 
 export default async (req: IRequest, res: Response): Promise<void> => {
     const logger = new LogService();
