@@ -20,6 +20,14 @@ const schemaInstance = new Schema({
         type: String,
         required: false,
     },
+    icon: {
+        type: String,
+        required: false,
+    },
+    name: {
+        type: String,
+        required: false,
+    },
     active: {
         type: Boolean,
         required: true,

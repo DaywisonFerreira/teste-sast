@@ -1,12 +1,6 @@
 import { LogService } from '@infralabs/infra-logger';
-
-// Interfaces
 import { Config } from '../../../common/interfaces/config';
-
-// Repositories
 import { ConfigRepository } from '../repositories/configRepository';
-
-// Services
 import { BaseService } from '../../../common/services/baseService';
 
 export class ConfigService extends BaseService<Config, ConfigRepository> {
@@ -15,11 +9,15 @@ export class ConfigService extends BaseService<Config, ConfigRepository> {
     super(new ConfigRepository());
   }
 
+  async findStoresOfUser(stores: string[]): Promise<Partial<Config[]>> {
+    return await this.repository.find({ storeId: { $in: stores }, $and: [{ active: true, sellerId: null }]}, { name: 1, icon: 1, storeCode: 1 })
+  }
+
   async findStoreConfigById(storeId: string): Promise<Config> {
     return await this.repository.findOne({ storeId, sellerId: null }, {}, { lean: true });
   }
 
-  async merge(config: Config) {
+  async merge(config: Config): Promise<void> {
     const logger = new LogService();
     logger.startAt();
 

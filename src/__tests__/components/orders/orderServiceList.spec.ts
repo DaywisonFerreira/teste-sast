@@ -67,7 +67,6 @@ describe('Unit Test - Order Service', () => {
             );
         });
 
-
         it('should list orders by orderId', async () => {
             const orderService = new OrderService();
             const filter = { orderId: orderSale };
