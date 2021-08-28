@@ -178,5 +178,6 @@ const schema: any = new database.Schema(OrderSchema, {
     .index({ storeId: 1, orderCreatedAt: 1 }, { unique: false })
     .index({ storeId: 1, orderCreatedAt: 1, "logisticInfo.deliveryCompany": 1 }, { unique: false })
     .index({ storeId: 1, "logisticInfo.deliveryCompany": 1 }, { unique: false })
+    .index({ order: 'text', orderSale: 'text' });
 
 export default schema;
