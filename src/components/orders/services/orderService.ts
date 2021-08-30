@@ -1,5 +1,5 @@
 import { common, errors } from 'ihub-framework-ts';
-import { differenceInDays, isBefore, lightFormat } from 'date-fns';
+import { differenceInDays, isBefore, lightFormat, startOfDay, endOfDay } from 'date-fns';
 import { ObjectID } from 'mongodb';
 // Interfaces
 import { Order } from '../interfaces/Order';
@@ -87,7 +87,7 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         }
 
         if (orderCreatedAtFrom && orderCreatedAtTo) {
-            const dateFrom = new Date(`${orderCreatedAtFrom} 00:00:00`);
+            const dateFrom = new Date(`${orderCreatedAtFrom}`);
             const dateTo = new Date(`${orderCreatedAtTo} 23:59:59`);
             this.validateRangeOfDates(dateFrom, dateTo);
             conditions['orderCreatedAt'] = {
@@ -98,13 +98,13 @@ export class OrderService extends BaseService<Order, OrderRepository> {
 
         if (orderCreatedAtFrom && !orderCreatedAtTo) {
             conditions['orderCreatedAt'] = {
-                $gte: new Date(`${orderCreatedAtFrom} 00:00:00`),
+                $gte: new Date(orderCreatedAtFrom),
                 $lte: new Date(`${orderCreatedAtFrom} 23:59:59`),
             };
         }
 
         if (orderUpdatedAtFrom && orderUpdatedAtTo) {
-            const dateFrom = new Date(`${orderUpdatedAtFrom} 00:00:00`);
+            const dateFrom = new Date(`${orderUpdatedAtFrom}`);
             const dateTo = new Date(`${orderUpdatedAtTo} 23:59:59`);
             this.validateRangeOfDates(dateFrom, dateTo);
             conditions['orderUpdatedAt'] = {
@@ -115,7 +115,7 @@ export class OrderService extends BaseService<Order, OrderRepository> {
 
         if (orderUpdatedAtFrom && !orderUpdatedAtTo) {
             conditions['orderUpdatedAt'] = {
-                $gte: new Date(`${orderUpdatedAtFrom} 00:00:00`),
+                $gte: new Date(orderUpdatedAtFrom),
                 $lte: new Date(`${orderUpdatedAtFrom} 23:59:59`),
             };
         }
