@@ -97,12 +97,14 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         }
 
         if (orderCreatedAtFrom && !orderCreatedAtTo) {
-            const from = new Date(`${orderCreatedAtFrom} 00:00:00Z`);
-            const to = new Date(`${orderCreatedAtFrom} 23:59:59Z`);
-            const timeZone = 'GMT';
-            const $gte = utcToZonedTime(from, timeZone);
-            const $lte = utcToZonedTime(to, timeZone);
-            conditions['orderCreatedAt'] = { $gte, $lte };
+            const from = new Date(`${orderCreatedAtFrom} 00:00:00-03:00`);
+            const to = new Date(`${orderCreatedAtFrom} 23:59:59-03:00`);
+            // const timeZone = 'America/Sao_Paulo';
+            // const $gte = utcToZonedTime(from, timeZone);
+            // const $lte = utcToZonedTime(to, timeZone);
+            console.log(from, to)
+            // console.log($gte, $lte)
+            conditions['orderCreatedAt'] = { $gte: from, $lte: to };
         }
 
         if (orderUpdatedAtFrom && orderUpdatedAtTo) {
