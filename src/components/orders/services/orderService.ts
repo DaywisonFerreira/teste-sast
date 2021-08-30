@@ -80,20 +80,9 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         if (orderId) {
             // orderSale -> pedido VTEX
             // order -> pedido erp
-            conditions.$or = [
-                {
-                    order: {
-                        $regex: `.*${orderId}.*`,
-                        $options: 'i',
-                    },
-                },
-                {
-                    orderSale: {
-                        $regex: `.*${orderId}.*`,
-                        $options: 'i',
-                    },
-                },
-            ];
+            conditions.$text = {
+                $search: orderId
+            }
 
         }
 
