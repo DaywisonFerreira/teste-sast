@@ -1,17 +1,6 @@
-interface IReceiverPhones{
+interface IReceiverPhones {
     phone: string,
     type: string
-}
-
-interface IBillingData {
-    trackingNumber: string,
-    invoiceSerialNumber:string,
-    invoiceValue:number,
-    invoiceNumber:string,
-    issuanceDate:string,
-    invoiceKey:string,
-    carrierName:string,
-    trackingUrl:string
 }
 
 interface ILogisticInfo {
@@ -41,29 +30,17 @@ export class XlsxMapper{
                 "CEP do destinatário": deliveryZipCode,
                 "Pedido de Venda": orderSale,
                 "Pedido": order,
-                "Código de rastreio": billingData.reduce((code:string, {trackingNumber}: IBillingData)=>{
-                    return code += `${trackingNumber} `
-                }, ''),
-                "Serie Nota": billingData.reduce((serialNumber: string, {invoiceSerialNumber}: IBillingData)=>{
-                    return serialNumber += `${invoiceSerialNumber} `
-                }, ''),
-                "Nota Fiscal": billingData.reduce((nf: string, {invoiceNumber}: IBillingData)=>{
-                    return nf += `${invoiceNumber} `
-                }, ''),
-                "Método de envio": billingData.reduce((method: string, {carrierName}: IBillingData)=>{
-                    return method += `${carrierName} `
-                }, ''),
-                "Transportadora": logisticInfo.reduce((company: string, {deliveryCompany}: ILogisticInfo)=>{
-                    return company += `${deliveryCompany} `
-                }, ''),
+                "Código de rastreio": billingData.map(({ trackingNumber }: { trackingNumber: string }) => trackingNumber).join(', '),
+                "Serie Nota": billingData.map(({ invoiceSerialNumber }: { invoiceSerialNumber: string }) => invoiceSerialNumber).join(', '),
+                "Nota Fiscal": billingData.map(({ invoiceNumber }: { invoiceNumber: string }) => invoiceNumber).join(', '),
+                "Método de envio": billingData.map(({ carrierName }: { carrierName: string }) => carrierName).join(', '),
+                "Transportadora": logisticInfo && logisticInfo[0].deliveryCompany,
                 "Data Despacho": dispatchDate,
                 "Status Transportador": status,
                 "Data do último status": orderUpdatedAt,
                 "Data Entrega": deliveryDate,
                 "Atualizado em": partnerUpdatedAt,
-                "Previsão Entrega Cliente": logisticInfo.reduce((date: string, {shippingEstimateDate}: ILogisticInfo)=>{
-                    return date += `${shippingEstimateDate} `
-                }, ''),
+                "Previsão Entrega Cliente": logisticInfo && logisticInfo[0].shippingEstimateDate,
                 "Previsão Entrega Transp.": estimateDeliveryDateDeliveryCompany,
                 "Mensagem Intelipost": partnerMessage,
                 "Preço Frete": logisticInfo.reduce((price: number, {sellingPrice}: ILogisticInfo)=>{
@@ -72,25 +49,17 @@ export class XlsxMapper{
                 "No Volumes": numberVolumes,
                 "Data Criação Pedido": orderCreatedAt,
                 "MicroStatus": partnerStatus,
-                "Pagina Rastreamento": billingData.reduce((url: string, {trackingUrl}: IBillingData)=>{
-                    return url += `${trackingUrl} `
-                }, ''),
+                "Pagina Rastreamento": billingData.map(({ trackingUrl }: { trackingUrl: string }) => trackingUrl).join(', '),
                 "CEP origem": originZipCode,
-                "Valor da Nota": billingData.reduce((value: number, {invoiceValue}: IBillingData)=>{
-                    return value += invoiceValue
-                }, ''),
+                "Valor da Nota": billingData.map(({ invoiceValue }: { invoiceValue: string }) => invoiceValue).join(', '),
                 "Praça": square,
-                "Tipo de Entrega": logisticInfo.reduce((contract: string, {logisticContract}: ILogisticInfo)=>{
-                    return contract += `${logisticContract} `
-                }, ''),
+                "Tipo de Entrega": logisticInfo && logisticInfo[0].logisticContract,
                 "Peso fisico": physicalWeight,
                 "e-mail Destinatário": receiverEmail,
                 "Celular Destinatário": receiverPhones.reduce((tels: string, {phone, type}: IReceiverPhones) => {
                     return tels += `${type}:${phone} `
                 }, ''),
-                "Chave da Nota": billingData.reduce((key: string, {invoiceKey}: IBillingData)=>{
-                    return key += `${invoiceKey} `
-                }, ''),
+                "Chave da Nota": billingData.map(({ invoiceKey }: { invoiceKey: string }) => invoiceKey).join(', '),
                 "Última Ocorrência (Macro)": lastOccurrenceMacro,
                 "Última Ocorrência (Micro)": lastOccurrenceMicro,
                 "Última Ocorrência (Mensagem)": lastOccurrenceMessage,
