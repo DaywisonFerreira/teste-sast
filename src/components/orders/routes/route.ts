@@ -17,7 +17,7 @@ export default [
     {
         method: 'get',
         path: '/',
-        middlewares: [configMiddleware],
+        middlewares: [...keyCloakMiddleware, configMiddleware],
         controller: getOrders,
     },
     {
