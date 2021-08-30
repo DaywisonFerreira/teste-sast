@@ -36,6 +36,7 @@
         "@types/express-session": "^1.17.4",
         "@types/nodemailer": "^6.4.4",
         "date-fns": "^2.23.0",
+        "date-fns-tz": "^1.1.6",
         "express-session": "^1.17.2",
         "ihub-framework-ts": "^1.9.7",
         "jsonwebtoken": "^8.5.1",

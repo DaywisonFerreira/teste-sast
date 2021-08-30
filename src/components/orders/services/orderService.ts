@@ -1,5 +1,7 @@
 import { common, errors } from 'ihub-framework-ts';
-import { differenceInDays, isBefore, lightFormat, startOfDay, endOfDay } from 'date-fns';
+import { differenceInDays, isBefore } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz'
+
 import { ObjectID } from 'mongodb';
 // Interfaces
 import { Order } from '../interfaces/Order';
@@ -97,10 +99,12 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         }
 
         if (orderCreatedAtFrom && !orderCreatedAtTo) {
-            conditions['orderCreatedAt'] = {
-                $gte: new Date(orderCreatedAtFrom),
-                $lte: new Date(`${orderCreatedAtFrom} 23:59:59`),
-            };
+            const from = new Date(`${orderCreatedAtFrom} 00:00:00Z`);
+            const to = new Date(`${orderCreatedAtFrom} 23:59:59Z`);
+            const timeZone = 'GMT';
+            const $gte = utcToZonedTime(from, timeZone);
+            const $lte = utcToZonedTime(to, timeZone);
+            conditions['orderCreatedAt'] = { $gte, $lte };
         }
 
         if (orderUpdatedAtFrom && orderUpdatedAtTo) {
