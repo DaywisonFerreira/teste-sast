@@ -99,7 +99,7 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         if (orderCreatedAtFrom && !orderCreatedAtTo) {
             const from = new Date(`${orderCreatedAtFrom} 00:00:00Z`);
             const to = new Date(`${orderCreatedAtFrom} 23:59:59Z`);
-            const timeZone = 'America/Sao_Paulo';
+            const timeZone = 'GMT+3';
             const $gte = utcToZonedTime(from, timeZone);
             const $lte = utcToZonedTime(to, timeZone);
             conditions['orderCreatedAt'] = { $gte, $lte };
