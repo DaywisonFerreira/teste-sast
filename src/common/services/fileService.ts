@@ -38,18 +38,18 @@ export class FileService {
         }
 	}
 
-	public static async deleteFileLocally(path: string){
-        const logger = new LogService();
+	public static async deleteFileLocally(path: string, logger: any) {
+        // const logger = new LogService();
         try {
-            logger.startAt();
+            // logger.startAt();
             fs.unlinkSync(path);
             logger.add('ifc.freight.api.orders.fileService.deleteFileLocally', `Delete file ${path}`);
-            logger.endAt();
-            await logger.sendLog();
+            // logger.endAt();
+            // await logger.sendLog();
         } catch (error) {
             logger.error(error);
-            logger.endAt();
-            await logger.sendLog();
+            // logger.endAt();
+            // await logger.sendLog();
         }
 	}
 

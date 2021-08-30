@@ -21,6 +21,9 @@ export default class HandleExportOrders {
 
         try {
             logger.startAt();
+            // logger.add('HandleExportOrders.payload', payload)
+            // logger.endAt();
+            // await logger.sendLog();
 
             const { email, filter, config } = payload;
             const { storeCode } = config;
@@ -39,18 +42,20 @@ export default class HandleExportOrders {
                     text: 'Please do not reply this e-mail.',
                     html: '<b>Please do not reply this e-mail.</b>'
                 }
-            });
+            }, logger);
             logger.add('ifc.freight.api.orders.handleExportOrders.execute', 'Payload received and data sent');
-            logger.endAt();
-            await logger.sendLog();
+            // logger.endAt();
+            // await logger.sendLog();
         } catch (error) {
             logger.error(error);
-            logger.endAt();
-            await logger.sendLog();
+            // logger.endAt();
+            // await logger.sendLog();
         } finally {
             if (FileService.existsLocally(this.file.path)) {
-                await FileService.deleteFileLocally(this.file.path);
+                await FileService.deleteFileLocally(this.file.path, logger);
             }
+            logger.endAt();
+            await logger.sendLog();
             done();
         }
     }
