@@ -56,9 +56,8 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         }
 
         if (receiverName) {
-            conditions['receiverName'] = {
-                $regex: `.*${receiverName}.*`,
-                $options: 'i',
+            conditions.$text = {
+                $search: receiverName
             };
         }
         if (status) {
@@ -83,9 +82,8 @@ export class OrderService extends BaseService<Order, OrderRepository> {
             // orderSale -> pedido VTEX
             // order -> pedido erp
             conditions.$text = {
-                $search: orderId
+                $search: `"${orderId}"`
             }
-
         }
 
         if (orderCreatedAtFrom && orderCreatedAtTo) {
