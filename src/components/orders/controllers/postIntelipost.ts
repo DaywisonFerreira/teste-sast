@@ -19,7 +19,7 @@ export = async (req: Request, res: Response) => {
         const credentials = Buffer.from(`${USERNAME}:${PASSWORD}`).toString(
             'base64'
         );
-        logger.add('ifc.logistic.api.delivery-hub.postIntelipost', {
+        logger.add('ifc.logistic.api.orders.postIntelipost', {
             message: 'Intelipost payload received',
             payload: JSON.stringify(payload)
         });
@@ -64,7 +64,7 @@ export = async (req: Request, res: Response) => {
                 invoiceNumber
             }));
         }
-        logger.add('ifc.logistic.api.delivery-hub.postIntelipost', {
+        logger.add('ifc.logistic.api.orders.postIntelipost', {
             message: `Message sent to exchange order and routeKey: ${state === 'DELIVERED' ? DELIVERED : DELIVERY_FAILURE}`,
             payload: JSON.stringify({
                 internalOrderId: orderId.split('-')[1],
@@ -77,14 +77,14 @@ export = async (req: Request, res: Response) => {
         await logger.sendLog();
 
         return res.json('Created');
-    } catch (e) {
-        logger.error(e);
+    } catch (error) {
+        logger.error(error);
         logger.endAt();
         await logger.sendLog();
         return res.status(500).json({
             status: 500,
             code: 'tracking.get.order.error',
-            error: e.message
+            error: error.message
         });
     }
 };

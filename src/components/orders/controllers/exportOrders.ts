@@ -39,6 +39,14 @@ export = async (req: IRequest, res: Response) => {
             JSON.stringify({ email, filter, config })
         );
 
+        logger.add('ifc.logistic.api.orders.exportOrders', {
+            message: `Message sent to exchange deliveryHub and routeKey exportOrders`,
+            payload: JSON.stringify({ email, filter, config })
+        })
+
+        logger.endAt();
+        await logger.sendLog();
+
         HttpHelper.ok(
             res,
             {

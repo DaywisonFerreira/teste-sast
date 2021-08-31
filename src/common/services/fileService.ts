@@ -15,46 +15,52 @@ export class FileService {
 
     constructor(){}
 
-	public static createXlsxLocally(data: unknown[], { storeCode, filter }: IExtraInfoXlsxFile){
-        if (!fs.existsSync(this.directory_path)){
-            fs.mkdirSync(this.directory_path);
-        }
-
-        const workbook = xlsx.utils.book_new();
-        const worksheet = xlsx.utils.json_to_sheet(data);
-
-        xlsx.utils.book_append_sheet(workbook, worksheet);
-
-        const from = lightFormat(new Date(`${filter.orderCreatedAtFrom}T00:00:00`), "ddMMyyyy")
-        const to = lightFormat(new Date(`${filter.orderCreatedAtTo}T23:59:59`), "ddMMyyyy")
-
-        const fileName = `${storeCode}_Status_Entregas_${from}à${to}.xlsx`;
-
-        xlsx.writeFile(workbook, `${this.directory_path}/${fileName}`);
-
-        return {
-            path: `${this.directory_path}/${fileName}`,
-            fileName
-        }
-	}
-
-	public static async deleteFileLocally(path: string){
-        const logger = new LogService();
+	public static createXlsxLocally(data: unknown[], { storeCode, filter }: IExtraInfoXlsxFile, logger: LogService){
         try {
-            logger.startAt();
-            fs.unlinkSync(path);
-            logger.add('ifc.freight.api.orders.fileService.deleteFileLocally', `Delete file ${path}`);
-            logger.endAt();
-            await logger.sendLog();
+            if (!fs.existsSync(this.directory_path)){
+                fs.mkdirSync(this.directory_path);
+            }
+
+            const workbook = xlsx.utils.book_new();
+            const worksheet = xlsx.utils.json_to_sheet(data);
+
+            xlsx.utils.book_append_sheet(workbook, worksheet);
+
+            const from = lightFormat(new Date(`${filter.orderCreatedAtFrom}T00:00:00`), "ddMMyyyy")
+            const to = lightFormat(new Date(`${filter.orderCreatedAtTo}T23:59:59`), "ddMMyyyy")
+
+            const fileName = `${storeCode}_Status_Entregas_${from}à${to}.csv`;
+
+            xlsx.writeFile(workbook, `${this.directory_path}/${fileName}`);
+
+            logger.add('ifc.freight.api.orders.fileService.createXlsxLocally', `Create file ${this.directory_path}/${fileName} - ${new Date().toISOString()}`);
+
+            return {
+                path: `${this.directory_path}/${fileName}`,
+                fileName
+            }
         } catch (error) {
             logger.error(error);
-            logger.endAt();
-            await logger.sendLog();
+        }
+
+	}
+
+	public static async deleteFileLocally(path: string, logger: LogService) {
+        try {
+            fs.unlinkSync(path);
+            logger.add('ifc.freight.api.orders.fileService.deleteFileLocally', `Delete file ${path}`);
+        } catch (error) {
+            logger.error(error);
         }
 	}
 
-    public static existsLocally(path:string){
-        return fs.existsSync(path)
+    public static existsLocally(path:string, logger: LogService){
+        try {
+            logger.add('ifc.freight.api.orders.fileService.existsLocally', `Check if file exists ${path}`);
+            return fs.existsSync(path)
+        } catch (error) {
+            logger.error(error);
+        }
     }
 }
 

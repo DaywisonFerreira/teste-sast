@@ -16,6 +16,10 @@ export default async (req: IRequest, res: Response): Promise<void> => {
 
         const response = await configService.findStoresOfUser(stores)
 
+        logger.add('ifc.freight.api.orders.getStores', `Request received from ${req.email}, Payload: ${JSON.stringify(response)}`);
+        logger.endAt();
+        await logger.sendLog();
+
         HttpHelper.ok(
             res,
             response
