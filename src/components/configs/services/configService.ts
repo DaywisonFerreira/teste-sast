@@ -10,7 +10,7 @@ export class ConfigService extends BaseService<Config, ConfigRepository> {
   }
 
   async findStoresOfUser(stores: string[]): Promise<Partial<Config[]>> {
-    return await this.repository.find({ storeId: { $in: stores }, $and: [{ active: true, sellerId: null }]}, { name: 1, icon: 1, storeCode: 1 })
+    return await this.repository.find({ storeId: { $in: stores }, $and: [{ active: true, sellerId: null }]}, { name: 1, icon: 1, storeCode: 1, storeId: 1 })
   }
 
   async findStoreConfigById(storeId: string): Promise<Config> {

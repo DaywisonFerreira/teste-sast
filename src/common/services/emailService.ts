@@ -16,10 +16,8 @@ export class EmailService {
         }
     });
 
-    public static async send(data: IEmail, logger: any) {
-        // const logger = new LogService();
+    public static async send(data: IEmail, logger: LogService) {
         try {
-            // logger.startAt();
             const {
                 to,
                 subject,
@@ -39,13 +37,10 @@ export class EmailService {
                 throw new Error('Email not sent');
             }
             logger.add('ifc.freight.api.orders.emailService.send', `Email sent to ${to}: ${info.messageId}`);
-            // logger.endAt();
-            // await logger.sendLog();
+
             return info.messageId;
         } catch (error) {
             logger.error(error);
-            // logger.endAt();
-            // await logger.sendLog();
         }
     }
 }
