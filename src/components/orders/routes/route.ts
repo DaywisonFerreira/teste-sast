@@ -4,8 +4,8 @@ import postIntelipost from '../controllers/postIntelipost';
 import getOrders from '../controllers/getOrders';
 import getDeliveryCompanies from '../controllers/getDeliveryCompanies';
 import exportOrders from '../controllers/exportOrders';
-import keyCloakMiddleware from '../../../utils/middlewares/keycloakMiddleware';
-import configMiddleware from '../../../utils/middlewares/configMiddleware';
+
+import middlewares from '../../../utils/middlewares';
 
 export default [
     {
@@ -17,19 +17,19 @@ export default [
     {
         method: 'get',
         path: '/',
-        middlewares: [...keyCloakMiddleware, configMiddleware],
+        middlewares,
         controller: getOrders,
     },
     {
         method: 'get',
         path: '/delivery-companies',
-        middlewares: [...keyCloakMiddleware, configMiddleware],
+        middlewares,
         controller: getDeliveryCompanies,
     },
     {
         method: 'get',
         path: '/export',
-        middlewares: [...keyCloakMiddleware, configMiddleware],
+        middlewares,
         controller: exportOrders,
     }
 ] as Route[];

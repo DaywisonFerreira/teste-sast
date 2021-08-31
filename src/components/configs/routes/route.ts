@@ -1,5 +1,6 @@
 import { Route } from 'ihub-framework-ts';
-import configMiddleware from '../../../utils/middlewares/configMiddleware';
+
+import jwtMiddleware from '../../../utils/middlewares/jwtMiddleware';
 import keyCloakMiddleware from '../../../utils/middlewares/keycloakMiddleware';
 
 import getStores from '../controllers/getStores';
@@ -8,7 +9,7 @@ export default [
     {
         method: 'get',
         path: '/stores',
+        middlewares: [...keyCloakMiddleware, jwtMiddleware],
         controller: getStores,
-        middlewares: [...keyCloakMiddleware, configMiddleware],
     },
 ] as Route[];
