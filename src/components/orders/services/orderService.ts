@@ -1,5 +1,6 @@
 import { common, errors } from 'ihub-framework-ts';
 import { differenceInDays, isBefore } from 'date-fns';
+
 import { ObjectID } from 'mongodb';
 // Interfaces
 import { Order } from '../interfaces/Order';
@@ -54,9 +55,8 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         }
 
         if (receiverName) {
-            conditions['receiverName'] = {
-                $regex: `.*${receiverName}.*`,
-                $options: 'i',
+            conditions.$text = {
+                $search: receiverName
             };
         }
         if (status) {
@@ -80,26 +80,14 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         if (orderId) {
             // orderSale -> pedido VTEX
             // order -> pedido erp
-            conditions.$or = [
-                {
-                    order: {
-                        $regex: `.*${orderId}.*`,
-                        $options: 'i',
-                    },
-                },
-                {
-                    orderSale: {
-                        $regex: `.*${orderId}.*`,
-                        $options: 'i',
-                    },
-                },
-            ];
-
+            conditions.$text = {
+                $search: `"${orderId}"`
+            }
         }
 
         if (orderCreatedAtFrom && orderCreatedAtTo) {
-            const dateFrom = new Date(`${orderCreatedAtFrom} 00:00:00Z`);
-            const dateTo = new Date(`${orderCreatedAtTo} 23:59:59Z`);
+            const dateFrom = new Date(`${orderCreatedAtFrom} 00:00:00-03:00`);
+            const dateTo = new Date(`${orderCreatedAtTo} 23:59:59-03:00`);
             this.validateRangeOfDates(dateFrom, dateTo);
             conditions['orderCreatedAt'] = {
                 $gte: dateFrom,
@@ -109,14 +97,14 @@ export class OrderService extends BaseService<Order, OrderRepository> {
 
         if (orderCreatedAtFrom && !orderCreatedAtTo) {
             conditions['orderCreatedAt'] = {
-                $gte: new Date(`${orderCreatedAtFrom} 00:00:00Z`),
-                $lte: new Date(`${orderCreatedAtFrom} 23:59:59Z`),
+                $gte: new Date(`${orderCreatedAtFrom} 00:00:00-03:00`),
+                $lte: new Date(`${orderCreatedAtFrom} 23:59:59-03:00`)
             };
         }
 
         if (orderUpdatedAtFrom && orderUpdatedAtTo) {
-            const dateFrom = new Date(`${orderUpdatedAtFrom} 00:00:00Z`);
-            const dateTo = new Date(`${orderUpdatedAtTo} 23:59:59Z`);
+            const dateFrom = new Date(`${orderUpdatedAtFrom} 00:00:00-03:00`);
+            const dateTo = new Date(`${orderUpdatedAtTo} 23:59:59-03:00`);
             this.validateRangeOfDates(dateFrom, dateTo);
             conditions['orderUpdatedAt'] = {
                 $gte: dateFrom,
@@ -126,8 +114,8 @@ export class OrderService extends BaseService<Order, OrderRepository> {
 
         if (orderUpdatedAtFrom && !orderUpdatedAtTo) {
             conditions['orderUpdatedAt'] = {
-                $gte: new Date(`${orderUpdatedAtFrom} 00:00:00Z`),
-                $lte: new Date(`${orderUpdatedAtFrom} 23:59:59Z`),
+                $gte: new Date(`${orderUpdatedAtFrom} 00:00:00-03:00`),
+                $lte: new Date(`${orderUpdatedAtFrom} 23:59:59-03:00`)
             };
         }
 
@@ -158,8 +146,8 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         };
 
         if (orderCreatedAtFrom && orderCreatedAtTo) {
-            const dateFrom = new Date(`${orderCreatedAtFrom} 00:00:00Z`);
-            const dateTo = new Date(`${orderCreatedAtTo} 23:59:59Z`);
+            const dateFrom = new Date(`${orderCreatedAtFrom} 00:00:00-03:00`);
+            const dateTo = new Date(`${orderCreatedAtTo} 23:59:59-03:00`);
             this.validateRangeOfDates(dateFrom, dateTo);
             conditions['orderCreatedAt'] = {
                 $gte: dateFrom,

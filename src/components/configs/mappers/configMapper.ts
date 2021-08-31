@@ -7,24 +7,28 @@ import { Order } from '../../orders/interfaces/Order';
 export class ConfigMapper {
 
   static mapSellerToConfig(seller: Seller, storeCode: string): Config {
-    const { _id, code, storeId, active } = seller;
+    const { _id, code, storeId, active, icon, name } = seller;
     const config = {
-      sellerId: _id,
-      sellerCode: code,
-      storeId,
-      storeCode,
-      active,
+        sellerId: _id,
+        sellerCode: code,
+        storeId,
+        storeCode,
+        active,
+        icon,
+        name
     } as Config;
 
     return config;
   }
 
   static mapStoreToConfig(store: Store): Config {
-    const { _id, code, active } = store;
+    const { _id, code, active, icon, name } = store;
     const config = {
-      storeId: _id,
-      storeCode: code,
-      active,
+        storeId: _id,
+        storeCode: code,
+        active,
+        icon,
+        name
     } as Config;
 
     return config;
