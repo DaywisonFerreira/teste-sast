@@ -29,7 +29,7 @@ export class FileService {
             const from = lightFormat(new Date(`${filter.orderCreatedAtFrom}T00:00:00`), "ddMMyyyy")
             const to = lightFormat(new Date(`${filter.orderCreatedAtTo}T23:59:59`), "ddMMyyyy")
 
-            const fileName = `${storeCode}_Status_Entregas_${from}à${to}.xlsx`;
+            const fileName = `${storeCode}_Status_Entregas_${from}à${to}.csv`;
 
             xlsx.writeFile(workbook, `${this.directory_path}/${fileName}`);
 
