@@ -1,12 +1,12 @@
 import { mocked } from 'ts-jest/utils';
 
-import HandleExportOrders from '../../../components/orders/messages/handleExportOrders';
+import HandleExportOrders from '../../../components/root/messages/handleExportOrders';
 import { EmailService } from '../../../common/services/emailService';
 import { FileService } from '../../../common/services/fileService';
 
 jest.mock('../../../common/services/emailService', () => ({
     EmailService: {
-      send: jest.fn().mockReturnValue({ message: 'email sent'}),
+        send: jest.fn().mockReturnValue({ message: 'email sent' }),
     },
 }))
 
@@ -28,7 +28,7 @@ describe('Test Export Orders Consumer', () => {
 
     it('should call consumer of Export Orders, and handle with request - Success', async () => {
         const payload = {
-            email:"caio.fugii@hotmail.com", filter: { orderCreatedAtFrom: "2021-05-01", orderCreatedAtTo: "2021-05-30" }
+            email: "caio.fugii@hotmail.com", filter: { orderCreatedAtFrom: "2021-05-01", orderCreatedAtTo: "2021-05-30" }
         };
 
         const spyEmailService = jest.spyOn(MockedEmailService, 'send');

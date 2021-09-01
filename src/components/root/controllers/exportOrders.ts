@@ -5,7 +5,7 @@ import { IRequest } from '../../../common/interfaces/request';
 
 const { HttpHelper } = helpers;
 
-import { OrderService, QueryParamsFilter  } from '../services/orderService';
+import { OrderService, QueryParamsFilter } from '../services/orderService';
 
 export = async (req: IRequest, res: Response) => {
     const logger = new LogService();
@@ -17,11 +17,11 @@ export = async (req: IRequest, res: Response) => {
 
         const orderService = new OrderService();
 
-        if(!email) throw new Error('An Email is required');
+        if (!email) throw new Error('An Email is required');
 
         const { orderCreatedAtFrom, orderCreatedAtTo }: any = req.query;
 
-        if(!orderCreatedAtFrom || !orderCreatedAtTo) {
+        if (!orderCreatedAtFrom || !orderCreatedAtTo) {
             throw new Error('A range with dates is required');
         }
 
