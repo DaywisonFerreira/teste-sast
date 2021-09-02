@@ -33,8 +33,19 @@ export = async (req: Request, res: Response) => {
                 .status(401)
                 .json({ message: 'Username or Password invalid' });
         }
+
+        if(!payload.sales_order_number){
+            logger.error(new Error('Missing "sales_order_number"'));
+            logger.endAt();
+            await logger.sendLog();
+            return res
+                .status(400)
+                .json({ message: 'Missing "sales_order_number"' });
+        }
+
         const order = {
             order: payload.order_number,
+            orderSale: payload.sales_order_number,
             dispatchDate: payload.history.created_iso,
             estimateDeliveryDateDeliveryCompany:
                 payload.estimated_delivery_date.client.current_iso,
@@ -49,27 +60,34 @@ export = async (req: Request, res: Response) => {
             partnerStatus: payload.history.shipment_order_volume_state_localized,
             partnerUpdatedAt: payload.history.event_date_iso
         };
+
         await orderRepository.merge(
-            { order: payload.order_number },
+            { orderSale: payload.sales_order_number },
             order
         );
         const state = payload.history.shipment_order_volume_state;
         const invoiceNumber = payload.invoice.invoice_number;
         const orderId = payload.order_number;
+
+        const internalOrderId = orderId.split('-').length ? orderId.split('-')[1] : orderId
+
+        const controlPointId = state === 'DELIVERED' ? DELIVERED : DELIVERY_FAILURE
+
         if (state === 'DELIVERY_FAILED' || state === 'DELIVERED') {
-            tasks.send('order', state === 'DELIVERED' ? DELIVERED : DELIVERY_FAILURE, JSON.stringify({
-                internalOrderId: orderId.split('-')[1],
+            tasks.send('order', controlPointId, JSON.stringify({
+                internalOrderId,
                 occurrenceDate: '',
-                controlPointId: state === 'DELIVERED' ? DELIVERED : DELIVERY_FAILURE,
+                controlPointId,
                 invoiceNumber
             }));
         }
+
         logger.add('ifc.logistic.api.orders.postIntelipost', {
-            message: `Message sent to exchange order and routeKey: ${state === 'DELIVERED' ? DELIVERED : DELIVERY_FAILURE}`,
+            message: `Message sent to exchange order and routeKey: ${controlPointId}`,
             payload: JSON.stringify({
-                internalOrderId: orderId.split('-')[1],
+                internalOrderId,
                 occurrenceDate: '',
-                controlPointId: state === 'DELIVERED' ? DELIVERED : DELIVERY_FAILURE,
+                controlPointId,
                 invoiceNumber
             })
         });

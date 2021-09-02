@@ -14,7 +14,7 @@ export default class HandleOrderNotification {
             const orderRepository = new OrderRepository();
             if (payload.status === 'dispatched' || payload.status === 'delivered') {
                 const orderToSave = OrderMapper.mapMessageToOrder(payload);
-                await orderRepository.merge({ order: orderToSave.order }, orderToSave);
+                await orderRepository.merge({ orderSale: orderToSave.orderSale }, orderToSave);
                 logger.add('handleOrderNotification.order', orderToSave)
             }
             logger.endAt();
