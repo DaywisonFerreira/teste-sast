@@ -1,6 +1,6 @@
 import { LogService } from '@infralabs/infra-logger';
 
-import { XlsxMapper } from '../mappers/xlsxMapper';
+import { XlsxMapper } from '../../root/mappers/xlsxMapper';
 import { EmailService } from '../../../common/services/emailService';
 import { FileService } from '../../../common/services/fileService';
 import { OrderService } from '../services/orderService';
