@@ -34,7 +34,7 @@ export = async (req: Request, res: Response) => {
                 .json({ message: 'Username or Password invalid' });
         }
 
-        if(!payload.sales_order_number){
+        if (!payload.sales_order_number) {
             logger.error(new Error('Missing "sales_order_number"'));
             logger.endAt();
             await logger.sendLog();
@@ -69,9 +69,9 @@ export = async (req: Request, res: Response) => {
         const invoiceNumber = payload.invoice.invoice_number;
         const orderId = payload.order_number;
 
-        const internalOrderId = orderId.split('-').length ? orderId.split('-')[1] : orderId
+        const internalOrderId = orderId.split('-').length ? orderId.split('-')[1] : orderId;
 
-        const controlPointId = state === 'DELIVERED' ? DELIVERED : DELIVERY_FAILURE
+        const controlPointId = state === 'DELIVERED' ? DELIVERED : DELIVERY_FAILURE;
 
         if (state === 'DELIVERY_FAILED' || state === 'DELIVERED') {
             tasks.send('order', controlPointId, JSON.stringify({
