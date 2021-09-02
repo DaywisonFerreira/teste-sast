@@ -59,11 +59,12 @@ const OrderSchema = new Schema({
     },
     orderSale: {
         type: String,
-        required: false
+        unique: true,
+        index: true,
+        required: true
     },
     order: {
         type: String,
-        unique: true,
         index: true,
         required: true
     },
