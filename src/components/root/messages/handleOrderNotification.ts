@@ -1,5 +1,5 @@
 import { LogService } from '@infralabs/infra-logger';
-import { OrderMapper } from '../../root/mappers/orderMapper';
+import { OrderMapper } from '../mappers/orderMapper';
 import { OrderRepository } from '../repositories/orderRepository';
 
 export default class HandleOrderNotification {

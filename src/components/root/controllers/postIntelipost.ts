@@ -3,7 +3,7 @@ import { LogService } from '@infralabs/infra-logger';
 import { OrderRepository } from '../repositories/orderRepository';
 
 const { USERNAME, PASSWORD, DELIVERED, DELIVERY_FAILURE } = process.env;
-import IWebHookIntelepost from '../interfaces/WebHookIntelipost';
+import IWebHookIntelipost from '../interfaces/WebHookIntelipost';
 
 /**
  * WebHook function from Intelipost
@@ -14,7 +14,7 @@ export = async (req: Request, res: Response) => {
     const orderRepository = new OrderRepository();
     try {
         logger.startAt();
-        const payload: IWebHookIntelepost = req.body;
+        const payload: IWebHookIntelipost = req.body;
         const token = req.headers.authorization.split(' ')[1];
         const credentials = Buffer.from(`${USERNAME}:${PASSWORD}`).toString(
             'base64'
@@ -44,8 +44,8 @@ export = async (req: Request, res: Response) => {
         }
 
         const order = {
-            order: payload.order_number,
             orderSale: payload.sales_order_number,
+            partnerOrder: payload.order_number,
             dispatchDate: payload.history.created_iso,
             estimateDeliveryDateDeliveryCompany:
                 payload.estimated_delivery_date.client.current_iso,
@@ -67,10 +67,9 @@ export = async (req: Request, res: Response) => {
         );
         const state = payload.history.shipment_order_volume_state;
         const invoiceNumber = payload.invoice.invoice_number;
-        const orderId = payload.order_number;
-
-        const internalOrderId = orderId.split('-').length ? orderId.split('-')[1] : orderId;
-
+        const internalOrderId = payload.order_number.split('-').length
+            ? payload.order_number.split('-')[1]
+            : payload.order_number;
         const controlPointId = state === 'DELIVERED' ? DELIVERED : DELIVERY_FAILURE;
 
         if (state === 'DELIVERY_FAILED' || state === 'DELIVERED') {
