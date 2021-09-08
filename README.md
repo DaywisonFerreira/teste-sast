@@ -1,4 +1,4 @@
-# iHub ifc-freight-api-orders
+# ifc-freight-api-orders
 
 The iHub ifc-freight-api-orders is a microservice that managers the changes status of the orders.
 
