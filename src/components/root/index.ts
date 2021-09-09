@@ -7,5 +7,5 @@ export default new Component({
     server: {
         routes,
     },
-    messages
+    messages,
 });
