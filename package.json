@@ -22,7 +22,7 @@
     "scripts": {
         "serve": "node dist/index.js",
         "start": "pm2 start --no-daemon dist/index.js -i max",
-        "start:watch": "nodemon --legacy-watch --inspect=0.0.0.0:9876 dist",
+        "start:watch": "nodemon --legacy-watch --inspect=0.0.0.0:${DEBUG_PORT} dist",
         "build": "tsc",
         "build:watch": "tsc -w --skipLibCheck",
         "dev": "concurrently \"'npm run build:watch'\" \"'npm run start:watch'\"",
