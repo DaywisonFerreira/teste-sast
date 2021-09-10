@@ -73,6 +73,10 @@ export default async (req: IRequest, res: Response): Promise<void> => {
             paginationParams
         );
 
+        logger.add('ifc.freight.api.orders.getOrders', `Request received from ${req.email}`);
+        logger.endAt();
+        await logger.sendLog();
+
         HttpHelper.ok(
             res,
             PaginationHelper.getPaginatedResponse(paginatedResponse)

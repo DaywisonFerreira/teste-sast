@@ -1,7 +1,7 @@
 import { mocked } from 'ts-jest/utils';
 
-import HandleOrderNotification from '../../../components/orders/messages/handleOrderNotification';
-import { OrderMapper } from '../../../components/orders/mappers/orderMapper';
+import HandleOrderNotification from '../../../components/root/messages/handleOrderNotification';
+import { OrderMapper } from '../../../components/root/mappers/orderMapper';
 
 jest.mock('../../../components/orders/mappers/orderMapper', () => ({
     OrderMapper: {

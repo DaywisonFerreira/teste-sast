@@ -67,7 +67,7 @@ interface Iestimated_delivery_date {
     logistic_provider: Ilogistic_provider;
 }
 
-export default interface IWebHookIntelepost {
+export default interface IWebHookIntelipost {
     history: Ihistory;
     invoice: Iinvoice;
     order_number: string;
