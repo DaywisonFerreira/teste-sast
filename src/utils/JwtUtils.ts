@@ -28,9 +28,9 @@ export class JWTUtils {
 
         const isExpired = this.isExpired(validation.data)
 
-        // if(isExpired){
-        //     return { hasError: true, error: 'It wasn\'t possible to decode the specified token because it\'s expired' }
-        // }
+        if(isExpired){
+            return { hasError: true, error: 'It wasn\'t possible to decode the specified token because it\'s expired' }
+        }
 
         return { hasError: false, data: validation.data }
     }
