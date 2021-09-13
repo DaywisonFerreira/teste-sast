@@ -19,10 +19,11 @@ export default async (req: IRequest, res: Response, next: Next) => {
             return HttpHelper.unauthorized(res, jwtPayload.error)
         }
 
-        const { stores, email } = jwtPayload.data
+        const { stores, email, sub } = jwtPayload.data
 
         req['stores'] = stores
         req['email'] = email
+        req['userId'] = sub
 
         next();
     } catch (error) {
