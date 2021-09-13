@@ -1,9 +1,11 @@
 import { LogService } from '@infralabs/infra-logger';
 
-import { XlsxMapper } from '../mappers/xlsxMapper';
+import { CsvMapper } from '../mappers/csvMapper';
 import { EmailService } from '../../../common/services/emailService';
 import { FileService } from '../../../common/services/fileService';
 import { OrderService } from '../services/orderService';
+import { AzureService } from '../../../common/services/azureService';
+
 export default class HandleExportOrders {
     private file = {
         path: '',
@@ -22,31 +24,24 @@ export default class HandleExportOrders {
             logger.startAt();
             const { email, filter, config } = payload;
             const { storeCode } = config;
+
             logger.add('ifc.freight.api.orders.handleExportOrders.execute', `Request received from ${email}, starting to be processed`);
             const orderService = new OrderService();
             const dataToFormat = await orderService.exportData(filter, { lean: true });
-            const dataFormatted = XlsxMapper.mapOrderToXlsx(dataToFormat);
+            const dataFormatted = CsvMapper.mapOrderToCsv(dataToFormat);
 
-            this.file = FileService.createXlsxLocally(dataFormatted, { storeCode, filter }, logger);
+            this.file = await FileService.createCsvLocally(dataFormatted,{ storeCode, filter }, logger);
 
-            //TODO: NOTIFICAR USUARIO VIA WEBSOCKET COM O LINK DO BLOB DA AZURE
-            // REMOVER ENVIO DE EMAIL
+            const urlFile = await AzureService.uploadFile(this.file, logger)
 
-            await EmailService.send({
-                to: email,
-                attachments: [this.file],
-                subject: `${storeCode}_Status_Entregas`,
-                body: {
-                    text: 'Please do not reply this e-mail.',
-                    html: '<b>Please do not reply this e-mail.</b>'
-                }
-            }, logger);
+            //TODO: NOTIFICAR USUARIO VIA WEBSOCKET COM O LINK(urlFile)
 
             logger.add('ifc.freight.api.orders.handleExportOrders.execute', 'Payload received and data sent');
         } catch (error) {
             logger.error(error);
         } finally {
-            if (FileService.existsLocally(this.file.path, logger)) {
+
+            if (this.file.path && FileService.existsLocally(this.file.path, logger)) {
                 await FileService.deleteFileLocally(this.file.path, logger);
             }
 
