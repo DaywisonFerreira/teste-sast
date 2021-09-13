@@ -4,7 +4,6 @@ import { XlsxMapper } from '../mappers/xlsxMapper';
 import { EmailService } from '../../../common/services/emailService';
 import { FileService } from '../../../common/services/fileService';
 import { OrderService } from '../services/orderService';
-
 export default class HandleExportOrders {
     private file = {
         path: '',
@@ -29,6 +28,9 @@ export default class HandleExportOrders {
             const dataFormatted = XlsxMapper.mapOrderToXlsx(dataToFormat);
 
             this.file = FileService.createXlsxLocally(dataFormatted, { storeCode, filter }, logger);
+
+            //TODO: NOTIFICAR USUARIO VIA WEBSOCKET COM O LINK DO BLOB DA AZURE
+            // REMOVER ENVIO DE EMAIL
 
             await EmailService.send({
                 to: email,
