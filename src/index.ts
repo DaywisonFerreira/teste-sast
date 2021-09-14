@@ -1,8 +1,10 @@
 import http from "http";
+
 import { Server, Socket } from "socket.io"
 
 import { IhubFramework } from 'ihub-framework-ts';
-import { UsersRooms, Notification } from './common/interfaces/socket';
+import { UsersLogged, Notification } from './common/interfaces/socket';
+import { NotificationService } from './components/root/services/notificationService';
 
 (async () => {
     await new IhubFramework().start();
@@ -13,7 +15,7 @@ serverHttp.listen(parseInt(process.env.WS_PORT), () => console.log("WebSocket Li
 
 const io: Server = new Server(serverHttp, { cors: { origin: "*", credentials: false } })
 
-const users: UsersRooms[] = []
+const users: UsersLogged[] = []
 
 io.on("connection", (socket: Socket) => {
     socket.on("connect_user", (data) => {
@@ -36,18 +38,27 @@ io.on("connection", (socket: Socket) => {
     })
 })
 
-//TODO: PERSISTIR NOTIFICAÇÕES NO BANCO
-
-const notifyUser = (userId: string, data: Notification) => {
+const notifyUser = async (userId: string, data: Partial<Notification>) => {
+    const notificationSvc = new NotificationService()
     const userLogged = users.find(user => user.userId === userId)
 
-    if(!userLogged) return
+    if(!userLogged) return;
 
-    io.to(userLogged.socketId).emit("notification", {...data, dateTime: new Date()})
+    io.to(userLogged.socketId).emit("notification", {...data, createdAt: new Date().toISOString(), read: false })
+
+    await notificationSvc.save({...data, notifiedUsers: [{ user: userId, read: false }] })
 }
 
-const broadcast = (data: Notification) => {
-    io.emit("notification", {...data, dateTime: new Date()})
+const broadcast = async (data: Partial<Notification>) => {
+    const notificationSvc = new NotificationService()
+
+    io.emit("notification", {...data, createdAt: new Date().toISOString(), read: false })
+
+    await notificationSvc.save({...data,
+        notifiedUsers: users.map(user => {
+            return { user: user.userId, read: false }
+        })
+    })
 }
 
 export { notifyUser, broadcast }
