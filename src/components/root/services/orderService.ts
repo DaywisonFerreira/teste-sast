@@ -59,6 +59,7 @@ export class OrderService extends BaseService<Order, OrderRepository> {
                 $search: receiverName
             };
         }
+
         if (status) {
             conditions['status'] = {
                 $regex: `.*${status}.*`,
@@ -119,7 +120,6 @@ export class OrderService extends BaseService<Order, OrderRepository> {
             };
         }
 
-        // Does the pagination on database
         return this.repository.pagination(
             conditions,
             fields,

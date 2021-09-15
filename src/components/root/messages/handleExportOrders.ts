@@ -1,10 +1,11 @@
 import { LogService } from '@infralabs/infra-logger';
 
 import { CsvMapper } from '../mappers/csvMapper';
-import { EmailService } from '../../../common/services/emailService';
 import { FileService } from '../../../common/services/fileService';
 import { OrderService } from '../services/orderService';
 import { AzureService } from '../../../common/services/azureService';
+import { notifyUser } from '../../../index';
+import { NotificationTypes } from '../../../common/interfaces/socket';
 
 export default class HandleExportOrders {
     private file = {
@@ -22,19 +23,23 @@ export default class HandleExportOrders {
 
         try {
             logger.startAt();
-            const { email, filter, config } = payload;
+            const { userId, filter, config } = payload;
             const { storeCode } = config;
 
-            logger.add('ifc.freight.api.orders.handleExportOrders.execute', `Request received from ${email}, starting to be processed`);
-            const orderService = new OrderService();
-            const dataToFormat = await orderService.exportData(filter, { lean: true });
-            const dataFormatted = CsvMapper.mapOrderToCsv(dataToFormat);
+            logger.add('ifc.freight.api.orders.handleExportOrders.execute', `Request received from userId: ${userId}, starting to be processed`);
+            // const orderService = new OrderService();
+            // const dataToFormat = await orderService.exportData(filter, { lean: true });
+            // const dataFormatted = CsvMapper.mapOrderToCsv(dataToFormat);
 
-            this.file = await FileService.createCsvLocally(dataFormatted,{ storeCode, filter }, logger);
+            // this.file = await FileService.createCsvLocally(dataFormatted,{ storeCode, filter }, logger);
 
-            const urlFile = await AzureService.uploadFile(this.file, logger)
+            // const urlFile = await AzureService.uploadFile(this.file, logger)
+            const urlFile = "URL_BLOB_STORAGE"
 
-            //TODO: NOTIFICAR USUARIO VIA WEBSOCKET COM O LINK(urlFile)
+            await notifyUser(userId, {
+                notificationType: NotificationTypes.OrdersDownloadCSV,
+                payload: { urlFile }
+            })
 
             logger.add('ifc.freight.api.orders.handleExportOrders.execute', 'Payload received and data sent');
         } catch (error) {

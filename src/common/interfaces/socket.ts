@@ -1,18 +1,25 @@
-interface UsersRooms {
+import { common } from 'ihub-framework-ts';
+
+interface UsersLogged {
     socketId: string,
     email: string,
     userId: string,
     userName: string,
 }
 
-interface Notification {
+interface NotifiedUsers {
+    user: String,
     read: Boolean
-    messageType: MessagesTypes,
-    payload?: any,
 }
 
-enum MessagesTypes {
-    DownloadXlsxOrders
+class Notification extends common.Types.BaseEntity {
+    notificationType: NotificationTypes;
+    notifiedUsers: NotifiedUsers[];
+    payload?: String | any;
 }
 
-export { UsersRooms, Notification }
+enum NotificationTypes {
+    OrdersDownloadCSV = "Orders.DownloadCSV"
+}
+
+export { UsersLogged, Notification, NotificationTypes }
