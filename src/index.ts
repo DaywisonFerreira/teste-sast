@@ -11,7 +11,7 @@ import { NotificationService } from './components/root/services/notificationServ
 })();
 
 const serverHttp = http.createServer();
-serverHttp.listen(parseInt(process.env.WS_PORT), () => console.log("WebSocket Listen on port 8081"))
+serverHttp.listen(parseInt(process.env.SERVER_SOCKET_PORT), () => console.log(`WebSocket Listen on port ${process.env.SERVER_SOCKET_PORT}`))
 
 const io: Server = new Server(serverHttp, { cors: { origin: "*", credentials: false } })
 

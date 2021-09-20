@@ -8,6 +8,6 @@ RUN npm i
 
 RUN npm run build
 
-EXPOSE 3000 3001
+EXPOSE 3000 3001 8081
 
 CMD ["pm2-runtime", "ecosystem.config.js"]

@@ -12,6 +12,6 @@ RUN npm run build
 
 RUN npm uninstall typescript
 
-EXPOSE 3000 3001
+EXPOSE 3000 8081
 
 CMD ["npm", "run", "serve"]
