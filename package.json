@@ -39,7 +39,7 @@
         "date-fns": "^2.23.0",
         "date-fns-tz": "^1.1.6",
         "express-session": "^1.17.2",
-        "ihub-framework-ts": "^1.9.7",
+        "ihub-framework-ts": "^1.9.8",
         "jsonwebtoken": "^8.5.1",
         "keycloak-connect": "^14.0.0",
         "module-alias": "^2.2.2",

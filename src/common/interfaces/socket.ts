@@ -3,8 +3,7 @@ import { common } from 'ihub-framework-ts';
 interface UsersLogged {
     socketId: string,
     email: string,
-    userId: string,
-    userName: string,
+    userId: string
 }
 
 interface NotifiedUsers {
@@ -19,7 +18,7 @@ class Notification extends common.Types.BaseEntity {
 }
 
 enum NotificationTypes {
-    OrdersDownloadCSV = "Orders.DownloadCSV"
+    OrdersExportCSV = "orders.export.csv"
 }
 
 export { UsersLogged, Notification, NotificationTypes }

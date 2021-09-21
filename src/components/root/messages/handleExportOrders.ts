@@ -4,7 +4,7 @@ import { CsvMapper } from '../mappers/csvMapper';
 import { FileService } from '../../../common/services/fileService';
 import { OrderService } from '../services/orderService';
 import { AzureService } from '../../../common/services/azureService';
-import { notifyUser } from '../../../index';
+import { notifyUser } from '../../../socket';
 import { NotificationTypes } from '../../../common/interfaces/socket';
 
 export default class HandleExportOrders {
@@ -37,7 +37,7 @@ export default class HandleExportOrders {
             const urlFile = "URL_BLOB_STORAGE"
 
             await notifyUser(userId, {
-                notificationType: NotificationTypes.OrdersDownloadCSV,
+                notificationType: NotificationTypes.OrdersExportCSV,
                 payload: { urlFile }
             })
 

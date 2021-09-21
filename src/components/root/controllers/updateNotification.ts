@@ -24,11 +24,11 @@ export = async (req: IRequest, res: Response) => {
         const { allNotifications, notificationId }: Partial<Params> = req.query;
 
         if(!allNotifications && !notificationId){
-            return HttpHelper.notFound(res, "Missing params \"all\" or \"notificationId\"");
+            return HttpHelper.notFound(res, "Missing params \"allNotifications\" or \"notificationId\"");
         }
 
         if(allNotifications && notificationId){
-            return HttpHelper.conflict(res, "Bad request only one of this params: \"all\" or\"notificationId\"");
+            return HttpHelper.conflict(res, "Bad request only one of this params: \"allNotifications\" or \"notificationId\"");
         }
 
         await notificationService.markAsRead(userId, notificationId, allNotifications)
