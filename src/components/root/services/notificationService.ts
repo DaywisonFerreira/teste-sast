@@ -8,22 +8,20 @@ export class NotificationService extends BaseService<Notification, NotificationR
         super(new NotificationRepository());
     }
 
-    async listNotifications(userId: string, { read }: any, fields: any, paginationParams: common.Types.PaginationParams){
-        const today = new Date()
-        const conditions: any = {}
+    async listNotifications(user: string, { read }: any, fields: any, paginationParams: common.Types.PaginationParams){
+        const today = new Date();
+        const conditions: any = {
+            createdAt: { $gte: new Date().setDate(today.getDate()-30) }
+        }
 
         if(read){
             conditions['notifiedUsers'] = read === 'false' ?
-                { $elemMatch: { user: userId, read: false } } : { $elemMatch: { user: userId, read: true } }
+                { $elemMatch: { user, read: false } } : { $elemMatch: { user, read: true } }
         }else{
-            conditions['notifiedUsers'] = { $elemMatch: { user: userId } }
+            conditions['notifiedUsers'] = { $elemMatch: { user } }
         }
 
-        conditions['createdAt'] = {
-            $gte: new Date().setDate(today.getDate()-30)
-        }
-
-        const unreadCount = await this.repository.countDocuments({ notifiedUsers: { $elemMatch: { user: userId, read: false } }, createdAt: { $gte: new Date().setDate(today.getDate()-30) }});
+        const unreadCount = await this.repository.countDocuments({ notifiedUsers: { $elemMatch: { user, read: false } }, createdAt: { $gte: new Date().setDate(today.getDate()-30) }});
         const toFormat = await this.repository.pagination(conditions, fields, { lean: true }, {...paginationParams, orderBy: 'createdAt', orderDirection: 'desc'});
 
         const result = {
@@ -33,27 +31,32 @@ export class NotificationService extends BaseService<Notification, NotificationR
                 return {
                     _id, notificationType, createdAt,
                     payload: payload ? JSON.parse(payload) : {},
-                    read: notifiedUsers.find(notify => notify.user === userId).read
+                    read: notifiedUsers.find(notify => notify.user === user).read
                 }
             })}
 
         return {...result, unreadCount }
     }
 
-    async save(data: Partial<Notification>): Promise<void>{
+    async save(data: Partial<Notification>): Promise<Notification>{
         if(data.payload){
             data.payload = JSON.stringify(data.payload)
         }
-        await this.repository.save(data as Notification)
+        return await this.repository.save(data as Notification)
     }
 
-    async markAsRead(userId: string, notificationId?: string, markAll?: any){
-        const update = { $set: { "notifiedUsers.$.read": true } };
-
-        if(markAll === 'true'){
-            return await this.repository.updateMany({ notifiedUsers: { $elemMatch: { user: userId }}}, update)
+    async markAsRead(user: string, notificationId?: string, markAll?: any){
+        if(!markAll && notificationId){
+            const notification = await this.repository.findOne({ _id: notificationId, notifiedUsers: { $elemMatch: { user }}}, { 'notifiedUsers.$': 1 })
+            const [status] = notification.notifiedUsers
+            return await this.repository.findOneAndUpdate({ _id: notificationId, notifiedUsers: { $elemMatch: { user }}}, { $set: { "notifiedUsers.$.read": !status.read } })
         }
 
-        return await this.repository.findOneAndUpdate({ _id: notificationId, notifiedUsers: { $elemMatch: { user: userId }}}, update);
+        if(markAll && !notificationId){
+            const today = new Date();
+            const conditions = { createdAt: { $gte: new Date().setDate(today.getDate()-30) }, notifiedUsers: { $elemMatch: { user }}}
+            const status = markAll === 'true' ? true : false
+            return await this.repository.updateMany(conditions, { $set: { "notifiedUsers.$.read": status } })
+        }
     }
 }
