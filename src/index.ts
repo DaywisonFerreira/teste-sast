@@ -7,11 +7,7 @@ import { onConnection, middlewareSocket } from './socket';
     const options = {
         cors:
         {
-            origin: [
-                new RegExp(/\.ifcshop\.com\.br$/, 'i'),
-                new RegExp(/\.azurewebsites\.net$/, 'i'),
-                new RegExp(/\.github\.io$/, 'i')
-            ],
+            origin: "*",
             credentials: true,
         },
         path:'/freight/orders/socket.io'
