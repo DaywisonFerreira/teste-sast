@@ -1,9 +1,10 @@
-import { Socket } from "socket.io"
+import { Server, Socket } from 'socket.io';
 
 import { JWTUtils } from '../utils/JwtUtils';
 import { Notification, UsersLogged } from '../common/interfaces/socket';
 import { NotificationService } from '../components/root/services/notificationService';
-import { io } from '../index';
+
+let io: Server
 
 const users: UsersLogged[] = [];
 
@@ -25,7 +26,8 @@ const middlewareSocket = (socket: Socket, next: Function) => {
 
 };
 
-const onConnection = (socket: Socket) => {
+const onConnection = (ioInstance: Server) => (socket: Socket) => {
+    io = ioInstance
     const { data } = socket
 
     if(!data.token) return;

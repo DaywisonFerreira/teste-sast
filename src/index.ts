@@ -2,8 +2,6 @@ import { IhubFramework } from 'ihub-framework-ts';
 import { Server } from 'socket.io';
 import { onConnection, middlewareSocket } from './socket';
 
-let io: Server
-
 (async () => {
     const server = await new IhubFramework().start();
     const options = {
@@ -17,10 +15,8 @@ let io: Server
             credentials: true,
         }
     }
-    io = require('socket.io')(server.server, options)
+    const io: Server = require('socket.io')(server.server, options)
     console.log(`WebSocket Listen on port ${process.env.SERVER_HTTP_PORT}`)
     io.use(middlewareSocket);
-    io.on("connection", onConnection)
+    io.on("connection", onConnection(io))
 })();
-
-export { io }
