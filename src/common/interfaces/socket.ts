@@ -21,4 +21,4 @@ enum NotificationTypes {
     OrdersExportCSV = "orders.export.csv"
 }
 
-export { UsersLogged, Notification, NotificationTypes }
+export { UsersLogged, Notification, NotificationTypes, NotifiedUsers }

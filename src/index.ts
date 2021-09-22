@@ -13,7 +13,8 @@ import { onConnection, middlewareSocket } from './socket';
                 new RegExp(/\.github\.io$/, 'i')
             ],
             credentials: true,
-        }
+        },
+        path:'/freight/orders/socket.io'
     }
     const io: Server = require('socket.io')(server.server, options)
     console.log(`WebSocket Listen on port ${process.env.SERVER_HTTP_PORT}`)

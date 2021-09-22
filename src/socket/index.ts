@@ -4,9 +4,9 @@ import { JWTUtils } from '../utils/JwtUtils';
 import { Notification, UsersLogged } from '../common/interfaces/socket';
 import { NotificationService } from '../components/root/services/notificationService';
 
-let io: Server
-
 const users: UsersLogged[] = [];
+
+let io: Server
 
 const middlewareSocket = (socket: Socket, next: Function) => {
     const token = socket.handshake.auth.token;
@@ -44,6 +44,7 @@ const onConnection = (ioInstance: Server) => (socket: Socket) => {
         const index = users.findIndex(user => user.userId === userAlreadyLogged.userId)
         users.splice(index, 1, { ...userAlreadyLogged, socketId: socket.id })
     }
+    //TODO: REGISTER LISTENERS IF NECESSARY;
 };
 
 const notifyUser = async (userId: string, data: Partial<Notification>) => {
