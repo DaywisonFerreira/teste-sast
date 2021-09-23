@@ -49,7 +49,7 @@ export class NotificationService extends BaseService<Notification, NotificationR
         if(!markAll && notificationId){
             const notification = await this.repository.findOne({ _id: notificationId, notifiedUsers: { $elemMatch: { user }}}, { 'notifiedUsers.$': 1 })
             const [status] = notification.notifiedUsers
-            return await this.repository.findOneAndUpdate({ _id: notificationId, notifiedUsers: { $elemMatch: { user }}}, { $set: { "notifiedUsers.$.read": !status.read } })
+            return await this.repository.findOneAndUpdate({ _id: notificationId, notifiedUsers: { $elemMatch: { user }}}, { $set: { "notifiedUsers.$.read": !status.read } }, { new: true })
         }
 
         if(markAll && !notificationId){
