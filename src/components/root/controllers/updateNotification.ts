@@ -9,7 +9,8 @@ const { HttpHelper } = helpers;
 
 interface Params {
     allNotifications: Boolean,
-    notificationId: string
+    notificationId: string,
+    read: Boolean
 }
 
 export = async (req: IRequest, res: Response) => {
@@ -21,7 +22,7 @@ export = async (req: IRequest, res: Response) => {
         const { userId } = req
         const notificationService = new NotificationService()
 
-        const { allNotifications, notificationId }: Partial<Params> = req.query;
+        const { allNotifications, notificationId, read }: Partial<Params> = req.query;
 
         if(!allNotifications && !notificationId){
             return HttpHelper.notFound(res, "Missing params \"allNotifications\" or \"notificationId\"");
@@ -31,7 +32,7 @@ export = async (req: IRequest, res: Response) => {
             return HttpHelper.conflict(res, "Bad request only one of this params: \"allNotifications\" or \"notificationId\"");
         }
 
-        await notificationService.markAsRead(userId, notificationId, allNotifications)
+        await notificationService.markAsRead(userId, notificationId, allNotifications, read)
 
         logger.add('ifc.logistic.api.notification.updateNotification',
         allNotifications ? `Mark as READ all notifications, from user: ${userId}` : `Mark as READ notification: ${notificationId}, from user: ${userId}`)
