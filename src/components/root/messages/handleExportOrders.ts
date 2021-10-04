@@ -39,7 +39,7 @@ export default class HandleExportOrders {
             await notifyUser(userId, {
                 notificationType: NotificationTypes.OrdersExportCSV,
                 payload: { urlFile }
-            })
+            }, logger)
 
             logger.add('ifc.freight.api.orders.handleExportOrders.execute', 'Payload received and data sent');
         } catch (error) {
