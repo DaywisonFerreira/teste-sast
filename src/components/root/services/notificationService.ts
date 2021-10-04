@@ -45,17 +45,16 @@ export class NotificationService extends BaseService<Notification, NotificationR
         return await this.repository.save(data as Notification)
     }
 
-    async markAsRead(user: string, notificationId?: string, markAll?: any){
+    async markAsRead(user: string, notificationId?: string, markAll?: any, read?: any){
         if(!markAll && notificationId){
-            const notification = await this.repository.findOne({ _id: notificationId, notifiedUsers: { $elemMatch: { user }}}, { 'notifiedUsers.$': 1 })
-            const [status] = notification.notifiedUsers
-            return await this.repository.findOneAndUpdate({ _id: notificationId, notifiedUsers: { $elemMatch: { user }}}, { $set: { "notifiedUsers.$.read": !status.read } }, { new: true })
+            const status = read === 'true'
+            return await this.repository.findOneAndUpdate({ _id: notificationId, notifiedUsers: { $elemMatch: { user }}}, { $set: { "notifiedUsers.$.read": status } }, { new: true })
         }
 
         if(markAll && !notificationId){
             const today = new Date();
             const conditions = { createdAt: { $gte: new Date().setDate(today.getDate()-30) }, notifiedUsers: { $elemMatch: { user }}}
-            const status = markAll === 'true' ? true : false
+            const status = markAll === 'true'
             return await this.repository.updateMany(conditions, { $set: { "notifiedUsers.$.read": status } })
         }
     }
