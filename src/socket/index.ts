@@ -22,44 +22,43 @@ const middlewareSocket = (socket: Socket, next: Function) => {
         next(new Error(jwtPayload.error));
     }
 
-    socket.data.token = jwtPayload.data
+    socket.data.userId = jwtPayload.data.sub
+    socket.data.email = jwtPayload.data.email
     next()
 
 };
 
-const onConnection = (ioInstance: Server) => (socket: Socket) => {
+const onConnection = (ioInstance: Server) => async (socket: Socket) => {
     io = ioInstance
     const { data } = socket
 
-    if(!data.token) return;
-
-     const userAlreadyLogged = users.find(user => user.userId === data.token.sub);
+    const userAlreadyLogged = users.find(user => user.userId === data.userId);
 
     if(!userAlreadyLogged){
         users.push({
-            socketId: socket.id,
-            email: data.token.email,
-            userId: data.token.sub
+            email: data.email,
+            userId: data.userId
         })
+
+        await socket.join(`${data.userId}`)
     }else{
-        const index = users.findIndex(user => user.userId === userAlreadyLogged.userId)
-        users.splice(index, 1, { ...userAlreadyLogged, socketId: socket.id })
+        await socket.join(`${userAlreadyLogged.userId}`)
     }
+
     //TODO: REGISTER LISTENERS IF NECESSARY;
 };
 
 const notifyUser = async (userId: string, data: Partial<Notification>, logger: LogService) => {
     try {
         const notificationSvc = new NotificationService()
-        const userLogged = users.find(user => user.userId === userId)
 
         const notification = await notificationSvc.save({...data, notifiedUsers: [{ user: userId, read: false }] })
         const { _id, notificationType, payload, createdAt } = notification
 
-        if(!userLogged) return;
+        const userLogged = users.find(user => user.userId === userId)
 
-        io.to(userLogged.socketId).emit("notification", {
-            _id, notificationType, payload: payload ? JSON.parse(payload) : {}, createdAt, read: false })
+        io.in(`${userLogged.userId}`).emit('notification', {
+            _id, notificationType, payload: payload ? JSON.parse(payload) : {}, createdAt, read: false });
 
         logger.add('ifc.freight.api.orders.notifyUser', `Notification: ${_id} send to ${userId}`);
     } catch (error) {
@@ -80,6 +79,7 @@ const broadcast = async (data: Partial<Notification>, logger: LogService) => {
         const { _id, notificationType, payload, createdAt } = notification
 
         io.emit("notification", { _id, notificationType, payload: payload ? JSON.parse(payload) : {}, createdAt, read: false })
+
         logger.add('ifc.freight.api.orders.broadcast', `Notification: ${_id} send to Broadcast`);
     } catch (error) {
         logger.error(error);

@@ -1,7 +1,6 @@
 import { common } from 'ihub-framework-ts';
 
 interface UsersLogged {
-    socketId: string,
     email: string,
     userId: string
 }
