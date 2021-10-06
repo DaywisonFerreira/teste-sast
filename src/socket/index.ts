@@ -57,7 +57,7 @@ const notifyUser = async (userId: string, data: Partial<Notification>, logger: L
 
         const userLogged = users.find(user => user.userId === userId)
 
-        io.in(`${userLogged.userId}`).emit('notification', {
+        io.in(`${userLogged.userId}`).volatile.emit('notification', {
             _id, notificationType, payload: payload ? JSON.parse(payload) : {}, createdAt, read: false });
 
         logger.add('ifc.freight.api.orders.notifyUser', `Notification: ${_id} send to ${userId}`);
