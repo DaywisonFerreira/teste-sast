@@ -25,6 +25,7 @@ export default [
         routeKey: '',
         queue: 'delivery_hub_order_notification_q',
         type: 'fanout',
+        prefetch: 5,
         action: (payload, done) => new HandleOrderNotification().execute(payload, done),
     },
     {
