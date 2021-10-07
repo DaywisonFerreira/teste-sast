@@ -2,7 +2,7 @@ import { Request, Response, tasks } from 'ihub-framework-ts';
 import { LogService } from '@infralabs/infra-logger';
 import { OrderRepository } from '../repositories/orderRepository';
 
-const { USERNAME, PASSWORD, DELIVERED, DELIVERY_FAILURE } = process.env;
+const { INTELIPOST_USERNAME, INTELIPOST_PASSWORD, DELIVERED, DELIVERY_FAILURE } = process.env;
 import IWebHookIntelipost from '../interfaces/WebHookIntelipost';
 
 /**
@@ -16,7 +16,7 @@ export = async (req: Request, res: Response) => {
         logger.startAt();
         const payload: IWebHookIntelipost = req.body;
         const token = req.headers.authorization.split(' ')[1];
-        const credentials = Buffer.from(`${USERNAME}:${PASSWORD}`).toString(
+        const credentials = Buffer.from(`${INTELIPOST_USERNAME}:${INTELIPOST_PASSWORD}`).toString(
             'base64'
         );
         logger.add('ifc.logistic.api.orders.postIntelipost', {
@@ -24,6 +24,7 @@ export = async (req: Request, res: Response) => {
             payload: JSON.stringify(payload)
         });
         logger.endAt();
+        console.log('testeeee', credentials, INTELIPOST_USERNAME, INTELIPOST_PASSWORD, token);
         await logger.sendLog();
         if (credentials !== token) {
             logger.error(new Error('Username or password invalid'));
@@ -70,23 +71,32 @@ export = async (req: Request, res: Response) => {
         const internalOrderId = payload.order_number.split('-').length
             ? payload.order_number.split('-')[1]
             : payload.order_number;
-        const controlPointId = state === 'DELIVERED' ? DELIVERED : DELIVERY_FAILURE;
+        // const controlPointId = state === 'DELIVERED' ? DELIVERED : DELIVERY_FAILURE;
 
-        if (state === 'DELIVERY_FAILED' || state === 'DELIVERED') {
-            tasks.send('order', controlPointId, JSON.stringify({
+        const exchange = 'order';
+        const routeKey = 'orderTrackingUpdated';
+        // if (state === 'DELIVERY_FAILED' || state === 'DELIVERED') {
+        // const orderMerged = await orderRepository.findOne({ orderSale: payload.sales_order_number })
+        // if (orderMerged.storeId && orderMerged.storeCode) {
+            tasks.send(exchange, routeKey, JSON.stringify({
+                // storeId: ,
+                // storeCode: ,
+                externalOrderId: order.orderSale,
                 internalOrderId,
+                // shippingEstimateDate: ...
+
                 occurrenceDate: '',
-                controlPointId,
+                // controlPointId,
                 invoiceNumber
             }));
-        }
+        // }
 
         logger.add('ifc.logistic.api.orders.postIntelipost', {
-            message: `Message sent to exchange order and routeKey: ${controlPointId}`,
+            message: `Message sent to exchange ${exchange} and routeKey ${routeKey}`,
             payload: JSON.stringify({
                 internalOrderId,
                 occurrenceDate: '',
-                controlPointId,
+                // controlPointId,
                 invoiceNumber
             })
         });
@@ -100,7 +110,7 @@ export = async (req: Request, res: Response) => {
         await logger.sendLog();
         return res.status(500).json({
             status: 500,
-            code: 'tracking.get.order.error',
+            code: 'ifc.freight.api.orders.postIntelipost',
             error: error.message
         });
     }
