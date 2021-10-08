@@ -2,7 +2,7 @@ import fs from 'fs'
 import xlsx from 'xlsx';
 import { lightFormat } from 'date-fns';
 
-import { LogService } from '@infralabs/infra-logger';
+// import { LogService } from '@infralabs/infra-logger';
 
 
 interface IExtraInfoXlsxFile{
@@ -15,7 +15,8 @@ export class FileService {
 
     constructor(){}
 
-	public static createXlsxLocally(data: unknown[], { storeCode, filter }: IExtraInfoXlsxFile, logger: LogService){
+	// public static createXlsxLocally(data: unknown[], { storeCode, filter }: IExtraInfoXlsxFile, logger: LogService) {
+	public static createXlsxLocally(data: unknown[], { storeCode, filter }: IExtraInfoXlsxFile) {
         try {
             if (!fs.existsSync(this.directory_path)){
                 fs.mkdirSync(this.directory_path);
@@ -33,33 +34,41 @@ export class FileService {
 
             xlsx.writeFile(workbook, `${this.directory_path}/${fileName}`);
 
-            logger.add('ifc.freight.api.orders.fileService.createXlsxLocally', `Create file ${this.directory_path}/${fileName} - ${new Date().toISOString()}`);
+            // logger.add('ifc.freight.api.orders.fileService.createXlsxLocally', `Create file ${this.directory_path}/${fileName} - ${new Date().toISOString()}`);
+            console.log('ifc.freight.api.orders.fileService.createXlsxLocally', `Create file ${this.directory_path}/${fileName} - ${new Date().toISOString()}`);
 
             return {
                 path: `${this.directory_path}/${fileName}`,
                 fileName
             }
         } catch (error) {
-            logger.error(error);
+            // logger.error(error);
+            console.log('ifc.freight.api.orders.fileService.createXlsxLocally.error', error);
         }
 
 	}
 
-	public static async deleteFileLocally(path: string, logger: LogService) {
+	// public static async deleteFileLocally(path: string, logger: LogService) {
+	public static async deleteFileLocally(path: string) {
         try {
             fs.unlinkSync(path);
-            logger.add('ifc.freight.api.orders.fileService.deleteFileLocally', `Delete file ${path}`);
+            // logger.add('ifc.freight.api.orders.fileService.deleteFileLocally', `Delete file ${path}`);
+            console.log('ifc.freight.api.orders.fileService.deleteFileLocally', `Delete file ${path}`);
         } catch (error) {
-            logger.error(error);
+            // logger.error(error);
+            console.log('ifc.freight.api.orders.fileService.deleteFileLocally.error', error);
         }
 	}
 
-    public static existsLocally(path:string, logger: LogService){
+    // public static existsLocally(path:string, logger: LogService) {
+    public static existsLocally(path:string) {
         try {
-            logger.add('ifc.freight.api.orders.fileService.existsLocally', `Check if file exists ${path}`);
+            // logger.add('ifc.freight.api.orders.fileService.existsLocally', `Check if file exists ${path}`);
+            console.log('ifc.freight.api.orders.fileService.existsLocally', `Check if file exists ${path}`);
             return fs.existsSync(path)
         } catch (error) {
-            logger.error(error);
+            // logger.error(error);
+            console.log('ifc.freight.api.orders.fileService.existsLocally.error', error);
         }
     }
 }

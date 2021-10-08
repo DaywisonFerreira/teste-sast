@@ -1,4 +1,4 @@
-import { LogService } from '@infralabs/infra-logger';
+// import { LogService } from '@infralabs/infra-logger';
 
 import { Store } from '../../../common/interfaces/store';
 
@@ -11,20 +11,22 @@ export default class HandleStoreNotification {
 
     async execute(payload: Store, done: Function): Promise<void>{
         const LOG_ID = 'ifc.freight.api.orders.HandleStoreNotification';
-        const logger = new LogService();
-        logger.startAt();
-        logger.add(`Store ${payload.code} was received in the integration queue`, LOG_ID);
+        // const logger = new LogService();
+        // logger.startAt();
+        // logger.add(`Store ${payload.code} was received in the integration queue`, LOG_ID);
+        console.log(`Store ${payload.code} was received in the integration queue`, LOG_ID);
 
         try {
             const configService = new ConfigService();
             const config = ConfigMapper.mapStoreToConfig(payload);
             await configService.merge(config);
-            logger.endAt();
-            await logger.sendLog();
+            // logger.endAt();
+            // await logger.sendLog();
         } catch (error) {
-            logger.error(error);
-            logger.endAt();
-            await logger.sendLog();
+            console.log(error);
+            // logger.error(error);
+            // logger.endAt();
+            // await logger.sendLog();
         } finally {
             done();
         }

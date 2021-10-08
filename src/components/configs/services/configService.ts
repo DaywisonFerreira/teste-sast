@@ -1,4 +1,4 @@
-import { LogService } from '@infralabs/infra-logger';
+// import { LogService } from '@infralabs/infra-logger';
 import { Config } from '../../../common/interfaces/config';
 import { ConfigRepository } from '../repositories/configRepository';
 import { BaseService } from '../../../common/services/baseService';
@@ -18,8 +18,8 @@ export class ConfigService extends BaseService<Config, ConfigRepository> {
   }
 
   async merge(config: Config): Promise<void> {
-    const logger = new LogService();
-    logger.startAt();
+    // const logger = new LogService();
+    // logger.startAt();
 
     const LOG_ID = 'ifc.freight.api.orders.services.configService.merge';
 
@@ -31,8 +31,9 @@ export class ConfigService extends BaseService<Config, ConfigRepository> {
       const update = { $set: { active: config.active } };
       await this.repository.findOneAndUpdate(configPK, update, { runValidators: true, useFindAndModify: false });
     }
-    logger.add(LOG_ID, `Config identified by store code: ${config.storeCode} and seller code: ${config.sellerCode} was merged with success.`);
-    logger.endAt();
-    await logger.sendLog();
+    // logger.add(LOG_ID, `Config identified by store code: ${config.storeCode} and seller code: ${config.sellerCode} was merged with success.`);
+    console.log(LOG_ID, `Config identified by store code: ${config.storeCode} and seller code: ${config.sellerCode} was merged with success.`);
+    // logger.endAt();
+    // await logger.sendLog();
   }
 }

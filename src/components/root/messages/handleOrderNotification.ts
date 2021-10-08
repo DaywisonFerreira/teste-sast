@@ -1,4 +1,4 @@
-import { LogService } from '@infralabs/infra-logger';
+// import { LogService } from '@infralabs/infra-logger';
 import { OrderMapper } from '../mappers/orderMapper';
 import { OrderRepository } from '../repositories/orderRepository';
 
@@ -11,6 +11,7 @@ export default class HandleOrderNotification {
         try {
             // logger.startAt();
             // logger.add('handleOrderNotification.externalOrderId', payload.externalOrderId);
+            console.log('handleOrderNotification.externalOrderId', payload.externalOrderId);
             const orderRepository = new OrderRepository();
             if (payload.status === 'dispatched' || payload.status === 'delivered') {
                 const orderToSave = OrderMapper.mapMessageToOrder(payload);
@@ -20,6 +21,7 @@ export default class HandleOrderNotification {
             // logger.endAt();
             // await logger.sendLog();
         } catch (error) {
+            console.log('handleOrderNotification.externalOrderId.error', error);
             // logger.error(error);
             // logger.endAt();
             // await logger.sendLog();
