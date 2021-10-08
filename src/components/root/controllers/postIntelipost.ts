@@ -23,14 +23,14 @@ export = async (req: Request, res: Response) => {
         //     message: 'Intelipost payload received',
         //     payload: JSON.stringify(payload)
         // });
-        console.log('ifc.logistic.api.orders.postIntelipost', {
-            message: 'Intelipost payload received',
-            payload: JSON.stringify(payload)
-        });
+        // console.log('ifc.logistic.api.orders.postIntelipost', {
+        //     message: 'Intelipost payload received',
+        //     payload: JSON.stringify(payload)
+        // });
         // logger.endAt();
         // await logger.sendLog();
         if (credentials !== token) {
-            console.log('ifc.logistic.api.orders.postIntelipost.error', new Error('Username or password invalid'));
+            // console.log('ifc.logistic.api.orders.postIntelipost.error', new Error('Username or password invalid'));
             //logger.error(new Error('Username or password invalid'));
             //logger.endAt();
             // await logger.sendLog();
@@ -40,7 +40,7 @@ export = async (req: Request, res: Response) => {
         }
 
         if (!payload.sales_order_number) {
-            console.log('ifc.logistic.api.orders.postIntelipost.error', new Error('Missing "sales_order_number"'));
+            // console.log('ifc.logistic.api.orders.postIntelipost.error', new Error('Missing "sales_order_number"'));
             // logger.error(new Error('Missing "sales_order_number"'));
             // logger.endAt();
             // await logger.sendLog();
@@ -96,21 +96,21 @@ export = async (req: Request, res: Response) => {
         //         invoiceNumber
         //     })
         // });
-        console.log('ifc.logistic.api.orders.postIntelipost', {
-            message: `Message sent to exchange order and routeKey: ${controlPointId}`,
-            payload: JSON.stringify({
-                internalOrderId,
-                occurrenceDate: '',
-                controlPointId,
-                invoiceNumber
-            })
-        });
+        // console.log('ifc.logistic.api.orders.postIntelipost', {
+        //     message: `Message sent to exchange order and routeKey: ${controlPointId}`,
+        //     payload: JSON.stringify({
+        //         internalOrderId,
+        //         occurrenceDate: '',
+        //         controlPointId,
+        //         invoiceNumber
+        //     })
+        // });
         // logger.endAt();
         // await logger.sendLog();
 
         return res.json('Created');
     } catch (error) {
-        console.log('ifc.logistic.api.orders.postIntelipost.error', error);
+        // console.log('ifc.logistic.api.orders.postIntelipost.error', error);
         // logger.error(error);
         // logger.endAt();
         // await logger.sendLog();
