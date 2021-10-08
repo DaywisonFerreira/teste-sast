@@ -1,4 +1,4 @@
-import { LogService } from '@infralabs/infra-logger';
+// import { LogService } from '@infralabs/infra-logger';
 
 import { XlsxMapper } from '../mappers/xlsxMapper';
 import { EmailService } from '../../../common/services/emailService';
@@ -17,18 +17,20 @@ export default class HandleExportOrders {
     }
 
     async execute(payload: any, done: Function): Promise<void> {
-        const logger = new LogService();
+        // const logger = new LogService();
 
         try {
-            logger.startAt();
+            // logger.startAt();
             const { email, filter, config } = payload;
             const { storeCode } = config;
-            logger.add('ifc.freight.api.orders.handleExportOrders.execute', `Request received from ${email}, starting to be processed`);
+            // logger.add('ifc.freight.api.orders.handleExportOrders.execute', `Request received from ${email}, starting to be processed`);
+            console.log('ifc.freight.api.orders.handleExportOrders.execute', `Request received from ${email}, starting to be processed`);
             const orderService = new OrderService();
             const dataToFormat = await orderService.exportData(filter, { lean: true });
             const dataFormatted = XlsxMapper.mapOrderToXlsx(dataToFormat);
 
-            this.file = FileService.createXlsxLocally(dataFormatted, { storeCode, filter }, logger);
+            // this.file = FileService.createXlsxLocally(dataFormatted, { storeCode, filter }, logger);
+            this.file = FileService.createXlsxLocally(dataFormatted, { storeCode, filter });
 
             await EmailService.send({
                 to: email,
@@ -38,18 +40,23 @@ export default class HandleExportOrders {
                     text: 'Please do not reply this e-mail.',
                     html: '<b>Please do not reply this e-mail.</b>'
                 }
-            }, logger);
+            // }, logger);
+            });
 
-            logger.add('ifc.freight.api.orders.handleExportOrders.execute', 'Payload received and data sent');
+            // logger.add('ifc.freight.api.orders.handleExportOrders.execute', 'Payload received and data sent');
+            console.log('ifc.freight.api.orders.handleExportOrders.execute', 'Payload received and data sent');
         } catch (error) {
-            logger.error(error);
+            // logger.error(error);
+            console.log('ifc.freight.api.orders.handleExportOrders.execute', error);
         } finally {
-            if (FileService.existsLocally(this.file.path, logger)) {
-                await FileService.deleteFileLocally(this.file.path, logger);
+            // if (FileService.existsLocally(this.file.path, logger)) {
+            if (FileService.existsLocally(this.file.path)) {
+                // await FileService.deleteFileLocally(this.file.path, logger);
+                await FileService.deleteFileLocally(this.file.path);
             }
 
-            logger.endAt();
-            await logger.sendLog();
+            // logger.endAt();
+            // await logger.sendLog();
             done();
         }
     }

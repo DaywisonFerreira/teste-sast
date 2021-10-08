@@ -1,5 +1,5 @@
 import { Response, helpers } from 'ihub-framework-ts';
-import { LogService } from '@infralabs/infra-logger';
+// import { LogService } from '@infralabs/infra-logger';
 // Helpers
 const { PaginationHelper, HttpHelper } = helpers;
 
@@ -26,9 +26,9 @@ const SORTABLE_FIELDS = [
  * GET /orders
  */
 export default async (req: IRequest, res: Response): Promise<void> => {
-    const logger = new LogService();
+    // const logger = new LogService();
     try {
-        logger.startAt();
+        // logger.startAt();
         const { storeId } = req
         const {
             orderId, //Número do pedido ERP/VTEX
@@ -73,18 +73,20 @@ export default async (req: IRequest, res: Response): Promise<void> => {
             paginationParams
         );
 
-        logger.add('ifc.freight.api.orders.getOrders', `Request received from ${req.email}`);
-        logger.endAt();
-        await logger.sendLog();
+        // logger.add('ifc.freight.api.orders.getOrders', `Request received from ${req.email}`);
+        console.log('ifc.freight.api.orders.getOrders', `Request received from ${req.email}`);
+        // logger.endAt();
+        // await logger.sendLog();
 
         HttpHelper.ok(
             res,
             PaginationHelper.getPaginatedResponse(paginatedResponse)
         );
     } catch (error) {
-        logger.error(error);
-        logger.endAt();
-        await logger.sendLog();
+        // logger.error(error);
+        // logger.endAt();
+        // await logger.sendLog();
+        console.log('ifc.freight.api.orders.getOrders.error', error);
         HttpHelper.fail(res, error);
     }
 };
