@@ -7,6 +7,7 @@ import { ConfigService } from '../services/configService';
 const { HttpHelper } = helpers;
 
 export default async (req: IRequest, res: Response): Promise<void> => {
+    console.log('ifc.freight.api.orders.getStores', 'init getStores');
     // const logger = new LogService();
     try {
         // logger.startAt();
@@ -14,6 +15,7 @@ export default async (req: IRequest, res: Response): Promise<void> => {
 
         const configService = new ConfigService()
 
+        console.log('ifc.freight.api.orders.getStores', `will get stores ${JSON.stringify(stores)}`);
         const response = await configService.findStoresOfUser(stores)
 
         // logger.add('ifc.freight.api.orders.getStores', `Request received from ${req.email}, Payload: ${JSON.stringify(response)}`);
