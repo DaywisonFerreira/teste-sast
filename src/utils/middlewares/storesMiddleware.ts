@@ -23,6 +23,8 @@ export default async (req: IRequest, res: Response, next: Next) => {
 
         req['storeId'] = storeId
 
+        console.log('storesMiddleware', storeId)
+
         next();
     } catch (error) {
         HttpHelper.fail(res, error);

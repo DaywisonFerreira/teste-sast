@@ -23,6 +23,7 @@ export default async (req: IRequest, res: Response, next: Next) => {
 
         req['stores'] = stores
         req['email'] = email
+        console.log('jwtMiddleware', email, JSON.stringify(stores))
 
         next();
     } catch (error) {
