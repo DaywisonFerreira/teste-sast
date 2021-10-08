@@ -23,6 +23,7 @@ export default async (req: IRequest, res: Response, next: Next) => {
         }
 
         req['config'] = config
+        console.log('configMiddleware', JSON.stringify(config))
 
         next();
     } catch (error) {
