@@ -10,34 +10,34 @@ import IWebHookIntelipost from '../interfaces/WebHookIntelipost';
  * POST /courier
  */
 export = async (req: Request, res: Response) => {
-    const logger = new LogService();
+    // const logger = new LogService();
     const orderRepository = new OrderRepository();
     try {
-        logger.startAt();
+        // logger.startAt();
         const payload: IWebHookIntelipost = req.body;
         const token = req.headers.authorization.split(' ')[1];
         const credentials = Buffer.from(`${USERNAME}:${PASSWORD}`).toString(
             'base64'
         );
-        logger.add('ifc.logistic.api.orders.postIntelipost', {
-            message: 'Intelipost payload received',
-            payload: JSON.stringify(payload)
-        });
-        logger.endAt();
-        await logger.sendLog();
+        // logger.add('ifc.logistic.api.orders.postIntelipost', {
+        //     message: 'Intelipost payload received',
+        //     payload: JSON.stringify(payload)
+        // });
+        // logger.endAt();
+        // await logger.sendLog();
         if (credentials !== token) {
-            logger.error(new Error('Username or password invalid'));
-            logger.endAt();
-            await logger.sendLog();
+            //logger.error(new Error('Username or password invalid'));
+            //logger.endAt();
+            // await logger.sendLog();
             return res
                 .status(401)
                 .json({ message: 'Username or Password invalid' });
         }
 
         if (!payload.sales_order_number) {
-            logger.error(new Error('Missing "sales_order_number"'));
-            logger.endAt();
-            await logger.sendLog();
+            // logger.error(new Error('Missing "sales_order_number"'));
+            // logger.endAt();
+            // await logger.sendLog();
             return res
                 .status(400)
                 .json({ message: 'Missing "sales_order_number"' });
@@ -81,23 +81,23 @@ export = async (req: Request, res: Response) => {
             }));
         }
 
-        logger.add('ifc.logistic.api.orders.postIntelipost', {
-            message: `Message sent to exchange order and routeKey: ${controlPointId}`,
-            payload: JSON.stringify({
-                internalOrderId,
-                occurrenceDate: '',
-                controlPointId,
-                invoiceNumber
-            })
-        });
-        logger.endAt();
-        await logger.sendLog();
+        // logger.add('ifc.logistic.api.orders.postIntelipost', {
+        //     message: `Message sent to exchange order and routeKey: ${controlPointId}`,
+        //     payload: JSON.stringify({
+        //         internalOrderId,
+        //         occurrenceDate: '',
+        //         controlPointId,
+        //         invoiceNumber
+        //     })
+        // });
+        // logger.endAt();
+        // await logger.sendLog();
 
         return res.json('Created');
     } catch (error) {
-        logger.error(error);
-        logger.endAt();
-        await logger.sendLog();
+        // logger.error(error);
+        // logger.endAt();
+        // await logger.sendLog();
         return res.status(500).json({
             status: 500,
             code: 'tracking.get.order.error',
