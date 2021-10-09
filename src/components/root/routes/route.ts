@@ -18,7 +18,7 @@ export default [
     },
     {
         method: 'post',
-        path: '/intelipost-test',
+        path: '/intelipost',
         private: false,
         controller: postIntelipost,
     },
