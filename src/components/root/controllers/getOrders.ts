@@ -1,14 +1,11 @@
 import { Response, helpers } from 'ihub-framework-ts';
-// import { LogService } from '@infralabs/infra-logger';
-// Helpers
-const { PaginationHelper, HttpHelper } = helpers;
+import { LogService } from '@infralabs/infra-logger';
 
-// Interfaces
 import { Order } from '../interfaces/Order';
-
-// Services
 import { QueryParamsFilter, OrderService } from '../services/orderService';
 import { IRequest } from '../../../common/interfaces/request';
+
+const { PaginationHelper, HttpHelper } = helpers;
 
 const SORTABLE_FIELDS = [
     'orderCreatedAt', // default
@@ -26,10 +23,10 @@ const SORTABLE_FIELDS = [
  * GET /orders
  */
 export default async (req: IRequest, res: Response): Promise<void> => {
-    // const logger = new LogService();
+    const logger = new LogService();
     try {
-        // logger.startAt();
-        const { storeId } = req
+        logger.startAt();
+        const { storeId } = req;
         const {
             orderId, //Número do pedido ERP/VTEX
             receiverName, // nome do cliente
@@ -41,10 +38,7 @@ export default async (req: IRequest, res: Response): Promise<void> => {
             status, // status Ihub
         } = req.query;
 
-        const paginationParams = PaginationHelper.createPaginationParams(
-            req,
-            SORTABLE_FIELDS
-        );
+        const paginationParams = PaginationHelper.createPaginationParams(req, SORTABLE_FIELDS);
 
         const filter = {
             orderId,
@@ -73,20 +67,15 @@ export default async (req: IRequest, res: Response): Promise<void> => {
             paginationParams
         );
 
-        // logger.add('ifc.freight.api.orders.getOrders', `Request received from ${req.email}`);
-        console.log('ifc.freight.api.orders.getOrders', `Request received from ${req.email}`);
-        // logger.endAt();
-        // await logger.sendLog();
+        logger.add('getOrders.message', `Request received from ${req.email}`);
+        logger.endAt();
+        await logger.sendLog();
 
-        HttpHelper.ok(
-            res,
-            PaginationHelper.getPaginatedResponse(paginatedResponse)
-        );
+        HttpHelper.ok(res, PaginationHelper.getPaginatedResponse(paginatedResponse));
     } catch (error) {
-        // logger.error(error);
-        // logger.endAt();
-        // await logger.sendLog();
-        console.log('ifc.freight.api.orders.getOrders.error', error);
+        logger.error(error);
+        logger.endAt();
+        await logger.sendLog();
         HttpHelper.fail(res, error);
     }
 };

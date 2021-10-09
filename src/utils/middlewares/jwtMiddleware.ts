@@ -1,29 +1,28 @@
-import { Response, Next, helpers } from "ihub-framework-ts";
-import { IRequest } from '../../common/interfaces/request';
+import { Response, Next, helpers } from 'ihub-framework-ts';
 
+import { IRequest } from '../../common/interfaces/request';
 import { JWTUtils } from '../JwtUtils';
 
 const { HttpHelper } = helpers;
 
 export default async (req: IRequest, res: Response, next: Next) => {
     try {
-        const token = req.headers["authorization"];
+        const token = req.headers['authorization'];
 
-        if(!token){
-            return HttpHelper.clientError(res, "Missing Header Authorization");
+        if (!token) {
+            return HttpHelper.clientError(res, 'Missing Header Authorization');
         }
 
         const jwtPayload = JWTUtils.decode(token);
 
-        if(jwtPayload.hasError){
-            return HttpHelper.unauthorized(res, jwtPayload.error)
+        if (jwtPayload.hasError) {
+            return HttpHelper.unauthorized(res, jwtPayload.error);
         }
 
-        const { stores, email } = jwtPayload.data
+        const { stores, email } = jwtPayload.data;
 
-        req['stores'] = stores
-        req['email'] = email
-        console.log('jwtMiddleware', email, JSON.stringify(stores))
+        req['stores'] = stores;
+        req['email'] = email;
 
         next();
     } catch (error) {
