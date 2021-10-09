@@ -1,7 +1,7 @@
 import { common, errors } from 'ihub-framework-ts';
 import { differenceInDays, isBefore } from 'date-fns';
 
-import { ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 // Interfaces
 import { Order } from '../interfaces/Order';
 
@@ -51,7 +51,7 @@ export class OrderService extends BaseService<Order, OrderRepository> {
             if (!isValidObjectId(storeId)) {
                 throw new BadRequestError('Invalid storeId');
             }
-            conditions['storeId'] = new ObjectID(storeId);
+            conditions['storeId'] = new ObjectId(storeId);
         }
 
         if (receiverName) {

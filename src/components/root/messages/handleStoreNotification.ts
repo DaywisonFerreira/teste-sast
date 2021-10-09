@@ -1,21 +1,17 @@
 import { LogService } from '@infralabs/infra-logger';
 
 import { Store } from '../../../common/interfaces/store';
-
 import { ConfigMapper } from '../../configs/mappers/configMapper';
-
 import { ConfigService } from '../../configs/services/configService';
 
 export default class HandleStoreNotification {
     constructor() {}
 
-    async execute(payload: Store, done: Function): Promise<void>{
-        const LOG_ID = 'ifc.freight.api.orders.HandleStoreNotification';
+    async execute(payload: Store, done: Function): Promise<void> {
         const logger = new LogService();
-        logger.startAt();
-        logger.add(`Store ${payload.code} was received in the integration queue`, LOG_ID);
-
         try {
+            logger.startAt();
+            logger.add('handleStoreNotification.message', `Store ${payload.code} was received in the integration queue`);
             const configService = new ConfigService();
             const config = ConfigMapper.mapStoreToConfig(payload);
             await configService.merge(config);
