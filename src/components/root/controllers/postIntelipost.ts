@@ -26,11 +26,9 @@ export = async (req: Request, res: Response) => {
             message: 'Intelipost payload received',
             payload: JSON.stringify(payload)
         });
-        logger.endAt();
-        await logger.sendLog();
+      
 
         if (credentials !== token) {
-            logger.startAt();
             logger.error(new Error('Username or password invalid'));
             logger.endAt();
             await logger.sendLog();
@@ -40,7 +38,6 @@ export = async (req: Request, res: Response) => {
         }
 
         if (!payload.sales_order_number) {
-            logger.startAt();
             logger.error(new Error('Missing "sales_order_number"'));
             logger.endAt();
             await logger.sendLog();
@@ -49,7 +46,6 @@ export = async (req: Request, res: Response) => {
                 .json({ message: 'Missing "sales_order_number"' });
         }
 
-        logger.startAt();
         const order = {
             orderSale: payload.sales_order_number,
             partnerOrder: payload.order_number,
@@ -101,26 +97,23 @@ export = async (req: Request, res: Response) => {
              occurrenceMessage:order.lastOccurrenceMessage,
              partnerStatus: order.partnerStatus,
          })
+
          if (orderMerged.storeId && orderMerged.storeCode) {
 
             tasks.send(exchange, routeKey, exportingOrder );
             
+            logger.add('postIntelipost.sent', {
+                message: `Message sent to exchange ${exchange} and routeKey ${routeKey}`,
+                payload:  exportingOrder
+           });
+            
          } else {
              const orderSalevalue = order.orderSale
-            logger.add('ifc.logistic.api.orders.postIntelipost', {
+            logger.add('postIntelipost.notSent', {
                 message: `${orderSalevalue} order not sent due to lack of storeId storeCode `, 
-                payload: JSON.stringify({
-                    exportingOrder
-                })             
+                payload: exportingOrder            
             });
          }
-         logger.add('postIntelipost.sent', {
-             message: `Message sent to exchange ${exchange} and routeKey ${routeKey}`,
-             payload: JSON.stringify({
-                exportingOrder
-             })
-
-        });
         logger.endAt();
         await logger.sendLog();
 
