@@ -26,7 +26,7 @@ export default class HandleExportOrders {
             const { userId, filter, config } = payload;
             const { storeCode } = config;
 
-            logger.add('ifc.freight.api.orders.handleExportOrders.execute', `Request received from userId: ${userId}, starting to be processed`);
+            logger.add('handleExportOrders.received.message', `Request received from userId: ${userId}, starting to be processed`);
             // const orderService = new OrderService();
             // const dataToFormat = await orderService.exportData(filter, { lean: true });
             // const dataFormatted = CsvMapper.mapOrderToCsv(dataToFormat);
@@ -34,22 +34,20 @@ export default class HandleExportOrders {
             // this.file = await FileService.createCsvLocally(dataFormatted,{ storeCode, filter }, logger);
 
             // const urlFile = await AzureService.uploadFile(this.file, logger)
-            const urlFile = "URL_BLOB_STORAGE"
+            const urlFile = 'URL_BLOB_STORAGE';
 
             await notifyUser(userId, {
                 notificationType: NotificationTypes.OrdersExportCSV,
                 payload: { urlFile }
-            }, logger)
+            }, logger);
 
-            logger.add('ifc.freight.api.orders.handleExportOrders.execute', 'Payload received and data sent');
+            logger.add('handleExportOrders.execute.message', 'Payload received and data sent');
         } catch (error) {
             logger.error(error);
         } finally {
-
             if (this.file.path && FileService.existsLocally(this.file.path, logger)) {
                 await FileService.deleteFileLocally(this.file.path, logger);
             }
-
             logger.endAt();
             await logger.sendLog();
             done();

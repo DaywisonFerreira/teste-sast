@@ -1,8 +1,7 @@
 import * as nodemailer from 'nodemailer';
-import IEmail from '../interfaces/Email';
-
 import { LogService } from '@infralabs/infra-logger';
 
+import IEmail from '../interfaces/Email';
 
 export class EmailService {
     constructor() {}
@@ -36,7 +35,7 @@ export class EmailService {
             if (!info.messageId) {
                 throw new Error('Email not sent');
             }
-            logger.add('ifc.freight.api.orders.emailService.send', `Email sent to ${to}: ${info.messageId}`);
+            logger.add('emailService.send.message', `Email sent to ${to}: ${info.messageId}`);
 
             return info.messageId;
         } catch (error) {

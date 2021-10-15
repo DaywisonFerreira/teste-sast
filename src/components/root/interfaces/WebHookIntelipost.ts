@@ -74,6 +74,7 @@ export default interface IWebHookIntelipost {
     sales_order_number: string;
     tracking_code: string;
     volume_number: string;
+    shipment_volume_micro_state: Ishipment_volume_micro_state;
     estimated_delivery_date: Iestimated_delivery_date;
     tracking_url: string;
 }

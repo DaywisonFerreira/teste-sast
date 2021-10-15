@@ -1,28 +1,29 @@
-import { Response, Next, helpers } from "ihub-framework-ts";
+import { Response, Next, helpers } from 'ihub-framework-ts';
+
 import { IRequest } from '../../common/interfaces/request';
-import { ConfigService } from "../../components/configs/services/configService";
+import { ConfigService } from '../../components/configs/services/configService';
 
 const { HttpHelper } = helpers;
 
 export default async (req: IRequest, res: Response, next: Next) => {
     try {
-        const { storeId } = req
+        const { storeId } = req;
 
-        if(!storeId){
-            return HttpHelper.notFound(res, "Missing property \"storeId\"");
+        if (!storeId) {
+            return HttpHelper.notFound(res, 'Missing property "storeId"');
         }
 
         const configService = new ConfigService();
         const config = await configService.findStoreConfigById(String(storeId));
 
-        if (!config || !config.active){
+        if (!config || !config.active) {
             return HttpHelper.notFound(
                 res,
-                "The configuration wasn't found for this store"
+                'The configuration wasn\'t found for this store'
             );
         }
 
-        req['config'] = config
+        req['config'] = config;
 
         next();
     } catch (error) {

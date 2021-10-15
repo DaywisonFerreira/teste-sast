@@ -34,6 +34,7 @@
     "dependencies": {
         "@infralabs/infra-logger": "^1.4.1",
         "@types/express-session": "^1.17.4",
+        "@types/mongodb": "^4.0.7",
         "@types/nodemailer": "^6.4.4",
         "azure-storage": "^2.10.4",
         "date-fns": "^2.23.0",
@@ -43,7 +44,7 @@
         "jsonwebtoken": "^8.5.1",
         "keycloak-connect": "^14.0.0",
         "module-alias": "^2.2.2",
-        "mongodb": "3.6.3",
+        "mongodb": "^4.1.3",
         "nodemailer": "^6.6.3",
         "socket.io": "^4.2.0",
         "typescript": "^4.2.4",
@@ -51,7 +52,6 @@
     },
     "devDependencies": {
         "@types/jest": "^26.0.24",
-        "@types/mongodb": "3.6.19",
         "@types/nodemailer": "^6.4.4",
         "@typescript-eslint/eslint-plugin": "^4.14.1",
         "@typescript-eslint/parser": "^4.14.1",
