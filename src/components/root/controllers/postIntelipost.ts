@@ -3,9 +3,8 @@ import { LogService } from '@infralabs/infra-logger';
 
 import { OrderRepository } from '../repositories/orderRepository';
 import IWebHookIntelipost from '../interfaces/WebHookIntelipost';
-import { OrderService } from '../services/orderService';
 
-const { INTELIPOST_USERNAME, INTELIPOST_PASSWORD, DELIVERED, DELIVERY_FAILURE } = process.env;
+const { INTELIPOST_USERNAME, INTELIPOST_PASSWORD } = process.env;
 
 
 /**
@@ -68,43 +67,50 @@ export = async (req: Request, res: Response) => {
             { orderSale: payload.sales_order_number },
             order
         );
-        const internalOrderId = payload.order_number.split('-').length
-            ? payload.order_number.split('-')[1]
-            : payload.order_number;
-
-        const exchange = 'order';
-        const routeKey = 'orderTrackingUpdated';
 
         const orderMerged = await orderRepository.findOne({ orderSale: payload.sales_order_number });
-
-        const exportingOrder = JSON.stringify({
-            storeId: orderMerged.storeId,
-            storeCode: orderMerged.storeCode,
-            externalOrderId: order.orderSale,
-            internalOrderId: Number.parseInt(internalOrderId),
-            shippingEstimateDate: order.estimateDeliveryDateDeliveryCompany,
-            eventDate: order.partnerUpdatedAt,
-            partnerMessage: order.partnerMessage,
-            numberVolumes: order.numberVolumes,
-            i18nName: order.i18n,
-            microStatus: order.microStatus,
-            occurrenceMacro: order.lastOccurrenceMacro,
-            occurrenceMicro: order.lastOccurrenceMicro,
-            occurrenceMessage: order.lastOccurrenceMessage,
-            partnerStatus: order.partnerStatus,
-        });
-
         if (orderMerged.storeId && orderMerged.storeCode) {
+            const exchange = 'order';
+            const routeKey = 'orderTrackingUpdated';
+            const internalOrderId = payload.order_number.split('-').length
+                ? payload.order_number.split('-')[1]
+                : payload.order_number;
+            const i18nName =
+                typeof order.i18n === 'string'
+                    ? order.i18n.toLowerCase().replace('_', '-')
+                    : order.i18n;
+            const status =
+                typeof payload.history.shipment_order_volume_state === 'string'
+                    ? payload.history.shipment_order_volume_state.toLowerCase().replace('_', '-')
+                    : payload.history.shipment_order_volume_state;
+
+            const exportingOrder = JSON.stringify({
+                storeId: orderMerged.storeId,
+                storeCode: orderMerged.storeCode,
+                externalOrderId: order.orderSale,
+                internalOrderId: Number.parseInt(internalOrderId),
+                shippingEstimateDate: order.estimateDeliveryDateDeliveryCompany,
+                eventDate: order.partnerUpdatedAt,
+                partnerMessage: order.partnerMessage,
+                numberVolumes: order.numberVolumes,
+                microStatus: order.microStatus,
+                occurrenceMacro: order.lastOccurrenceMacro,
+                occurrenceMicro: order.lastOccurrenceMicro,
+                occurrenceMessage: order.lastOccurrenceMessage,
+                partnerStatus: order.partnerStatus,
+                i18nName: i18nName === 'cancelled' ? 'canceled' : i18nName,
+                status: status === 'cancelled' ? 'canceled' : status,
+                invoiceNumber: payload.invoice.invoice_number
+            });
+
             tasks.send(exchange, routeKey, exportingOrder);
             logger.add('postIntelipost.sent', {
                 message: `Message sent to exchange ${exchange} and routeKey ${routeKey}`,
                 payload: exportingOrder
             });
         } else {
-            const orderSalevalue = order.orderSale;
             logger.add('postIntelipost.notSent', {
-                message: `${orderSalevalue} order not sent due to lack of storeId storeCode `,
-                payload: exportingOrder
+                message: `${order.orderSale} order not sent due to lack of storeId storeCode`
             });
         }
         logger.endAt();
