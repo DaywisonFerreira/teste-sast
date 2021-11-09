@@ -27,14 +27,13 @@ export default class HandleExportOrders {
             const { storeCode } = config;
 
             logger.add('handleExportOrders.received.message', `Request received from userId: ${userId}, starting to be processed`);
-            // const orderService = new OrderService();
-            // const dataToFormat = await orderService.exportData(filter, { lean: true });
-            // const dataFormatted = CsvMapper.mapOrderToCsv(dataToFormat);
+            const orderService = new OrderService();
+            const dataToFormat = await orderService.exportData(filter, { lean: true });
+            const dataFormatted = CsvMapper.mapOrderToCsv(dataToFormat);
 
-            // this.file = await FileService.createCsvLocally(dataFormatted,{ storeCode, filter }, logger);
+            this.file = await FileService.createCsvLocally(dataFormatted,{ storeCode, filter }, logger);
 
-            // const urlFile = await AzureService.uploadFile(this.file, logger)
-            const urlFile = 'URL_BLOB_STORAGE';
+            const urlFile = await AzureService.uploadFile(this.file, logger)
 
             await notifyUser(userId, {
                 notificationType: NotificationTypes.OrdersExportCSV,
