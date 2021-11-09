@@ -38,7 +38,10 @@ export default async (req: IRequest, res: Response): Promise<void> => {
             status, // status Ihub
         } = req.query;
 
-        const paginationParams = PaginationHelper.createPaginationParams(req, SORTABLE_FIELDS);
+        const paginationParams = PaginationHelper.createPaginationParams(
+            req,
+            SORTABLE_FIELDS,
+        );
 
         const filter = {
             orderId,
@@ -49,7 +52,7 @@ export default async (req: IRequest, res: Response): Promise<void> => {
             orderUpdatedAtFrom,
             orderUpdatedAtTo,
             status,
-            storeId
+            storeId,
         } as QueryParamsFilter;
 
         const fields = Order.getPublicFields.reduce((current: any, item) => {
@@ -64,14 +67,17 @@ export default async (req: IRequest, res: Response): Promise<void> => {
             filter,
             projectionFields,
             { lean: true },
-            paginationParams
+            paginationParams,
         );
 
         logger.add('getOrders.message', `Request received from ${req.email}`);
         logger.endAt();
         await logger.sendLog();
 
-        HttpHelper.ok(res, PaginationHelper.getPaginatedResponse(paginatedResponse));
+        HttpHelper.ok(
+            res,
+            PaginationHelper.getPaginatedResponse(paginatedResponse),
+        );
     } catch (error) {
         logger.error(error);
         logger.endAt();

@@ -13,7 +13,7 @@ import { isValidObjectId } from '../validations';
 const { BadRequestError } = errors;
 
 export interface QueryParamsFilter {
-    storeId: string,
+    storeId: string;
     orderId: string;
     receiverName: string;
     orderCreatedAtFrom: string;
@@ -42,9 +42,8 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         }: Partial<QueryParamsFilter>,
         fields: any,
         options: any,
-        paginationParams: common.Types.PaginationParams
+        paginationParams: common.Types.PaginationParams,
     ): Promise<common.Types.PaginatedResponseParams<Order>> {
-
         const conditions: any = {};
 
         if (storeId) {
@@ -56,7 +55,7 @@ export class OrderService extends BaseService<Order, OrderRepository> {
 
         if (receiverName) {
             conditions.$text = {
-                $search: receiverName
+                $search: receiverName,
             };
         }
 
@@ -82,8 +81,8 @@ export class OrderService extends BaseService<Order, OrderRepository> {
             // orderSale -> pedido VTEX
             // order -> pedido erp
             conditions.$text = {
-                $search: `"${orderId}"`
-            }
+                $search: `"${orderId}"`,
+            };
         }
 
         if (orderCreatedAtFrom && orderCreatedAtTo) {
@@ -99,7 +98,7 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         if (orderCreatedAtFrom && !orderCreatedAtTo) {
             conditions['orderCreatedAt'] = {
                 $gte: new Date(`${orderCreatedAtFrom} 00:00:00-03:00`),
-                $lte: new Date(`${orderCreatedAtFrom} 23:59:59-03:00`)
+                $lte: new Date(`${orderCreatedAtFrom} 23:59:59-03:00`),
             };
         }
 
@@ -116,33 +115,40 @@ export class OrderService extends BaseService<Order, OrderRepository> {
         if (orderUpdatedAtFrom && !orderUpdatedAtTo) {
             conditions['orderUpdatedAt'] = {
                 $gte: new Date(`${orderUpdatedAtFrom} 00:00:00-03:00`),
-                $lte: new Date(`${orderUpdatedAtFrom} 23:59:59-03:00`)
+                $lte: new Date(`${orderUpdatedAtFrom} 23:59:59-03:00`),
             };
         }
 
-        return this.repository.pagination(
+        const result = await this.repository.pagination(
             conditions,
             fields,
             options,
-            paginationParams
+            paginationParams,
         );
+
+        return {
+            ...result,
+            data: result.data.map(order => ({
+                ...order,
+                logisticInfo: [order.logisticInfo[0]],
+            })),
+        } as any;
     }
 
     async getDeliveryCompanies(): Promise<string[]> {
-        return this.repository.distinct('logisticInfo.deliveryCompany')
+        return this.repository.distinct('logisticInfo.deliveryCompany');
     }
 
     async exportData(
         {
             orderCreatedAtFrom,
             orderCreatedAtTo,
-            storeId
+            storeId,
         }: Partial<QueryParamsFilter>,
         options: any,
     ) {
-
         const conditions: any = {
-            storeId
+            storeId,
         };
 
         if (orderCreatedAtFrom && orderCreatedAtTo) {
@@ -155,11 +161,7 @@ export class OrderService extends BaseService<Order, OrderRepository> {
             };
         }
 
-        return this.repository.find(
-            conditions,
-            {},
-            options
-        );
+        return this.repository.find(conditions, {}, options);
     }
 
     public validateRangeOfDates(dateFrom: Date, dateTo: Date) {
