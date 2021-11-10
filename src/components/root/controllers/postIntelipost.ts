@@ -77,11 +77,11 @@ export = async (req: Request, res: Response) => {
                 : payload.order_number;
             const i18nName =
                 typeof order.i18n === 'string'
-                    ? order.i18n.toLowerCase().replace('_', '-')
+                    ? order.i18n.toLowerCase().replace(/_/g, '-')
                     : order.i18n;
             const status =
                 typeof payload.history.shipment_order_volume_state === 'string'
-                    ? payload.history.shipment_order_volume_state.toLowerCase().replace('_', '-')
+                    ? payload.history.shipment_order_volume_state.toLowerCase().replace(/_/g, '-')
                     : payload.history.shipment_order_volume_state;
 
             const exportingOrder = JSON.stringify({
