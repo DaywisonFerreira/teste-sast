@@ -1,6 +1,6 @@
 {
     "name": "ifc.freight.api.orders",
-    "version": "1.7.2",
+    "version": "1.7.3",
     "description": "Freight API Orders",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
