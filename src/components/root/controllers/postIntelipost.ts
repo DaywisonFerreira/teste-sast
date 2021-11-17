@@ -4,7 +4,8 @@ import { LogService } from '@infralabs/infra-logger';
 import { OrderRepository } from '../repositories/orderRepository';
 import IWebHookIntelipost from '../interfaces/WebHookIntelipost';
 
-const { USERNAME, PASSWORD, DELIVERED, DELIVERY_FAILURE } = process.env;
+const { INTELIPOST_USERNAME, INTELIPOST_PASSWORD } = process.env;
+
 
 /**
  * WebHook function from Intelipost
@@ -17,18 +18,15 @@ export = async (req: Request, res: Response) => {
         logger.startAt();
         const payload: IWebHookIntelipost = req.body;
         const token = req.headers.authorization.split(' ')[1];
-        const credentials = Buffer.from(`${USERNAME}:${PASSWORD}`).toString(
+        const credentials = Buffer.from(`${INTELIPOST_USERNAME}:${INTELIPOST_PASSWORD}`).toString(
             'base64'
         );
         logger.add('postIntelipost.received', {
             message: 'Intelipost payload received',
             payload: JSON.stringify(payload)
         });
-        logger.endAt();
-        await logger.sendLog();
 
         if (credentials !== token) {
-            logger.startAt();
             logger.error(new Error('Username or password invalid'));
             logger.endAt();
             await logger.sendLog();
@@ -38,7 +36,6 @@ export = async (req: Request, res: Response) => {
         }
 
         if (!payload.sales_order_number) {
-            logger.startAt();
             logger.error(new Error('Missing "sales_order_number"'));
             logger.endAt();
             await logger.sendLog();
@@ -47,7 +44,6 @@ export = async (req: Request, res: Response) => {
                 .json({ message: 'Missing "sales_order_number"' });
         }
 
-        logger.startAt();
         const order = {
             orderSale: payload.sales_order_number,
             partnerOrder: payload.order_number,
@@ -63,38 +59,60 @@ export = async (req: Request, res: Response) => {
             lastOccurrenceMessage:
             payload.history.shipment_volume_micro_state.description,
             partnerStatus: payload.history.shipment_order_volume_state_localized,
-            partnerUpdatedAt: payload.history.event_date_iso
+            partnerUpdatedAt: payload.history.event_date_iso,
+            i18n: payload.history.shipment_volume_micro_state.i18n_name,
         };
 
         await orderRepository.merge(
             { orderSale: payload.sales_order_number },
             order
         );
-        const state = payload.history.shipment_order_volume_state;
-        const invoiceNumber = payload.invoice.invoice_number;
-        const internalOrderId = payload.order_number.split('-').length
-            ? payload.order_number.split('-')[1]
-            : payload.order_number;
-        const controlPointId = state === 'DELIVERED' ? DELIVERED : DELIVERY_FAILURE;
 
-        if (state === 'DELIVERY_FAILED' || state === 'DELIVERED') {
-            tasks.send('order', controlPointId, JSON.stringify({
-                internalOrderId,
-                occurrenceDate: '',
-                controlPointId,
-                invoiceNumber
-            }));
+        const orderMerged = await orderRepository.findOne({ orderSale: payload.sales_order_number });
+        if (orderMerged.storeId && orderMerged.storeCode) {
+            const exchange = 'order';
+            const routeKey = 'orderTrackingUpdated';
+            const internalOrderId = payload.order_number.split('-').length
+                ? payload.order_number.split('-')[1]
+                : payload.order_number;
+            const i18nName =
+                typeof order.i18n === 'string'
+                    ? order.i18n.toLowerCase().replace(/_/g, '-')
+                    : order.i18n;
+            const status =
+                typeof payload.history.shipment_order_volume_state === 'string'
+                    ? payload.history.shipment_order_volume_state.toLowerCase().replace(/_/g, '-')
+                    : payload.history.shipment_order_volume_state;
+
+            const exportingOrder = JSON.stringify({
+                storeId: orderMerged.storeId,
+                storeCode: orderMerged.storeCode,
+                externalOrderId: order.orderSale,
+                internalOrderId: Number.parseInt(internalOrderId),
+                shippingEstimateDate: order.estimateDeliveryDateDeliveryCompany,
+                eventDate: order.partnerUpdatedAt,
+                partnerMessage: order.partnerMessage,
+                numberVolumes: order.numberVolumes,
+                microStatus: order.microStatus,
+                occurrenceMacro: order.lastOccurrenceMacro,
+                occurrenceMicro: order.lastOccurrenceMicro,
+                occurrenceMessage: order.lastOccurrenceMessage,
+                partnerStatus: order.partnerStatus,
+                i18nName: i18nName === 'cancelled' ? 'canceled' : i18nName,
+                status: status === 'cancelled' ? 'canceled' : status,
+                invoiceNumber: payload.invoice.invoice_number
+            });
+
+            tasks.send(exchange, routeKey, exportingOrder);
+            logger.add('postIntelipost.sent', {
+                message: `Message sent to exchange ${exchange} and routeKey ${routeKey}`,
+                payload: exportingOrder
+            });
+        } else {
+            logger.add('postIntelipost.notSent', {
+                message: `${order.orderSale} order not sent due to lack of storeId storeCode`
+            });
         }
-
-        logger.add('postIntelipost.sent', {
-            message: `Message sent to exchange order and routeKey: ${controlPointId}`,
-            payload: JSON.stringify({
-                internalOrderId,
-                occurrenceDate: '',
-                controlPointId,
-                invoiceNumber
-            })
-        });
         logger.endAt();
         await logger.sendLog();
 

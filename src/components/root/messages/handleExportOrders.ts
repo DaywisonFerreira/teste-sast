@@ -1,9 +1,11 @@
 import { LogService } from '@infralabs/infra-logger';
 
-import { XlsxMapper } from '../mappers/xlsxMapper';
-import { EmailService } from '../../../common/services/emailService';
+import { CsvMapper } from '../mappers/csvMapper';
 import { FileService } from '../../../common/services/fileService';
 import { OrderService } from '../services/orderService';
+import { AzureService } from '../../../common/services/azureService';
+import { notifyUser } from '../../../socket';
+import { NotificationTypes } from '../../../common/interfaces/socket';
 
 export default class HandleExportOrders {
     private file = {
@@ -21,30 +23,28 @@ export default class HandleExportOrders {
 
         try {
             logger.startAt();
-            const { email, filter, config } = payload;
+            const { userId, filter, config } = payload;
             const { storeCode } = config;
-            logger.add('handleExportOrders.received.message', `Request received from ${email}, starting to be processed`);
+
+            logger.add('handleExportOrders.received.message', `Request received from userId: ${userId}, starting to be processed`);
             const orderService = new OrderService();
             const dataToFormat = await orderService.exportData(filter, { lean: true });
-            const dataFormatted = XlsxMapper.mapOrderToXlsx(dataToFormat);
+            const dataFormatted = CsvMapper.mapOrderToCsv(dataToFormat);
 
-            this.file = FileService.createXlsxLocally(dataFormatted, { storeCode, filter }, logger);
+            this.file = await FileService.createCsvLocally(dataFormatted,{ storeCode, filter }, logger);
 
-            await EmailService.send({
-                to: email,
-                attachments: [this.file],
-                subject: `${storeCode}_Status_Entregas`,
-                body: {
-                    text: 'Please do not reply this e-mail.',
-                    html: '<b>Please do not reply this e-mail.</b>'
-                }
+            const urlFile = await AzureService.uploadFile(this.file, logger)
+
+            await notifyUser(userId, {
+                notificationType: NotificationTypes.OrdersExportCSV,
+                payload: { urlFile }
             }, logger);
 
             logger.add('handleExportOrders.execute.message', 'Payload received and data sent');
         } catch (error) {
             logger.error(error);
         } finally {
-            if (FileService.existsLocally(this.file.path, logger)) {
+            if (this.file.path && FileService.existsLocally(this.file.path, logger)) {
                 await FileService.deleteFileLocally(this.file.path, logger);
             }
             logger.endAt();

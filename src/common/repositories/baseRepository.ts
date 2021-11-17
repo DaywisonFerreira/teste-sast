@@ -79,7 +79,7 @@ export abstract class BaseRepository<T extends common.Types.BaseEntity> {
     }
 
     async distinct(field: string, filter?: any): Promise<string[]> {
-        return await this.model.distinct(field);
+        return await this.model.distinct(field, filter);
     }
 
     async countDocuments(filter: any): Promise<number> {

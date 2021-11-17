@@ -12,9 +12,9 @@ jest.mock('../../../common/services/emailService', () => ({
 
 jest.mock('../../../common/services/fileService', () => ({
     FileService: {
-        createXlsxLocally: jest.fn().mockReturnValue({
+        createCsvLocally: jest.fn().mockReturnValue({
             path: 'local/path',
-            fileName: 'filename.xlsx'
+            fileName: 'filename.csv'
         }),
         existsLocally: jest.fn().mockReturnValue(false)
     },
@@ -32,7 +32,7 @@ describe('Test Export Orders Consumer', () => {
         };
 
         const spyEmailService = jest.spyOn(MockedEmailService, 'send');
-        const spyFileService = jest.spyOn(MockedFileService, 'createXlsxLocally');
+        const spyFileService = jest.spyOn(MockedFileService, 'createCsvLocally');
 
         const result = await new HandleExportOrders().execute(payload, () => true)
 

@@ -6,15 +6,13 @@ import { IRequest } from '../../../common/interfaces/request';
 
 const { HttpHelper } = helpers;
 
-/**
- * GET /orders/delivery-companies
- */
 export default async (req: IRequest, res: Response): Promise<void> => {
     const logger = new LogService();
     try {
+        const { storeId } = req;
         logger.startAt();
         const orderService = new OrderService();
-        const list = await orderService.getDeliveryCompanies();
+        const list = await orderService.getDeliveryCompanies(storeId);
 
         logger.add('getDeliveryCompanies.message', `Request received from ${req.email}, Payload: ${JSON.stringify(list)}`);
         logger.endAt();

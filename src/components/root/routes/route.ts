@@ -4,8 +4,13 @@ import postIntelipost from '../../root/controllers/postIntelipost';
 import getOrders from '../../root/controllers/getOrders';
 import getDeliveryCompanies from '../../root/controllers/getDeliveryCompanies';
 import exportOrders from '../../root/controllers/exportOrders';
+import updateNotification from '../controllers/updateNotification';
+import getNotifications from '../controllers/getNotifications';
 
 import middlewares from '../../../utils/middlewares';
+
+import keyCloakMiddleware from '../../../utils/middlewares/keycloakMiddleware';
+import jwtMiddleware from '../../../utils/middlewares/jwtMiddleware';
 
 export default [
     {
@@ -39,5 +44,17 @@ export default [
         path: '/export',
         middlewares,
         controller: exportOrders,
+    },
+    {
+        method: 'put',
+        path: '/notification',
+        middlewares: [...keyCloakMiddleware, jwtMiddleware],
+        controller: updateNotification,
+    },
+    {
+        method: 'get',
+        path: '/notification',
+        middlewares: [...keyCloakMiddleware, jwtMiddleware],
+        controller: getNotifications,
     }
 ] as Route[];

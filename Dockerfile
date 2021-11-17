@@ -2,8 +2,7 @@ FROM node:14.17.0-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-COPY .npmrc ./
+COPY package.json package-lock.json .npmrc ./
 
 RUN npm i --only=prod
 

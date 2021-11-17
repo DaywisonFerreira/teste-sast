@@ -10,9 +10,9 @@ interface ILogisticInfo {
     deliveryChannel:string,
     sellingPrice: number
 }
-export class XlsxMapper{
-    static mapOrderToXlsx(xlsxData: unknown[]){
-        return xlsxData.map((data:any) => {
+export class CsvMapper{
+    static mapOrderToCsv(csvData: unknown[]){
+        return csvData.map((data:any) => {
             const {
                 receiverName, receiverEmail, deliveryCity, deliveryState,
                 deliveryZipCode, orderUpdatedAt, deliveryDate, orderCreatedAt,

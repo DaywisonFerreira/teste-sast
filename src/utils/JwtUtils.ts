@@ -56,7 +56,7 @@ export class JWTUtils {
         }
 
         // eslint-disable-next-line no-prototype-builtins
-        if(!decoded.hasOwnProperty("email") || !decoded.hasOwnProperty("stores")){
+        if(!decoded.hasOwnProperty("email") || !decoded.hasOwnProperty("stores") || !decoded.hasOwnProperty("sub")){
             return { isValid: false, error: 'It wasn\'t possible to decode the specified token because out of format' }
         }
 

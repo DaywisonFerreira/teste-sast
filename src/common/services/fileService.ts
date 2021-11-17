@@ -13,7 +13,11 @@ export class FileService {
 
     constructor() {}
 
-    public static createXlsxLocally(data: unknown[], { storeCode, filter }: IExtraInfoXlsxFile, logger: LogService) {
+    public static async createCsvLocally(
+        data: unknown[],
+        { storeCode, filter }: IExtraInfoXlsxFile,
+        logger: LogService
+    ) {
         try {
             if (!fs.existsSync(this.directory_path)) {
                 fs.mkdirSync(this.directory_path);

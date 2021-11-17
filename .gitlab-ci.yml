@@ -17,4 +17,3 @@ include:
     file: '/build_api_node.yaml'
   - project: 'infralabs/cxaas/sourcecode/commontools/devops'
     file: '/deploy_aks.yaml'
-

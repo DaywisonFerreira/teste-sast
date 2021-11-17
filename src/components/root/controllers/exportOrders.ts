@@ -11,10 +11,9 @@ export = async (req: IRequest, res: Response) => {
 
     try {
         logger.startAt();
-        const { storeId, email, config } = req;
-        const orderService = new OrderService();
 
-        if (!email) throw new Error('An Email is required');
+        const { storeId, config, userId } = req;
+        const orderService = new OrderService();
 
         const { orderCreatedAtFrom, orderCreatedAtTo }: any = req.query;
         if (!orderCreatedAtFrom || !orderCreatedAtTo) {
@@ -32,17 +31,18 @@ export = async (req: IRequest, res: Response) => {
         tasks.send(
             'deliveryHub',
             'exportOrders',
-            JSON.stringify({ email, filter, config })
+            JSON.stringify({ userId, filter, config })
         );
 
         logger.add('exportOrders', {
             message: `Message sent to exchange deliveryHub and routeKey exportOrders`,
-            payload: JSON.stringify({ email, filter, config })
+            payload: JSON.stringify({ userId, filter, config })
         });
+
         logger.endAt();
         await logger.sendLog();
 
-        HttpHelper.ok(res, { message: `Export request queued, will sent to: ${email}` });
+        HttpHelper.ok(res, { message: `Export request queued, will sent to userId: ${userId}` });
     } catch (error) {
         logger.error(error);
         logger.endAt();

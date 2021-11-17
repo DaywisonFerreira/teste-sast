@@ -1,6 +1,6 @@
 {
     "name": "ifc.freight.api.orders",
-    "version": "1.4.7",
+    "version": "1.7.3",
     "description": "Freight API Orders",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -36,6 +36,7 @@
         "@types/express-session": "^1.17.4",
         "@types/mongodb": "^4.0.7",
         "@types/nodemailer": "^6.4.4",
+        "azure-storage": "^2.10.4",
         "date-fns": "^2.23.0",
         "date-fns-tz": "^1.1.6",
         "express-session": "^1.17.2",
@@ -45,6 +46,7 @@
         "module-alias": "^2.2.2",
         "mongodb": "^4.1.3",
         "nodemailer": "^6.6.3",
+        "socket.io": "^4.2.0",
         "typescript": "^4.2.4",
         "xlsx": "^0.17.0"
     },
