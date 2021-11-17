@@ -1,10 +1,6 @@
 {
     "name": "ifc.freight.api.orders",
-<<<<<<< HEAD
-    "version": "1.7.3",
-=======
     "version": "1.8.0",
->>>>>>> 92b9e24... chore: v1.8.0
     "description": "Freight API Orders",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
