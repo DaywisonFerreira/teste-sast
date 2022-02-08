@@ -9,7 +9,7 @@ import getNotifications from '../controllers/getNotifications';
 
 import middlewares from '../../../utils/middlewares';
 
-import keyCloakMiddleware from '../../../utils/middlewares/keycloakMiddleware';
+// import keyCloakMiddleware from '../../../utils/middlewares/keycloakMiddleware';
 import jwtMiddleware from '../../../utils/middlewares/jwtMiddleware';
 
 export default [
@@ -48,13 +48,15 @@ export default [
     {
         method: 'put',
         path: '/notification',
-        middlewares: [...keyCloakMiddleware, jwtMiddleware],
+        // middlewares: [...keyCloakMiddleware, jwtMiddleware],
+        middlewares: [jwtMiddleware],
         controller: updateNotification,
     },
     {
         method: 'get',
         path: '/notification',
-        middlewares: [...keyCloakMiddleware, jwtMiddleware],
+        // middlewares: [...keyCloakMiddleware, jwtMiddleware],
+        middlewares: [jwtMiddleware],
         controller: getNotifications,
     }
 ] as Route[];
