@@ -75,17 +75,13 @@ export class CarrierService {
     }
 
     return this.carrierModel
-      .findOneAndUpdate(
-        { id },
-        carrierData,
-        {
-          timestamps: true,
-          upsert: true,
-          lean: true,
-          new: true,
-          projection: { __v: 0, _id: 0 },
-        },
-      )
+      .findOneAndUpdate({ id }, carrierData, {
+        timestamps: true,
+        upsert: true,
+        lean: true,
+        new: true,
+        projection: { __v: 0, _id: 0 },
+      })
       .lean();
   }
 

@@ -56,12 +56,14 @@ export class CarrierController {
     @Param('id') id: string,
     @Body() updateShippingDto: UpdateCarrierDto,
   ): Promise<GetCarrierDto> {
-    const { generateNotfisFile, integration, externalDeliveryMethodId } = updateShippingDto;
+    const { generateNotfisFile, integration, externalDeliveryMethodId } =
+      updateShippingDto;
 
-    const carrier = await this.carrierService.update(
-      id,
-      { generateNotfisFile, integration, externalDeliveryMethodId },
-    );
+    const carrier = await this.carrierService.update(id, {
+      generateNotfisFile,
+      integration,
+      externalDeliveryMethodId,
+    });
     return GetCarrierDto.factory(carrier) as GetCarrierDto;
   }
 
