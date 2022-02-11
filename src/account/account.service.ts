@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, LeanDocument, Model } from 'mongoose';
+import { LeanDocument, Model } from 'mongoose';
 import { IFilterObject } from 'src/commons/interfaces/filter-object.interface';
 import {
   AccountDocument,
@@ -197,49 +197,41 @@ export class AccountService {
     return [result, count];
   }
 
-  async findAllAccountsLocations({ locationId }): Promise<AccountEntity[]> {
-    const filter: IFilterObject = {
-      active: true,
-      accountType: 'location',
-      id: locationId,
-    };
+  async findOneLocation(id: string) {
+    const account = await this.accountModel
+      .findOne(
+        { id, accountType: AccountTypeEnum.location },
+        {
+          _id: 0,
+          __v: 0,
+        },
+      )
+      .lean();
 
-    const [result] = await this.accountModel.find(filter);
-
-    if (result?.accounts) {
-      return result.accounts;
-    }
-    return [];
-  }
-
-  async findOne(id: string): Promise<LeanDocument<AccountEntity>> {
-    const account = await this.accountModel.findOne({ id }).lean();
     if (!account) {
-      throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Location not found.', HttpStatus.NOT_FOUND);
     }
-    try {
-      return account;
-    } catch (error) {
-      let message: string;
-      if (error instanceof Error) {
-        message = error.message;
-        this.logger.error(JSON.stringify(error.message));
-      }
-      throw new InternalServerErrorException(
-        message || 'Internal server error',
-      );
-    }
+
+    return account;
   }
 
-  async findByFilter(
-    filter: FilterQuery<AccountDocument>,
-  ): Promise<LeanDocument<AccountEntity[]>> {
-    const accounts = await this.accountModel.find(filter, {
-      _id: 0,
-      id: 1,
-      name: 1,
+  async updateWarehouseCode(
+    id: string,
+    externalWarehouseCode: Partial<LeanDocument<AccountEntity>>,
+  ) {
+    const location = await this.accountModel.findOne({
+      id,
+      accountType: AccountTypeEnum.location,
     });
 
-    return accounts;
+    if (!location) {
+      throw new HttpException('Location not found.', HttpStatus.NOT_FOUND);
+    }
+    return this.accountModel.findOneAndUpdate({ id }, externalWarehouseCode, {
+      timestamps: true,
+      lean: true,
+      new: true,
+      projection: { __v: 0, _id: 0 },
+    });
   }
 }

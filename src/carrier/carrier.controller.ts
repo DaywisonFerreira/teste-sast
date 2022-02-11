@@ -20,6 +20,7 @@ import { createReadStream, existsSync, unlinkSync } from 'fs';
 import { FastifyFileInterceptor } from 'src/commons/interceptors/file.interceptor';
 import { diskStorage } from 'multer';
 import { Env } from 'src/commons/environment/env';
+import { Express } from 'express';
 import axios from 'axios';
 import * as FormData from 'form-data';
 import { LogProvider } from '@infralabs/infra-logger';
@@ -42,16 +43,9 @@ export class CarrierController {
     this.logger.context = CarrierController.name;
   }
 
-  @Get(':id')
-  @ApiOkResponse({ type: GetCarrierDto })
-  async findOne(@Param('id') id: string): Promise<GetCarrierDto> {
-    const carrier = await this.carrierService.findOne(id);
-    return GetCarrierDto.factory(carrier) as GetCarrierDto;
-  }
-
   @Patch('credentials/:id')
   @ApiOkResponse({ type: GetCarrierDto })
-  async update(
+  async updateCredentials(
     @Param('id') id: string,
     @Body() updateShippingDto: UpdateCarrierDto,
   ): Promise<GetCarrierDto> {
@@ -59,6 +53,26 @@ export class CarrierController {
       id,
       updateShippingDto,
     );
+    return GetCarrierDto.factory(carrier) as GetCarrierDto;
+  }
+
+  @Patch('external-deliverymode/:id')
+  @ApiOkResponse({ type: GetCarrierDto })
+  async updateExternalDeliveryMode(
+    @Param('id') id: string,
+    @Body() updateShippingDto: UpdateCarrierDto,
+  ): Promise<GetCarrierDto> {
+    const carrier = await this.carrierService.updateExternalDeliveryMode(
+      id,
+      updateShippingDto,
+    );
+    return GetCarrierDto.factory(carrier) as GetCarrierDto;
+  }
+
+  @Get('credentials/:id')
+  @ApiOkResponse({ type: GetCarrierDto })
+  async findOne(@Param('id') id: string): Promise<GetCarrierDto> {
+    const carrier = await this.carrierService.findOne(id);
     return GetCarrierDto.factory(carrier) as GetCarrierDto;
   }
 
@@ -79,7 +93,7 @@ export class CarrierController {
     }),
   )
   async uploadCarrierLogo(
-    @UploadedFile() file: any,
+    @UploadedFile() file: Express.Multer.File,
     @Headers() headers: HeadersDto,
     @Param('id') id: string,
     @Body() _: UploadLogoDto,
