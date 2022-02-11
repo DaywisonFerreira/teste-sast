@@ -27,20 +27,6 @@ export class AccountController {
     this.logger.context = AccountController.name;
   }
 
-  @Patch('location/external-warehousecode/:id')
-  @ApiOkResponse({ type: GetAccountDto })
-  async updateExternalWarehouseCode(
-    @Param('id') id: string,
-    @Body() update: UpdateWarehouseCodeDto,
-  ): Promise<GetAccountDto> {
-    const { warehouseCode } = update;
-
-    const account = await this.accountService.updateWarehouseCode(id, {
-      externalWarehouseCode: warehouseCode,
-    });
-    return GetAccountDto.factory(account) as GetAccountDto;
-  }
-
   @Get()
   @ApiOkResponse({ type: PaginateAccountDto })
   async findAll(
@@ -77,11 +63,25 @@ export class AccountController {
     );
   }
 
-  @Get('location/:id')
+  @Get('locations/:id')
   @ApiOkResponse({ type: GetAccountDto })
   async findOneLocation(@Param('id') id: string): Promise<GetAccountDto> {
     const account = await this.accountService.findOneLocation(id);
     // @ts-ignore
+    return GetAccountDto.factory(account) as GetAccountDto;
+  }
+
+  @Patch('locations/:id')
+  @ApiOkResponse({ type: GetAccountDto })
+  async updateExternalWarehouseCode(
+    @Param('id') id: string,
+    @Body() update: UpdateWarehouseCodeDto,
+  ): Promise<GetAccountDto> {
+    const { warehouseCode } = update;
+
+    const account = await this.accountService.updateWarehouseCode(id, {
+      externalWarehouseCode: warehouseCode,
+    });
     return GetAccountDto.factory(account) as GetAccountDto;
   }
 }

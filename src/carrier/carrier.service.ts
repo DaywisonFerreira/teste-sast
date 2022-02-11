@@ -25,16 +25,6 @@ export class CarrierService {
     this.logger.context = CarrierService.name;
   }
 
-  async update(
-    id: string,
-    carrierData: Partial<LeanDocument<CarrierDocument>>,
-  ): Promise<LeanDocument<CarrierEntity>> {
-    return this.carrierModel.findOneAndUpdate({ id }, carrierData, {
-      timestamps: true,
-      upsert: true,
-    });
-  }
-
   async create(carrierData: ICarrier): Promise<LeanDocument<CarrierEntity>> {
     try {
       // eslint-disable-next-line new-cap
@@ -60,31 +50,6 @@ export class CarrierService {
     return this.carrierModel.findOne({ document }).lean();
   }
 
-  async updateExternalDeliveryMode(
-    id: string,
-    carrierData: Partial<LeanDocument<CarrierDocument>>,
-  ): Promise<LeanDocument<CarrierEntity>> {
-    const { externalDeliveryMethodId } = carrierData;
-
-    const carrier = await this.carrierModel.findOne({ id });
-
-    if (!carrier) {
-      throw new HttpException('Carrier not found.', HttpStatus.NOT_FOUND);
-    }
-
-    return this.carrierModel.findOneAndUpdate(
-      { id },
-      { externalDeliveryMethodId },
-      {
-        timestamps: true,
-        upsert: true,
-        lean: true,
-        new: true,
-        projection: { __v: 0, _id: 0 },
-      },
-    );
-  }
-
   async updateLogo(id: string, update: Partial<LeanDocument<CarrierDocument>>) {
     const carrier = await this.carrierModel.findOne({ id });
 
@@ -99,12 +64,10 @@ export class CarrierService {
     });
   }
 
-  async updateCredentials(
+  async update(
     id: string,
     carrierData: Partial<LeanDocument<CarrierDocument>>,
   ): Promise<LeanDocument<CarrierEntity>> {
-    const { generateNotfisFile, integration } = carrierData;
-
     const carrier = await this.carrierModel.findOne({ id });
 
     if (!carrier) {
@@ -114,9 +77,10 @@ export class CarrierService {
     return this.carrierModel
       .findOneAndUpdate(
         { id },
-        { generateNotfisFile, integration },
+        carrierData,
         {
           timestamps: true,
+          upsert: true,
           lean: true,
           new: true,
           projection: { __v: 0, _id: 0 },

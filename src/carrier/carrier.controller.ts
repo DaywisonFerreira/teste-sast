@@ -43,40 +43,29 @@ export class CarrierController {
     this.logger.context = CarrierController.name;
   }
 
-  @Patch('credentials/:id')
-  @ApiOkResponse({ type: GetCarrierDto })
-  async updateCredentials(
-    @Param('id') id: string,
-    @Body() updateShippingDto: UpdateCarrierDto,
-  ): Promise<GetCarrierDto> {
-    const carrier = await this.carrierService.updateCredentials(
-      id,
-      updateShippingDto,
-    );
-    return GetCarrierDto.factory(carrier) as GetCarrierDto;
-  }
-
-  @Patch('external-deliverymode/:id')
-  @ApiOkResponse({ type: GetCarrierDto })
-  async updateExternalDeliveryMode(
-    @Param('id') id: string,
-    @Body() updateShippingDto: UpdateCarrierDto,
-  ): Promise<GetCarrierDto> {
-    const carrier = await this.carrierService.updateExternalDeliveryMode(
-      id,
-      updateShippingDto,
-    );
-    return GetCarrierDto.factory(carrier) as GetCarrierDto;
-  }
-
-  @Get('credentials/:id')
+  @Get(':id')
   @ApiOkResponse({ type: GetCarrierDto })
   async findOne(@Param('id') id: string): Promise<GetCarrierDto> {
     const carrier = await this.carrierService.findOne(id);
     return GetCarrierDto.factory(carrier) as GetCarrierDto;
   }
 
-  @Patch('logo/:id')
+  @Patch(':id')
+  @ApiOkResponse({ type: GetCarrierDto })
+  async updateCredentials(
+    @Param('id') id: string,
+    @Body() updateShippingDto: UpdateCarrierDto,
+  ): Promise<GetCarrierDto> {
+    const { generateNotfisFile, integration, externalDeliveryMethodId } = updateShippingDto;
+
+    const carrier = await this.carrierService.update(
+      id,
+      { generateNotfisFile, integration, externalDeliveryMethodId },
+    );
+    return GetCarrierDto.factory(carrier) as GetCarrierDto;
+  }
+
+  @Patch(':id/logo')
   @UseGuards(JWTGuard)
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
@@ -93,7 +82,7 @@ export class CarrierController {
     }),
   )
   async uploadCarrierLogo(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: any,
     @Headers() headers: HeadersDto,
     @Param('id') id: string,
     @Body() _: UploadLogoDto,
