@@ -33,6 +33,9 @@ export class AccountEntity extends Document {
   @Prop({ type: String, required: true })
   document: string;
 
+  @Prop({ type: String, required: false, default: '' })
+  externalWarehouseCode: string;
+
   @Prop({ type: AccountTypeEnum, enum: Object.values(AccountTypeEnum) })
   accountType: AccountTypeEnum;
 
@@ -48,6 +51,10 @@ export class AccountEntity extends Document {
   })
   @Type(() => SalesChannelEntity)
   salesChannels: SalesChannelEntity[];
+
+  createdAt: Date;
+
+  updatedAt: Date;
 }
 
 export type AccountDocument = AccountEntity & Document;

@@ -1,13 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsString, ValidateNested } from 'class-validator';
+import { IsString, ValidateNested } from 'class-validator';
 
 class Attributes {
   @IsString()
   key: string;
 
-  @IsNotEmpty()
-  value: any;
+  @IsString()
+  value: string;
 }
 class Integration {
   @IsString()
@@ -30,32 +30,26 @@ export class UpdateCarrierDto {
   })
   generateNotfisFile: boolean;
 
+  @ApiPropertyOptional({
+    description: 'External DeliveryMode Id',
+    type: String,
+    example: '368',
+    required: false,
+  })
+  externalDeliveryMethodId: string;
+
   @ApiProperty({
     description: 'Carrier integration',
     type: Object,
     example: {
       type: 'FTP',
+
       endpoint: '',
+
       attributes: [
         {
           key: 'user',
           value: 'teste',
-        },
-        {
-          key: 'password',
-          value: 'teste',
-        },
-        {
-          key: 'port',
-          value: 21,
-        },
-        {
-          key: 'secure',
-          value: false,
-        },
-        {
-          key: 'destPath',
-          value: '/teste',
         },
       ],
     },

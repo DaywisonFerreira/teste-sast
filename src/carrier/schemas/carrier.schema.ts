@@ -34,6 +34,9 @@ export class CarrierEntity extends Document {
   @Prop({ type: String, required: false, default: '' })
   logo: string;
 
+  @Prop({ type: String, required: false, default: '' })
+  externalDeliveryMethodId: string;
+
   @Prop({ type: Boolean, default: true })
   active: boolean;
 

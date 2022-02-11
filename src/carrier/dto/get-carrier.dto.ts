@@ -50,6 +50,20 @@ export class GetCarrierDto {
   })
   phone: string;
 
+  @ApiPropertyOptional({
+    description: 'Carrier logo',
+    type: String,
+    example: 'logo.png',
+  })
+  logo: string;
+
+  @ApiPropertyOptional({
+    description: 'Carrier externalDeliveryMethodId',
+    type: String,
+    example: '368',
+  })
+  externalDeliveryMethodId: string;
+
   @ApiProperty({
     description: 'Active Carrier',
     type: Boolean,

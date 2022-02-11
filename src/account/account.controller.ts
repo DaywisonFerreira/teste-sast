@@ -1,124 +1,87 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import { LogProvider } from '@infralabs/infra-logger';
 import {
-  KafkaResponse,
-  KafkaService,
-  SubscribeTopic,
-} from '@infralabs/infra-nestjs-kafka';
-import { Controller, Inject, Logger } from '@nestjs/common';
-import { Env } from 'src/commons/environment/env';
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Patch,
+  Query,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AccountService } from './account.service';
+import { FilterPaginateAccountDto } from './dto/filter-paginate-account.dto';
+import { GetAccountDto } from './dto/get-account.dto';
+import { PaginateAccountDto } from './dto/paginate-account.dto';
+import { UpdateWarehouseCodeDto } from './dto/update-warehousecode.dto';
 
-@Controller()
+@Controller('accounts')
+@ApiTags('Accounts')
+@ApiBearerAuth()
 export class AccountController {
-  private logger = new Logger(AccountController.name);
-
   constructor(
     private readonly accountService: AccountService,
-    @Inject('KafkaService') private kafkaProducer: KafkaService,
-  ) {}
-
-  @SubscribeTopic(Env.KAFKA_TOPIC_ACCOUNT_CREATED)
-  async createAccount(messageKafka: KafkaResponse<string>) {
-    const value = JSON.parse(messageKafka.value);
-
-    await this.removeFromQueue(
-      Env.KAFKA_TOPIC_ACCOUNT_CREATED,
-      messageKafka.partition,
-      messageKafka.offset,
-    );
-
-    this.logger.log('account.created - Account consumer was received');
-    await this.accountService.create(value.data);
-  }
-
-  @SubscribeTopic(Env.KAFKA_TOPIC_ACCOUNT_CHANGED)
-  async updateAccount(messageKafka: KafkaResponse<string>) {
-    const value = JSON.parse(messageKafka.value);
-
-    await this.removeFromQueue(
-      Env.KAFKA_TOPIC_ACCOUNT_CHANGED,
-      messageKafka.partition,
-      messageKafka.offset,
-    );
-    this.logger.log('account.changed - Account consumer was received');
-    await this.accountService.update(value.data.id, value.data);
-  }
-
-  @SubscribeTopic(Env.KAFKA_TOPIC_ACCOUNT_LOCATION_CREATED)
-  async createLocation(messageKafka: KafkaResponse<string>) {
-    const value = JSON.parse(messageKafka.value);
-
-    await this.removeFromQueue(
-      Env.KAFKA_TOPIC_ACCOUNT_LOCATION_CREATED,
-      messageKafka.partition,
-      messageKafka.offset,
-    );
-    this.logger.log('location.created - Account consumer was received');
-    await this.accountService.create(value.data);
-  }
-
-  @SubscribeTopic(Env.KAFKA_TOPIC_ACCOUNT_LOCATION_CHANGED)
-  async updateLocation(messageKafka: KafkaResponse<string>) {
-    const value = JSON.parse(messageKafka.value);
-
-    await this.removeFromQueue(
-      Env.KAFKA_TOPIC_ACCOUNT_LOCATION_CHANGED,
-      messageKafka.partition,
-      messageKafka.offset,
-    );
-    this.logger.log('location.changed - Account consumer was received');
-    await this.accountService.update(value.data.id, value.data);
-  }
-
-  @SubscribeTopic(Env.KAFKA_TOPIC_ACCOUNT_LOCATION_ASSOCIATED)
-  async locationAssociated(messageKafka: KafkaResponse<string>) {
-    const value = JSON.parse(messageKafka.value);
-    const { headers } = messageKafka;
-
-    await this.removeFromQueue(
-      Env.KAFKA_TOPIC_ACCOUNT_LOCATION_ASSOCIATED,
-      messageKafka.partition,
-      messageKafka.offset,
-    );
-    this.logger.log(
-      `location.associated - Account consumer was received ${value.data.id}`,
-    );
-    await this.accountService.associateLocation(
-      headers['X-Tenant-Id'],
-      value.data.id,
-    );
-  }
-
-  @SubscribeTopic(Env.KAFKA_TOPIC_ACCOUNT_LOCATION_UNASSOCIATED)
-  async locationUnassociated(messageKafka: KafkaResponse<string>) {
-    const value = JSON.parse(messageKafka.value);
-    const { headers } = messageKafka;
-
-    await this.removeFromQueue(
-      Env.KAFKA_TOPIC_ACCOUNT_LOCATION_UNASSOCIATED,
-      messageKafka.partition,
-      messageKafka.offset,
-    );
-    this.logger.log(
-      `location.unassociated - Account consumer was received ${value.data.id}`,
-    );
-
-    await this.accountService.unassociateLocation(
-      headers['X-Tenant-Id'],
-      value.data.id,
-    );
-  }
-
-  private async removeFromQueue(
-    topic: string,
-    partition: number,
-    offset: number,
+    @Inject('LogProvider') private logger: LogProvider,
   ) {
-    await this.kafkaProducer.commitOffsets([
-      {
-        topic,
-        partition,
-        offset: String(offset + 1),
-      },
-    ]);
+    this.logger.context = AccountController.name;
+  }
+
+  @Patch('location/external-warehousecode/:id')
+  @ApiOkResponse({ type: GetAccountDto })
+  async updateExternalWarehouseCode(
+    @Param('id') id: string,
+    @Body() update: UpdateWarehouseCodeDto,
+  ): Promise<GetAccountDto> {
+    const { warehouseCode } = update;
+
+    const account = await this.accountService.updateWarehouseCode(id, {
+      externalWarehouseCode: warehouseCode,
+    });
+    return GetAccountDto.factory(account) as GetAccountDto;
+  }
+
+  @Get()
+  @ApiOkResponse({ type: PaginateAccountDto })
+  async findAll(
+    @Query() filterPaginateDto: FilterPaginateAccountDto,
+  ): Promise<PaginateAccountDto> {
+    const {
+      name,
+      shipToAddress,
+      accountType,
+      locationId,
+      page = 1,
+      perPage = 20,
+      orderBy,
+      orderDirection,
+    } = filterPaginateDto;
+
+    const pageNumber = Math.abs(page);
+    const pageSize = Math.abs(perPage);
+    const sortBy = orderBy || 'name';
+
+    const [resultQuery, count] = await this.accountService.findAll(
+      { name, shipToAddress, accountType, locationId },
+      pageNumber,
+      pageSize,
+      sortBy,
+      orderDirection,
+    );
+
+    return new PaginateAccountDto(
+      JSON.parse(JSON.stringify(resultQuery)),
+      count,
+      pageNumber,
+      pageSize,
+    );
+  }
+
+  @Get('location/:id')
+  @ApiOkResponse({ type: GetAccountDto })
+  async findOneLocation(@Param('id') id: string): Promise<GetAccountDto> {
+    const account = await this.accountService.findOneLocation(id);
+    // @ts-ignore
+    return GetAccountDto.factory(account) as GetAccountDto;
   }
 }
