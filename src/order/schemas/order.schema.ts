@@ -11,6 +11,7 @@ export const PublicFieldsOrder = {
   status: 1,
   history: 1,
   'billingData.invoiceValue': 1,
+  'billingData.customerDocument': 1,
   'billingData.trackingUrl': 1,
   'logisticInfo.deliveryCompany': 1,
   'logisticInfo.shippingEstimateDate': 1,
