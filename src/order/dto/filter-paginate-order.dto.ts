@@ -4,31 +4,13 @@ import { RequestPaginateDto } from 'src/commons/dtos/request-paginate.dto';
 
 export class FilterPaginateOrderDto extends RequestPaginateDto {
   @ApiProperty({
-    description: 'Order id',
+    description: 'Search by order, orderSale, partnerOrder or receiverName',
     type: String,
     required: false,
-    example: '61280a399d3193001143fee4',
+    example: 'MTM4332214731',
   })
   @IsOptional()
-  orderId?: string | null;
-
-  @ApiProperty({
-    description: 'Store id',
-    type: String,
-    required: false,
-    example: '61280a399d3193001143fee4',
-  })
-  @IsOptional()
-  storeId?: string | null;
-
-  @ApiProperty({
-    description: 'Receiver of order',
-    type: String,
-    example: 'Lucas',
-    required: false,
-  })
-  @IsOptional()
-  receiverName?: string | null;
+  search?: string | null;
 
   @ApiProperty({
     description: 'Delivery company',
@@ -83,4 +65,13 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
   })
   @IsOptional()
   status?: string | null;
+
+  @ApiProperty({
+    description: 'Status of order by partner',
+    type: String,
+    example: 'Entregue',
+    required: false,
+  })
+  @IsOptional()
+  partnerStatus?: string | null;
 }

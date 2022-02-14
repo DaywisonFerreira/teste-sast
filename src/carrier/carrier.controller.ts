@@ -20,7 +20,6 @@ import { createReadStream, existsSync, unlinkSync } from 'fs';
 import { FastifyFileInterceptor } from 'src/commons/interceptors/file.interceptor';
 import { diskStorage } from 'multer';
 import { Env } from 'src/commons/environment/env';
-import { Express } from 'express';
 import axios from 'axios';
 import * as FormData from 'form-data';
 import { LogProvider } from '@infralabs/infra-logger';

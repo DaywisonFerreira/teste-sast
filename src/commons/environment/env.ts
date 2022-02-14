@@ -65,6 +65,9 @@ export abstract class Env {
   public static readonly KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT: string =
     process.env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT;
 
+  public static readonly KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT_NOTIFY: string =
+    process.env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT_NOTIFY;
+
   public static readonly KAFKA_TOPIC_CARRIER_CREATED: string =
     process.env.KAFKA_TOPIC_CARRIER_CREATED;
 
@@ -88,12 +91,6 @@ export abstract class Env {
 
   public static readonly INTELIPOST_PASSWORD: string =
     process.env.INTELIPOST_PASSWORD;
-
-  public static readonly STORE_NOTIFICATION_EXCHANGE: string =
-    process.env.STORE_NOTIFICATION_EXCHANGE;
-
-  public static readonly SELLER_NOTIFICATION_EXCHANGE: string =
-    process.env.SELLER_NOTIFICATION_EXCHANGE;
 
   public static readonly ORDER_NOTIFICATION_EXCHANGE: string =
     process.env.ORDER_NOTIFICATION_EXCHANGE;

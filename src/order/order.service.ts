@@ -25,15 +25,15 @@ export class OrderService {
     pageSize,
     orderBy,
     orderDirection,
-    orderId,
+    search,
     storeId,
-    receiverName,
     deliveryCompany,
     orderCreatedAtFrom,
     orderCreatedAtTo,
     orderUpdatedAtFrom,
     orderUpdatedAtTo,
     status,
+    partnerStatus,
   }): Promise<[LeanDocument<OrderEntity[]>, number]> {
     const filter: IFilterObject = {};
 
@@ -41,15 +41,16 @@ export class OrderService {
       filter.storeId = new Types.ObjectId(storeId);
     }
 
-    if (receiverName) {
-      filter.$text = {
-        $search: receiverName,
+    if (status) {
+      filter.status = {
+        $regex: `.${status}.*`,
+        $options: 'i',
       };
     }
 
-    if (status) {
-      filter.status = {
-        $regex: `.*${status}.*`,
+    if (partnerStatus) {
+      filter.partnerStatus = {
+        $regex: `.${partnerStatus}.*`,
         $options: 'i',
       };
     }
@@ -58,19 +59,20 @@ export class OrderService {
       filter.logisticInfo = {
         $elemMatch: {
           deliveryCompany: {
-            $regex: `.*${deliveryCompany}.*`,
+            $regex: `.${deliveryCompany}.*`,
             $options: 'i',
           },
         },
       };
     }
 
-    if (orderId) {
-      // orderSale -> pedido VTEX
-      // order -> pedido erp
-      filter.$text = {
-        $search: `"${orderId}"`,
-      };
+    if (search) {
+      filter.$or = [
+        { order: { $regex: `${search}.*`, $options: 'i' } },
+        { orderSale: { $regex: `${search}.*`, $options: 'i' } },
+        { partnerOrder: { $regex: `${search}.*`, $options: 'i' } },
+        { receiverName: { $regex: `${search}.*`, $options: 'i' } },
+      ];
     }
 
     if (orderCreatedAtFrom && orderCreatedAtTo) {
@@ -154,13 +156,61 @@ export class OrderService {
   async merge(
     configPK: any,
     data: any = {},
+    origin: string,
     options: any = { runValidators: true, useFindAndModify: false },
   ) {
     const response = await this.OrderModel.findOne(configPK);
     if (!response) {
-      await this.OrderModel.create(data);
+      await this.OrderModel.create({
+        ...data,
+        ...(origin === 'intelipost'
+          ? {
+              history: [
+                {
+                  dispatchDate: data.dispatchDate,
+                  estimateDeliveryDateDeliveryCompany:
+                    data.estimateDeliveryDateDeliveryCompany,
+                  partnerMessage: data.partnerMessage,
+                  microStatus: data.microStatus,
+                  lastOccurrenceMacro: data.lastOccurrenceMacro,
+                  lastOccurrenceMicro: data.lastOccurrenceMicro,
+                  lastOccurrenceMessage: data.lastOccurrenceMessage,
+                  partnerStatus: data.partnerStatus,
+                  partnerUpdatedAt: data.partnerUpdatedAt,
+                  i18n: data.i18n,
+                },
+              ],
+            }
+          : {}),
+      });
     } else {
-      await this.OrderModel.findOneAndUpdate(configPK, data, options);
+      // await this.OrderModel.findOneAndUpdate(configPK, data, options);
+      await this.OrderModel.findOneAndUpdate(
+        configPK,
+        {
+          ...data,
+          ...(origin === 'intelipost'
+            ? {
+                $push: {
+                  history: {
+                    dispatchDate: data.dispatchDate,
+                    estimateDeliveryDateDeliveryCompany:
+                      data.estimateDeliveryDateDeliveryCompany,
+                    partnerMessage: data.partnerMessage,
+                    microStatus: data.microStatus,
+                    lastOccurrenceMacro: data.lastOccurrenceMacro,
+                    lastOccurrenceMicro: data.lastOccurrenceMicro,
+                    lastOccurrenceMessage: data.lastOccurrenceMessage,
+                    partnerStatus: data.partnerStatus,
+                    partnerUpdatedAt: data.partnerUpdatedAt,
+                    i18n: data.i18n,
+                  },
+                },
+              }
+            : {}),
+        },
+        options,
+      );
     }
   }
 

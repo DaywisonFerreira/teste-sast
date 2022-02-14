@@ -4,6 +4,7 @@ import { v4 as uuidV4 } from 'uuid';
 import {
   Controller,
   Get,
+  Headers,
   Inject,
   Param,
   Post,
@@ -38,21 +39,21 @@ export class OrderController {
   @ApiOkResponse({ type: PaginateOrderDto })
   async findAll(
     @Query(ValidationPipe) filterPaginateDto: FilterPaginateOrderDto,
+    @Headers('x-tenant-id') xTenantId: string,
   ): Promise<PaginateOrderDto> {
     const {
       page = 1,
       perPage = 20,
       orderBy,
       orderDirection = 'desc',
-      orderId,
-      storeId,
-      receiverName,
+      search,
       deliveryCompany,
       orderCreatedAtFrom,
       orderCreatedAtTo,
       orderUpdatedAtFrom,
       orderUpdatedAtTo,
       status,
+      partnerStatus,
     } = filterPaginateDto;
 
     const pageNumber = Number(page);
@@ -64,15 +65,15 @@ export class OrderController {
       pageSize,
       orderBy: sortBy,
       orderDirection,
-      orderId,
-      storeId,
-      receiverName,
+      search,
+      storeId: xTenantId,
       deliveryCompany,
       orderCreatedAtFrom,
       orderCreatedAtTo,
       orderUpdatedAtFrom,
       orderUpdatedAtTo,
       status,
+      partnerStatus,
     });
 
     const result = resultQuery.map(order => ({

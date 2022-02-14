@@ -5,13 +5,9 @@ import { KafkaModule } from '@infralabs/infra-nestjs-kafka';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 import { Env } from './commons/environment/env';
-import { SocketModule } from './socket/socket.module';
-import { StoresModule } from './store/store.module';
 import { OrderModule } from './order/order.module';
 import { IntelipostModule } from './intelipost/intelipost.module';
 import { NotificationModule } from './notification/notification.module';
-import { RabbitMqModule } from './rabbitmq/rabbit.module';
-import { ConfigModule } from './config/config.module';
 import { CarrierModule } from './carrier/carrier.module';
 import { AccountModule } from './account/account.module';
 import { InvoiceModule } from './invoice/invoice.module';
@@ -42,13 +38,9 @@ import { InvoiceModule } from './invoice/invoice.module';
         },
       },
     }),
-    StoresModule,
     OrderModule,
     IntelipostModule,
     NotificationModule,
-    RabbitMqModule,
-    ConfigModule,
-    SocketModule,
     CarrierModule,
     AccountModule,
     InvoiceModule,
