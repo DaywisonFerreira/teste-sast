@@ -44,15 +44,15 @@ export class OrderController {
       perPage = 20,
       orderBy,
       orderDirection = 'desc',
-      orderId,
+      search,
       storeId,
-      receiverName,
       deliveryCompany,
       orderCreatedAtFrom,
       orderCreatedAtTo,
       orderUpdatedAtFrom,
       orderUpdatedAtTo,
       status,
+      partnerStatus,
     } = filterPaginateDto;
 
     const pageNumber = Number(page);
@@ -64,15 +64,15 @@ export class OrderController {
       pageSize,
       orderBy: sortBy,
       orderDirection,
-      orderId,
+      search,
       storeId,
-      receiverName,
       deliveryCompany,
       orderCreatedAtFrom,
       orderCreatedAtTo,
       orderUpdatedAtFrom,
       orderUpdatedAtTo,
       status,
+      partnerStatus,
     });
 
     const result = resultQuery.map(order => ({

@@ -25,15 +25,15 @@ export class OrderService {
     pageSize,
     orderBy,
     orderDirection,
-    orderId,
+    search,
     storeId,
-    receiverName,
     deliveryCompany,
     orderCreatedAtFrom,
     orderCreatedAtTo,
     orderUpdatedAtFrom,
     orderUpdatedAtTo,
     status,
+    partnerStatus,
   }): Promise<[LeanDocument<OrderEntity[]>, number]> {
     const filter: IFilterObject = {};
 
@@ -41,15 +41,16 @@ export class OrderService {
       filter.storeId = new Types.ObjectId(storeId);
     }
 
-    if (receiverName) {
-      filter.$text = {
-        $search: receiverName,
+    if (status) {
+      filter.status = {
+        $regex: `.${status}.*`,
+        $options: 'i',
       };
     }
 
-    if (status) {
-      filter.status = {
-        $regex: `.*${status}.*`,
+    if (partnerStatus) {
+      filter.partnerStatus = {
+        $regex: `.${partnerStatus}.*`,
         $options: 'i',
       };
     }
@@ -58,18 +59,16 @@ export class OrderService {
       filter.logisticInfo = {
         $elemMatch: {
           deliveryCompany: {
-            $regex: `.*${deliveryCompany}.*`,
+            $regex: `.${deliveryCompany}.*`,
             $options: 'i',
           },
         },
       };
     }
 
-    if (orderId) {
-      // orderSale -> pedido VTEX
-      // order -> pedido erp
+    if (search) {
       filter.$text = {
-        $search: `"${orderId}"`,
+        $search: `"${search}"`,
       };
     }
 
