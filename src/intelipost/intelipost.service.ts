@@ -50,9 +50,10 @@ export class InteliPostService {
     if (orderMerged.storeId && orderMerged.storeCode) {
       const exchange = 'order';
       const routeKey = 'orderTrackingUpdated';
-      const internalOrderId = payload.order_number.split('-').length > 1
-        ? payload.order_number.split('-')[1]
-        : payload.order_number;
+      const internalOrderId =
+        payload.order_number.split('-').length > 1
+          ? payload.order_number.split('-')[1]
+          : payload.order_number;
       const i18nName =
         typeof order.i18n === 'string'
           ? order.i18n.toLowerCase().replace(/_/g, '-')
