@@ -8,7 +8,6 @@ import { NestjsLogger } from '../commons/providers/log/nestjs-logger';
 import { ConsumerOrderController } from '../order/consumer/order.controller';
 import { OrderService } from '../order/order.service';
 import { OrderEntity, OrderSchema } from '../order/schemas/order.schema';
-import { SocketModule } from '../socket/socket.module';
 
 @Module({
   imports: [
@@ -22,7 +21,6 @@ import { SocketModule } from '../socket/socket.module';
       uri: Env.RABBITMQ_URI,
       connectionInitOptions: { wait: true },
     }),
-    SocketModule,
     MongooseModule.forFeature([
       {
         name: OrderEntity.name,

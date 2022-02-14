@@ -10,12 +10,8 @@ import { lightFormat } from 'date-fns';
 import { utils, writeFile } from 'xlsx';
 import { existsSync, mkdirSync, promises } from 'fs';
 import { createBlobService } from 'azure-storage';
-import {
-  NotificationOrigins,
-  NotificationTypes,
-} from 'src/notification/interfaces/notification-payload.interface';
+import { v4 as uuidV4 } from 'uuid';
 import { Env } from '../../commons/environment/env';
-import { SocketService } from '../../socket/socket.service';
 import { CsvMapper } from '../mappers/csvMapper';
 import { OrderService } from '../order.service';
 import { IOrder } from '../interfaces/order.interface';
@@ -28,7 +24,6 @@ export class ConsumerOrderController {
   constructor(
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     private readonly orderService: OrderService,
-    private readonly socketService: SocketService,
   ) {}
 
   @RabbitSubscribe({
@@ -83,11 +78,20 @@ export class ConsumerOrderController {
       file = this.createCsvLocally(dataFormatted, filter);
       const urlFile = await this.uploadFile(file);
 
-      await this.socketService.sendMessage(userId, {
-        origin: NotificationOrigins.System,
-        type: NotificationTypes.OrdersExport,
-        payload: { urlFile },
-      });
+      await this.kafkaProducer.send(
+        Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT_NOTIFY,
+        {
+          headers: {
+            'X-Correlation-Id': uuidV4(),
+            'X-Version': '1.0',
+          },
+          key: uuidV4(),
+          value: JSON.stringify({
+            urlFile,
+            userId,
+          }),
+        },
+      );
     } catch (error) {
       this.logger.error(error);
     } finally {

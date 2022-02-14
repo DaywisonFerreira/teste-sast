@@ -5,7 +5,6 @@ import { KafkaModule } from '@infralabs/infra-nestjs-kafka';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 import { Env } from './commons/environment/env';
-import { SocketModule } from './socket/socket.module';
 import { OrderModule } from './order/order.module';
 import { IntelipostModule } from './intelipost/intelipost.module';
 import { NotificationModule } from './notification/notification.module';
@@ -42,7 +41,6 @@ import { InvoiceModule } from './invoice/invoice.module';
     OrderModule,
     IntelipostModule,
     NotificationModule,
-    SocketModule,
     CarrierModule,
     AccountModule,
     InvoiceModule,

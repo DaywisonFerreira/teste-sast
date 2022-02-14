@@ -65,6 +65,9 @@ export abstract class Env {
   public static readonly KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT: string =
     process.env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT;
 
+  public static readonly KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT_NOTIFY: string =
+    process.env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT_NOTIFY;
+
   public static readonly KAFKA_TOPIC_CARRIER_CREATED: string =
     process.env.KAFKA_TOPIC_CARRIER_CREATED;
 

@@ -4,7 +4,6 @@ import { Env } from 'src/commons/environment/env';
 import { NestjsLogger } from 'src/commons/providers/log/nestjs-logger';
 import { Logger } from '@infralabs/infra-logger';
 
-import { SocketModule } from '../socket/socket.module';
 import { OrderService } from './order.service';
 import { OrderController } from './order.controller';
 import { OrderEntity, OrderSchema } from './schemas/order.schema';
@@ -12,7 +11,6 @@ import { ConsumerOrderController } from './consumer/order.controller';
 
 @Module({
   imports: [
-    SocketModule,
     MongooseModule.forFeature([
       {
         name: OrderEntity.name,
