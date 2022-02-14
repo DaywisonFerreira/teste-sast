@@ -3,7 +3,8 @@ import { Module, Scope } from '@nestjs/common';
 import { Env } from 'src/commons/environment/env';
 import { NestjsLogger } from 'src/commons/providers/log/nestjs-logger';
 import { Logger } from '@infralabs/infra-logger';
-import { SocketModule } from 'src/socket/socket.module';
+
+import { SocketModule } from '../socket/socket.module';
 import { OrderService } from './order.service';
 import { OrderController } from './order.controller';
 import { OrderEntity, OrderSchema } from './schemas/order.schema';

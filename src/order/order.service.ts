@@ -154,13 +154,61 @@ export class OrderService {
   async merge(
     configPK: any,
     data: any = {},
+    origin: string,
     options: any = { runValidators: true, useFindAndModify: false },
   ) {
     const response = await this.OrderModel.findOne(configPK);
     if (!response) {
-      await this.OrderModel.create(data);
+      await this.OrderModel.create({
+        ...data,
+        ...(origin === 'intelipost'
+          ? {
+              history: [
+                {
+                  dispatchDate: data.dispatchDate,
+                  estimateDeliveryDateDeliveryCompany:
+                    data.estimateDeliveryDateDeliveryCompany,
+                  partnerMessage: data.partnerMessage,
+                  microStatus: data.microStatus,
+                  lastOccurrenceMacro: data.lastOccurrenceMacro,
+                  lastOccurrenceMicro: data.lastOccurrenceMicro,
+                  lastOccurrenceMessage: data.lastOccurrenceMessage,
+                  partnerStatus: data.partnerStatus,
+                  partnerUpdatedAt: data.partnerUpdatedAt,
+                  i18n: data.i18n,
+                },
+              ],
+            }
+          : {}),
+      });
     } else {
-      await this.OrderModel.findOneAndUpdate(configPK, data, options);
+      // await this.OrderModel.findOneAndUpdate(configPK, data, options);
+      await this.OrderModel.findOneAndUpdate(
+        configPK,
+        {
+          ...data,
+          ...(origin === 'intelipost'
+            ? {
+                $push: {
+                  history: {
+                    dispatchDate: data.dispatchDate,
+                    estimateDeliveryDateDeliveryCompany:
+                      data.estimateDeliveryDateDeliveryCompany,
+                    partnerMessage: data.partnerMessage,
+                    microStatus: data.microStatus,
+                    lastOccurrenceMacro: data.lastOccurrenceMacro,
+                    lastOccurrenceMicro: data.lastOccurrenceMicro,
+                    lastOccurrenceMessage: data.lastOccurrenceMessage,
+                    partnerStatus: data.partnerStatus,
+                    partnerUpdatedAt: data.partnerUpdatedAt,
+                    i18n: data.i18n,
+                  },
+                },
+              }
+            : {}),
+        },
+        options,
+      );
     }
   }
 

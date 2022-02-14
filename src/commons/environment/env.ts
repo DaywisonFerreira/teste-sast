@@ -89,12 +89,6 @@ export abstract class Env {
   public static readonly INTELIPOST_PASSWORD: string =
     process.env.INTELIPOST_PASSWORD;
 
-  public static readonly STORE_NOTIFICATION_EXCHANGE: string =
-    process.env.STORE_NOTIFICATION_EXCHANGE;
-
-  public static readonly SELLER_NOTIFICATION_EXCHANGE: string =
-    process.env.SELLER_NOTIFICATION_EXCHANGE;
-
   public static readonly ORDER_NOTIFICATION_EXCHANGE: string =
     process.env.ORDER_NOTIFICATION_EXCHANGE;
 

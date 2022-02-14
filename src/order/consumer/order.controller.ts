@@ -1,3 +1,5 @@
+import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
+import { ConsumeMessage, Channel } from 'amqplib';
 import {
   KafkaResponse,
   KafkaService,
@@ -16,6 +18,8 @@ import { Env } from '../../commons/environment/env';
 import { SocketService } from '../../socket/socket.service';
 import { CsvMapper } from '../mappers/csvMapper';
 import { OrderService } from '../order.service';
+import { IOrder } from '../interfaces/order.interface';
+import { OrderMapper } from '../mappers/orderMapper';
 
 @Controller()
 export class ConsumerOrderController {
@@ -26,6 +30,38 @@ export class ConsumerOrderController {
     private readonly orderService: OrderService,
     private readonly socketService: SocketService,
   ) {}
+
+  @RabbitSubscribe({
+    exchange: Env.ORDER_NOTIFICATION_EXCHANGE,
+    routingKey: '',
+    queue: `delivery_hub_order_notification_${Env.NODE_ENV}_q`,
+    errorHandler: (channel: Channel, msg: ConsumeMessage, error: Error) => {
+      // eslint-disable-next-line no-console
+      console.log(error);
+      channel.reject(msg, false);
+    },
+  })
+  public async orderNotificationHandler(order: IOrder) {
+    // eslint-disable-next-line no-console
+    console.log(
+      'handleOrderNotification.message',
+      `Order ${order.externalOrderId} was received in the integration queue`,
+    );
+    try {
+      if (order.status === 'dispatched' || order.status === 'invoiced') {
+        // if (order.status === 'dispatched' || order.status === 'invoiced' || order.status === 'ready-for-handling') {
+        const orderToSave = OrderMapper.mapMessageToOrder(order);
+        await this.orderService.merge(
+          { orderSale: orderToSave.orderSale },
+          orderToSave,
+          'ihub',
+        );
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(error.message, { payload: JSON.stringify(order) });
+    }
+  }
 
   @SubscribeTopic(Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT)
   async consumerExportOrders(messageKafka: KafkaResponse<string>) {

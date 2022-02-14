@@ -3,15 +3,17 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { LogProvider } from '@infralabs/infra-logger';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+
 import { OrderDocument, OrderEntity } from '../order/schemas/order.schema';
-import { merge } from './components/merge';
 import { CreateIntelipost } from './dto/create-intelipost.dto';
+import { OrderService } from '../order/order.service';
 
 @Injectable()
 export class InteliPostService {
   constructor(
     @InjectModel(OrderEntity.name)
     private OrderModel: Model<OrderDocument>,
+    private orderService: OrderService,
     private readonly amqpConnection: AmqpConnection,
   ) {}
 
@@ -35,10 +37,10 @@ export class InteliPostService {
       i18n: payload.history.shipment_volume_micro_state.i18n_name,
     };
 
-    await merge(
-      this.OrderModel,
+    await this.orderService.merge(
       { orderSale: payload.sales_order_number },
       order,
+      'intelipost',
     );
 
     const orderMerged = await this.OrderModel.findOne({

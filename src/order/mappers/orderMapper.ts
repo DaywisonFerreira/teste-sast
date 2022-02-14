@@ -1,46 +1,20 @@
-import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
-import { Injectable } from '@nestjs/common';
-import { ConsumeMessage, Channel } from 'amqplib';
-import { OrderService } from '../../order/order.service';
-import { IOrder } from '../../config/interfaces';
-import { Env } from '../../commons/environment/env';
+import { IOrder } from '../interfaces/order.interface';
 
-@Injectable()
-export class OrderNotificationHandler {
-  constructor(private readonly orderService: OrderService) {}
+// interface IReceiverPhones {
+//   phone: string;
+//   type: string;
+// }
 
-  @RabbitSubscribe({
-    exchange: Env.ORDER_NOTIFICATION_EXCHANGE,
-    routingKey: '',
-    queue: 'ifc_logistic_api_core_order_notification_q',
-    errorHandler: (channel: Channel, msg: ConsumeMessage, error: Error) => {
-      // eslint-disable-next-line no-console
-      console.log(error);
-      channel.reject(msg, false);
-    },
-  })
-  public async orderNotificationHandler(order: IOrder) {
-    // eslint-disable-next-line no-console
-    console.log(
-      'handleOrderNotification.message',
-      `Order ${order.externalOrderId} was received in the integration queue`,
-    );
-    try {
-      if (order.status === 'dispatched' || order.status === 'invoiced') {
-        // if (order.status === 'dispatched' || order.status === 'invoiced' || order.status === 'ready-for-handling') {
-        const orderToSave = this.mapMessageToOrder(order);
-        await this.orderService.merge(
-          { orderSale: orderToSave.orderSale },
-          orderToSave,
-        );
-      }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error(error.message, { payload: JSON.stringify(order) });
-    }
-  }
+// interface ILogisticInfo {
+//   logisticContract: string;
+//   deliveryCompany: string;
+//   shippingEstimateDate: string;
+//   deliveryChannel: string;
+//   sellingPrice: number;
+// }
 
-  private mapMessageToOrder(payload: IOrder) {
+export class OrderMapper {
+  static mapMessageToOrder(payload: IOrder) {
     const {
       _id: orderId,
       deliveryAddress,
@@ -123,23 +97,10 @@ export class OrderNotificationHandler {
       deliveryDate,
       orderCreatedAt: creationDate,
       paymentDate,
-      dispatchDate: '',
-      estimateDeliveryDateDeliveryCompany: '',
-      partnerMessage: '',
-      numberVolumes: '',
-      partnerStatus: '',
-      originZipCode: '',
-      square: '',
-      physicalWeight: '',
-      lastOccurrenceMacro: '',
-      lastOccurrenceMicro: '',
-      lastOccurrenceMessage: '',
-      quantityOccurrences: '',
-      partnerUpdatedAt: '',
     };
   }
 
-  private parseFloat(value: any): number {
+  static parseFloat(value: any): number {
     if (!value) {
       return 0;
     }

@@ -1,26 +1,19 @@
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
-import { Module } from '@nestjs/common';
-import { Env } from 'src/commons/environment/env';
+import { Logger } from '@infralabs/infra-logger';
+import { Module, Scope } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 
-import { OrderNotificationModule } from './orderNotificationHandler/order.notification.module';
-import { SellerNotificationModule } from './sellerNotificationHandler/seller.notification.module';
-import { StoreNotificationModule } from './storeNotificationHandler/store.notification.module';
+import { Env } from '../commons/environment/env';
+import { NestjsLogger } from '../commons/providers/log/nestjs-logger';
+import { ConsumerOrderController } from '../order/consumer/order.controller';
+import { OrderService } from '../order/order.service';
+import { OrderEntity, OrderSchema } from '../order/schemas/order.schema';
+import { SocketModule } from '../socket/socket.module';
 
 @Module({
   imports: [
-    OrderNotificationModule,
-    SellerNotificationModule,
-    StoreNotificationModule,
     RabbitMQModule.forRoot(RabbitMQModule, {
       exchanges: [
-        {
-          name: Env.STORE_NOTIFICATION_EXCHANGE,
-          type: 'fanout',
-        },
-        {
-          name: Env.SELLER_NOTIFICATION_EXCHANGE,
-          type: 'fanout',
-        },
         {
           name: Env.ORDER_NOTIFICATION_EXCHANGE,
           type: 'fanout',
@@ -29,8 +22,23 @@ import { StoreNotificationModule } from './storeNotificationHandler/store.notifi
       uri: Env.RABBITMQ_URI,
       connectionInitOptions: { wait: true },
     }),
+    SocketModule,
+    MongooseModule.forFeature([
+      {
+        name: OrderEntity.name,
+        schema: OrderSchema,
+      },
+    ]),
   ],
-  providers: [],
+  providers: [
+    {
+      provide: 'LogProvider',
+      useClass: Env.NODE_ENV === 'local' ? NestjsLogger : Logger,
+      scope: Scope.TRANSIENT,
+    },
+    ConsumerOrderController,
+    OrderService,
+  ],
   controllers: [],
   exports: [RabbitMQModule],
 })
