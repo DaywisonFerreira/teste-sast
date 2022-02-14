@@ -67,9 +67,12 @@ export class OrderService {
     }
 
     if (search) {
-      filter.$text = {
-        $search: `"${search}"`,
-      };
+      filter.$or = [
+        { order: { $regex: `${search}.*`, $options: 'i' } },
+        { orderSale: { $regex: `${search}.*`, $options: 'i' } },
+        { partnerOrder: { $regex: `${search}.*`, $options: 'i' } },
+        { receiverName: { $regex: `${search}.*`, $options: 'i' } },
+      ];
     }
 
     if (orderCreatedAtFrom && orderCreatedAtTo) {

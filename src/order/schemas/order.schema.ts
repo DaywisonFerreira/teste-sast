@@ -6,6 +6,7 @@ export const PublicFieldsOrder = {
   orderCreatedAt: 1,
   receiverName: 1,
   orderUpdatedAt: 1,
+  partnerUpdatedAt: 1,
   orderSale: 1,
   order: 1,
   partnerOrder: 1,
@@ -246,10 +247,4 @@ OrderSchema.index({ _id: 1 }, { unique: true })
     { storeId: 1, orderCreatedAt: 1, 'logisticInfo.deliveryCompany': 1 },
     { unique: false },
   )
-  .index({ storeId: 1, 'logisticInfo.deliveryCompany': 1 }, { unique: false })
-  .index({
-    order: 'text',
-    orderSale: 'text',
-    partnerOrder: 'text',
-    receiverName: 'text',
-  });
+  .index({ storeId: 1, 'logisticInfo.deliveryCompany': 1 }, { unique: false });

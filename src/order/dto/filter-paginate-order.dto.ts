@@ -13,15 +13,6 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
   search?: string | null;
 
   @ApiProperty({
-    description: 'Store id',
-    type: String,
-    required: false,
-    example: '61280a399d3193001143fee4',
-  })
-  @IsOptional()
-  storeId?: string | null;
-
-  @ApiProperty({
     description: 'Delivery company',
     type: String,
     example: 'LOGGI NORMAL I',

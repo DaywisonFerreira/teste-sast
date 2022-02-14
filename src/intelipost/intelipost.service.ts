@@ -50,7 +50,7 @@ export class InteliPostService {
     if (orderMerged.storeId && orderMerged.storeCode) {
       const exchange = 'order';
       const routeKey = 'orderTrackingUpdated';
-      const internalOrderId = payload.order_number.split('-').length
+      const internalOrderId = payload.order_number.split('-').length > 1
         ? payload.order_number.split('-')[1]
         : payload.order_number;
       const i18nName =
@@ -64,7 +64,7 @@ export class InteliPostService {
               .replace(/_/g, '-')
           : payload.history.shipment_order_volume_state;
 
-      const exportingOrder = JSON.stringify({
+      const exportingOrder = {
         storeId: orderMerged.storeId,
         storeCode: orderMerged.storeCode,
         externalOrderId: order.orderSale,
@@ -81,7 +81,7 @@ export class InteliPostService {
         i18nName: i18nName === 'cancelled' ? 'canceled' : i18nName,
         status: status === 'cancelled' ? 'canceled' : status,
         invoiceNumber: payload.invoice.invoice_number,
-      });
+      };
 
       await this.amqpConnection.publish(exchange, routeKey, exportingOrder);
       // tasks.send(exchange, routeKey, exportingOrder);
