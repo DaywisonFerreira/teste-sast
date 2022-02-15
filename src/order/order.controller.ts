@@ -126,7 +126,7 @@ export class OrderController {
       key: uuidV4(),
       value: JSON.stringify({
         data: {
-          filter,
+          ...filter,
         },
         user: {
           id: userId,

@@ -70,13 +70,13 @@ export class ConsumerOrderController {
       messageKafka.offset,
     );
     try {
-      const dataToFormat = await this.orderService.exportData(data.filter, {
+      const dataToFormat = await this.orderService.exportData(data, {
         lean: true,
       });
 
       const dataFormatted = CsvMapper.mapOrderToCsv(dataToFormat);
 
-      file = this.createCsvLocally(dataFormatted, data.filter);
+      file = this.createCsvLocally(dataFormatted, data);
       const urlFile = await this.uploadFile(file);
 
       await this.kafkaProducer.send(
