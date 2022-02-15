@@ -15,9 +15,9 @@ export class ConfigMapper {
     const carrier = await this.carrierService.findByDocument(
       data.carrier.document,
     );
-    const shipmentOrderVolumeArray = data.packages.map(item => {
+    const shipmentOrderVolumeArray = data.packages.map((item, index) => {
       return {
-        shipment_order_volume_number: 16553603,
+        shipment_order_volume_number: 16553603 + index,
         name: 'CAIXA',
         weight: item.netWeight,
         volume_type_code: 'box',

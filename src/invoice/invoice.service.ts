@@ -120,6 +120,7 @@ export class InvoiceService {
             const pathFolder = path
               .join(__dirname, '../tmp')
               .replace('dist', 'src');
+
             if (!fs.existsSync(pathFolder)) {
               fs.mkdirSync(pathFolder);
             }

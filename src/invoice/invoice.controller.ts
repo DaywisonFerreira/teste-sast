@@ -30,7 +30,7 @@ export class InvoiceController {
       this.logger.log(
         `Payload was received from the ${Env.KAFKA_TOPIC_INVOICE_CREATED} topic`,
       );
-      const data = this.parseValueFromQueue(value);
+      const { data } = this.parseValueFromQueue(value);
       if (data.notfisFile) {
         await this.invoiceService.sendFtp(data, this.logger);
       }
