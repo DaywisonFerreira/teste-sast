@@ -103,25 +103,33 @@ export class OrderController {
   async exportOrders(
     @Query() exportOrdersDto: ExportOrdersDto,
     @Request() request: RequestDto,
+    @Headers('x-correlation-id') xCorrelationId: string,
+    @Headers('x-tenant-id') xTenantId: string,
   ) {
-    const { userId } = request;
-    const { orderCreatedAtFrom, orderCreatedAtTo, storeId } = exportOrdersDto;
+    const { userId, userName, email } = request;
+    const { orderCreatedAtFrom, orderCreatedAtTo } = exportOrdersDto;
 
     const filter = {
       orderCreatedAtFrom,
       orderCreatedAtTo,
-      storeId,
+      storeId: xTenantId
     };
 
     await this.kafkaProducer.send(Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT, {
       headers: {
-        'X-Correlation-Id': uuidV4(),
+        'X-Correlation-Id': xCorrelationId || uuidV4(),
         'X-Version': '1.0',
       },
       key: uuidV4(),
       value: JSON.stringify({
-        filter,
-        userId,
+        data: {
+          filter
+        },
+        user: {
+          id: userId,
+          name: userName,
+          email
+        }
       }),
     });
   }
