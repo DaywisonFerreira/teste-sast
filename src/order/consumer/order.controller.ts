@@ -61,7 +61,8 @@ export class ConsumerOrderController {
   @SubscribeTopic(Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT)
   async consumerExportOrders(messageKafka: KafkaResponse<string>) {
     let file;
-    const { filter, userId } = JSON.parse(messageKafka.value);
+    const { headers } = messageKafka;
+    const { data, user } = JSON.parse(messageKafka.value);
 
     await this.removeFromQueue(
       Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT,
@@ -69,26 +70,28 @@ export class ConsumerOrderController {
       messageKafka.offset,
     );
     try {
-      const dataToFormat = await this.orderService.exportData(filter, {
+      const dataToFormat = await this.orderService.exportData(data.filter, {
         lean: true,
       });
 
       const dataFormatted = CsvMapper.mapOrderToCsv(dataToFormat);
 
-      file = this.createCsvLocally(dataFormatted, filter);
+      file = this.createCsvLocally(dataFormatted, data.filter);
       const urlFile = await this.uploadFile(file);
 
       await this.kafkaProducer.send(
         Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT_NOTIFY,
         {
           headers: {
-            'X-Correlation-Id': uuidV4(),
+            'X-Correlation-Id': headers['X-Correlation-Id'] || uuidV4(),
             'X-Version': '1.0',
           },
           key: uuidV4(),
           value: JSON.stringify({
-            urlFile,
-            userId,
+            data: {
+              urlFile,
+            },
+            user,
           }),
         },
       );
