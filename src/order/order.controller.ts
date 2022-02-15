@@ -112,7 +112,7 @@ export class OrderController {
     const filter = {
       orderCreatedAtFrom,
       orderCreatedAtTo,
-      storeId: xTenantId
+      storeId: xTenantId,
     };
 
     await this.kafkaProducer.send(Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT, {
@@ -123,13 +123,13 @@ export class OrderController {
       key: uuidV4(),
       value: JSON.stringify({
         data: {
-          filter
+          filter,
         },
         user: {
           id: userId,
           name: userName,
-          email
-        }
+          email,
+        },
       }),
     });
   }
