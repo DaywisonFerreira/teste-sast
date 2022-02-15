@@ -10,6 +10,7 @@ import {
   Param,
   Post,
   Query,
+  Body,
   Request,
   UseGuards,
   ValidationPipe,
@@ -105,7 +106,7 @@ export class OrderController {
   @Post('/export')
   @UseGuards(JWTGuard)
   async exportOrders(
-    @Query() exportOrdersDto: ExportOrdersDto,
+    @Body() exportOrdersDto: ExportOrdersDto,
     @Request() request: RequestDto,
     @Headers() headers: HeadersExportOrdersDto,
   ) {
