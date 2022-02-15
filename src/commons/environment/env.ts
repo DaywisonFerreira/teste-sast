@@ -98,4 +98,13 @@ export abstract class Env {
   public static readonly CONTENT_API_URI: string = process.env.CONTENT_API_URI;
 
   public static readonly RABBITMQ_URI: string = process.env.RABBITMQ_URI;
+
+  public static readonly INTELIPOST_SHIPMENT_ORDER_ENDPOINT: string =
+    process.env.INTELIPOST_SHIPMENT_ORDER_ENDPOINT;
+
+  public static readonly INTELIPOST_SHIPMENT_ORDER_APIKEY: string =
+    process.env.INTELIPOST_SHIPMENT_ORDER_APIKEY;
+
+  public static readonly INTELIPOST_SHIPMENT_ORDER_PLATFORM: string =
+    process.env.INTELIPOST_SHIPMENT_ORDER_PLATFORM;
 }
