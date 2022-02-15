@@ -1,3 +1,4 @@
+/* eslint-disable import/named */
 import { LogProvider } from '@infralabs/infra-logger';
 import { KafkaService } from '@infralabs/infra-nestjs-kafka';
 import { v4 as uuidV4 } from 'uuid';
@@ -20,7 +21,10 @@ import { JWTGuard } from 'src/commons/guards/jwt.guard';
 import { FilterPaginateOrderDto } from './dto/filter-paginate-order.dto';
 import { PaginateOrderDto } from './dto/paginate-order.dto';
 import { OrderService } from './order.service';
-import { ExportOrdersDto } from './dto/export-order.dto';
+import {
+  ExportOrdersDto,
+  HeadersExportOrdersDto,
+} from './dto/export-order.dto';
 import { GetOrderDto } from './dto/get-order.dto';
 
 @Controller('orders')
@@ -103,25 +107,32 @@ export class OrderController {
   async exportOrders(
     @Query() exportOrdersDto: ExportOrdersDto,
     @Request() request: RequestDto,
+    @Headers() headers: HeadersExportOrdersDto,
   ) {
-    const { userId } = request;
-    const { orderCreatedAtFrom, orderCreatedAtTo, storeId } = exportOrdersDto;
+    const { userId, userName, email } = request;
+    const { orderCreatedAtFrom, orderCreatedAtTo } = exportOrdersDto;
 
     const filter = {
       orderCreatedAtFrom,
       orderCreatedAtTo,
-      storeId,
+      storeId: headers['x-tenant-id'],
     };
 
     await this.kafkaProducer.send(Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT, {
       headers: {
-        'X-Correlation-Id': uuidV4(),
+        'X-Correlation-Id': headers['x-correlation-id'] || uuidV4(),
         'X-Version': '1.0',
       },
       key: uuidV4(),
       value: JSON.stringify({
-        filter,
-        userId,
+        data: {
+          ...filter,
+        },
+        user: {
+          id: userId,
+          name: userName,
+          email,
+        },
       }),
     });
   }

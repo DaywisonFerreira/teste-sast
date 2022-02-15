@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ExportOrdersDto {
   @ApiProperty({
@@ -16,12 +16,19 @@ export class ExportOrdersDto {
     required: true,
   })
   orderCreatedAtTo: string;
+}
 
+export class HeadersExportOrdersDto {
   @ApiProperty({
-    description: 'Store id',
+    description: 'Tenant Id',
     type: String,
-    example: '6126e04cc6151e00306b9820',
     required: true,
   })
-  storeId: string;
+  'x-tenant-id': string;
+
+  @ApiPropertyOptional({
+    description: 'Correlation Id',
+    type: String,
+  })
+  'x-correlation-id': string;
 }
