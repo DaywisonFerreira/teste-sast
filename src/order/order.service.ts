@@ -27,7 +27,6 @@ export class OrderService {
     orderDirection,
     search,
     storeId,
-    deliveryCompany,
     orderCreatedAtFrom,
     orderCreatedAtTo,
     orderUpdatedAtFrom,
@@ -55,23 +54,14 @@ export class OrderService {
       };
     }
 
-    if (deliveryCompany) {
-      filter.logisticInfo = {
-        $elemMatch: {
-          deliveryCompany: {
-            $regex: `.${deliveryCompany}.*`,
-            $options: 'i',
-          },
-        },
-      };
-    }
-
     if (search) {
       filter.$or = [
         { order: { $regex: `${search}.*`, $options: 'i' } },
         { orderSale: { $regex: `${search}.*`, $options: 'i' } },
         { partnerOrder: { $regex: `${search}.*`, $options: 'i' } },
         { receiverName: { $regex: `${search}.*`, $options: 'i' } },
+        { 'billingData.customerDocument': { $regex: `${search}.*`, $options: 'i' } },
+        { 'logisticInfo.deliveryCompany': { $regex: `${search}.*`, $options: 'i' } }
       ];
     }
 
