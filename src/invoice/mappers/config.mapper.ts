@@ -11,7 +11,9 @@ export class ConfigMapper {
   ) {}
 
   async mapInvoiceToIntelipost(data: CreateInvoiceDto) {
-    const location = await this.accountService.findOneLocation(data.accountId);
+    const location = await this.accountService.findOneLocationByDocument(
+      data.emitter.document,
+    );
     const carrier = await this.carrierService.findByDocument(
       data.carrier.document,
     );

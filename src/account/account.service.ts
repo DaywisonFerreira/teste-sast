@@ -27,8 +27,13 @@ export class AccountService {
     try {
       const mapData = {
         ...accountData,
-        document: accountData.fiscalCode,
-        zipCode: accountData.address.zipCode,
+        document: accountData.fiscalCode
+          .replace(/-/g, '')
+          .replace(/\./g, '')
+          .replace(/\//g, ''),
+        zipCode: accountData.address.zipCode
+          .replace(/-/g, '')
+          .replace(/\./g, ''),
       };
 
       const alreadyExist = await this.accountModel
@@ -62,8 +67,13 @@ export class AccountService {
     try {
       const mapData = {
         ...accountData,
-        document: accountData.fiscalCode,
-        zipCode: accountData.address.zipCode,
+        document: accountData.fiscalCode
+          .replace(/-/g, '')
+          .replace(/\./g, '')
+          .replace(/\//g, ''),
+        zipCode: accountData.address.zipCode
+          .replace(/-/g, '')
+          .replace(/\./g, ''),
       };
 
       return await this.accountModel
@@ -201,6 +211,30 @@ export class AccountService {
     const account = await this.accountModel
       .findOne(
         { id, accountType: AccountTypeEnum.location },
+        {
+          _id: 0,
+          __v: 0,
+        },
+      )
+      .lean();
+
+    if (!account) {
+      throw new HttpException('Location not found.', HttpStatus.NOT_FOUND);
+    }
+
+    return account;
+  }
+
+  async findOneLocationByDocument(document: string) {
+    const account = await this.accountModel
+      .findOne(
+        {
+          document: document
+            .replace(/-/g, '')
+            .replace(/\./g, '')
+            .replace(/\//g, ''),
+          accountType: AccountTypeEnum.location,
+        },
         {
           _id: 0,
           __v: 0,
