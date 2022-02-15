@@ -7,6 +7,7 @@ import { Inject, Controller } from '@nestjs/common';
 import { LogProvider } from '@infralabs/infra-logger';
 
 import { NestjsEventEmitter } from '../commons/providers/event/nestjs-event-emitter';
+import { ConfigMapper } from './mappers/config.mapper';
 import { Env } from '../commons/environment/env';
 
 import { InvoiceService } from './invoice.service';
@@ -16,6 +17,7 @@ export class InvoiceController {
   constructor(
     private readonly eventEmitter: NestjsEventEmitter,
     private readonly invoiceService: InvoiceService,
+    private readonly configMapper: ConfigMapper,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     @Inject('LogProvider') private logger: LogProvider,
   ) {
@@ -32,7 +34,10 @@ export class InvoiceController {
       if (data.notfisFile) {
         await this.invoiceService.sendFtp(data, this.logger);
       }
-      this.eventEmitter.emit('ftp.sent', data);
+      const intelipostData = await this.configMapper.mapInvoiceToIntelipost(
+        data,
+      );
+      this.eventEmitter.emit('ftp.sent', intelipostData);
     } catch (error) {
       this.logger.error(error);
     } finally {

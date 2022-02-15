@@ -5,6 +5,7 @@ import { CarrierEntity } from 'src/carrier/schemas/carrier.schema';
 import { NestjsEventEmitter } from 'src/commons/providers/event/nestjs-event-emitter';
 import { InvoiceController } from '../invoice.controller';
 import { InvoiceService } from '../invoice.service';
+import { ConfigMapper } from '../mappers/config.mapper';
 
 describe('InvoiceController', () => {
   let controller: InvoiceController;
@@ -28,6 +29,7 @@ describe('InvoiceController', () => {
           useValue: {},
         },
         { provide: 'KafkaService', useValue: {} },
+        { provide: ConfigMapper, useValue: {} },
       ],
     }).compile();
 
