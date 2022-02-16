@@ -18,7 +18,14 @@ export class InteliPostService {
   ) {}
 
   async inteliPost(payload: CreateIntelipost, logger: LogProvider) {
-    const order = {
+    const status =
+      typeof payload.history.shipment_order_volume_state === 'string'
+        ? payload.history.shipment_order_volume_state
+            .toLowerCase()
+            .replace(/_/g, '-')
+        : payload.history.shipment_order_volume_state;
+
+    const order: any = {
       orderSale: payload.sales_order_number,
       partnerOrder: payload.order_number,
       dispatchDate: payload.history.created_iso,
@@ -32,10 +39,14 @@ export class InteliPostService {
         payload.history.shipment_volume_micro_state.default_name,
       lastOccurrenceMessage:
         payload.history.shipment_volume_micro_state.description,
-      partnerStatus: payload.history.shipment_order_volume_state_localized,
+      partnerStatus: status,
       partnerUpdatedAt: payload.history.event_date_iso,
       i18n: payload.history.shipment_volume_micro_state.i18n_name,
     };
+
+    if (status === 'delivered') {
+      order.status = status;
+    }
 
     await this.orderService.merge(
       { orderSale: payload.sales_order_number },
@@ -58,12 +69,6 @@ export class InteliPostService {
         typeof order.i18n === 'string'
           ? order.i18n.toLowerCase().replace(/_/g, '-')
           : order.i18n;
-      const status =
-        typeof payload.history.shipment_order_volume_state === 'string'
-          ? payload.history.shipment_order_volume_state
-              .toLowerCase()
-              .replace(/_/g, '-')
-          : payload.history.shipment_order_volume_state;
 
       const exportingOrder = {
         storeId: orderMerged.storeId,

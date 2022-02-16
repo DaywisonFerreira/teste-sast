@@ -32,9 +32,7 @@ export class ConsumerOrderController {
     exchange: Env.ORDER_NOTIFICATION_EXCHANGE,
     routingKey: '',
     queue: `delivery_hub_order_notification_${Env.NODE_ENV}_q`,
-    errorHandler: (channel: Channel, msg: ConsumeMessage, error: Error) => {
-      // eslint-disable-next-line no-console
-      console.log(error);
+    errorHandler: (channel: Channel, msg: ConsumeMessage) => {
       channel.reject(msg, false);
     },
   })

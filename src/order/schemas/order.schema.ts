@@ -133,6 +133,9 @@ export class OrderEntity extends Document {
   @Prop({ type: Number, required: false })
   quantityOccurrences: number;
 
+  @Prop({ type: String, required: false })
+  i18n: string;
+
   @Prop({ type: Array, default: [], required: false })
   history: Array<any>;
 }

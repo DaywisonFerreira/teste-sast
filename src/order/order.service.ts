@@ -31,28 +31,30 @@ export class OrderService {
     orderCreatedAtTo,
     orderUpdatedAtFrom,
     orderUpdatedAtTo,
-    status,
-    partnerStatus,
+    // status,
+    // partnerStatus,
   }): Promise<[LeanDocument<OrderEntity[]>, number]> {
-    const filter: IFilterObject = {};
+    const filter: IFilterObject = {
+      status: { $in: ['dispatched', 'delivered'] },
+    };
 
     if (storeId) {
       filter.storeId = new Types.ObjectId(storeId);
     }
 
-    if (status) {
-      filter.status = {
-        $regex: `.${status}.*`,
-        $options: 'i',
-      };
-    }
+    // if (status) {
+    //   filter.status = {
+    //     $regex: `${status}.*`,
+    //     $options: 'i',
+    //   };
+    // }
 
-    if (partnerStatus) {
-      filter.partnerStatus = {
-        $regex: `.${partnerStatus}.*`,
-        $options: 'i',
-      };
-    }
+    // if (partnerStatus) {
+    //   filter.partnerStatus = {
+    //     $regex: `${partnerStatus}.*`,
+    //     $options: 'i',
+    //   };
+    // }
 
     if (search) {
       filter.$or = [
