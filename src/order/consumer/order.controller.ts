@@ -39,7 +39,9 @@ export class ConsumerOrderController {
     },
   })
   public async orderNotificationHandler(order: IOrder) {
-    this.logger.log(`Order ${order.externalOrderId} was received in the integration queue`);
+    this.logger.log(
+      `Order ${order.externalOrderId} was received in the integration queue`,
+    );
     try {
       if (order.status === 'dispatched' || order.status === 'invoiced') {
         // if (order.status === 'dispatched' || order.status === 'invoiced' || order.status === 'ready-for-handling') {

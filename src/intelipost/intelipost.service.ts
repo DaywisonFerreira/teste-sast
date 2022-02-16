@@ -47,7 +47,11 @@ export class InteliPostService {
       orderSale: payload.sales_order_number,
     });
 
-    if (orderMerged.storeId && orderMerged.storeCode && orderMerged.internalOrderId) {
+    if (
+      orderMerged.storeId &&
+      orderMerged.storeCode &&
+      orderMerged.internalOrderId
+    ) {
       const exchange = 'order';
       const routeKey = 'orderTrackingUpdated';
       const i18nName =
