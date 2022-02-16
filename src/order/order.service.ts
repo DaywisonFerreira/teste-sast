@@ -215,8 +215,8 @@ export class OrderService {
   }
 
   private validateRangeOfDates(dateFrom: Date, dateTo: Date) {
-    if (differenceInDays(dateTo, dateFrom) > 31) {
-      throw new Error('Date difference greater than 1 month');
+    if (differenceInDays(dateTo, dateFrom) > 62) {
+      throw new Error('Date difference greater than 2 months');
     }
 
     if (isBefore(dateTo, dateFrom)) {
