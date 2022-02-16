@@ -56,8 +56,8 @@ export class OrderController {
       orderCreatedAtTo,
       orderUpdatedAtFrom,
       orderUpdatedAtTo,
-      status,
-      partnerStatus,
+      // status,
+      // partnerStatus,
     } = filterPaginateDto;
 
     const pageNumber = Number(page);
@@ -75,8 +75,8 @@ export class OrderController {
       orderCreatedAtTo,
       orderUpdatedAtFrom,
       orderUpdatedAtTo,
-      status,
-      partnerStatus,
+      // status,
+      // partnerStatus,
     });
 
     const result = resultQuery.map(order => ({

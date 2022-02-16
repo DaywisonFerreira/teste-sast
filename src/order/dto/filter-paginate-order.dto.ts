@@ -48,21 +48,21 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
   @IsOptional()
   orderUpdatedAtTo?: string | null;
 
-  @ApiProperty({
-    description: 'Status of order',
-    type: String,
-    example: 'delivered',
-    required: false,
-  })
-  @IsOptional()
-  status?: string | null;
+  // @ApiProperty({
+  //   description: 'Status of order',
+  //   type: String,
+  //   example: 'delivered',
+  //   required: false,
+  // })
+  // @IsOptional()
+  // status?: string | null;
 
-  @ApiProperty({
-    description: 'Status of order by partner',
-    type: String,
-    example: 'Entregue',
-    required: false,
-  })
-  @IsOptional()
-  partnerStatus?: string | null;
+  // @ApiProperty({
+  //   description: 'Status of order by partner',
+  //   type: String,
+  //   example: 'Entregue',
+  //   required: false,
+  // })
+  // @IsOptional()
+  // partnerStatus?: string | null;
 }
