@@ -1,4 +1,5 @@
 import { IOrder } from '../interfaces/order.interface';
+import { Types } from 'mongoose';
 
 // interface IReceiverPhones {
 //   phone: string;
@@ -63,9 +64,9 @@ export class OrderMapper {
     return {
       orderId,
       storeCode,
-      storeId,
+      storeId: new Types.ObjectId(storeId),
       sellerCode,
-      sellerId,
+      sellerId: new Types.ObjectId(sellerId),
       internalOrderId,
       receiverName: deliveryAddress.receiverName,
       receiverEmail: customer.email,

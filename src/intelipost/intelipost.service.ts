@@ -40,11 +40,11 @@ export class InteliPostService {
       lastOccurrenceMessage:
         payload.history.shipment_volume_micro_state.description,
       partnerStatus: status,
-      partnerUpdatedAt: payload.history.event_date_iso,
+      orderUpdatedAt: payload.history.event_date_iso,
       i18n: payload.history.shipment_volume_micro_state.i18n_name,
     };
 
-    if (status === 'delivered') {
+    if (status === 'delivered') { // Entregue // Avaria // Extravio // Roubo // Em devolução // Aguardando retirada na agência dos Correios
       order.status = status;
     }
 
