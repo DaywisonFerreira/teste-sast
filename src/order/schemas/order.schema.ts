@@ -19,7 +19,7 @@ export const PublicFieldsOrder = {
   'logisticInfo.shippingEstimateDate': 1,
 };
 
-@Schema({ collection: 'orders', timestamps: true, autoIndex: false })
+@Schema({ collection: 'orders', timestamps: true })
 export class OrderEntity extends Document {
   @Prop({ type: Types.ObjectId, required: false })
   orderId: Types.ObjectId;
