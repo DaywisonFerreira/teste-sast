@@ -1,5 +1,5 @@
-import { IOrder } from '../interfaces/order.interface';
 import { Types } from 'mongoose';
+import { IOrder } from '../interfaces/order.interface';
 
 // interface IReceiverPhones {
 //   phone: string;

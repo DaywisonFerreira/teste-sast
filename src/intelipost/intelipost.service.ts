@@ -44,7 +44,8 @@ export class InteliPostService {
       i18n: payload.history.shipment_volume_micro_state.i18n_name,
     };
 
-    if (status === 'delivered') { // Entregue // Avaria // Extravio // Roubo // Em devolução // Aguardando retirada na agência dos Correios
+    if (status === 'delivered') {
+      // Entregue // Avaria // Extravio // Roubo // Em devolução // Aguardando retirada na agência dos Correios
       order.status = status;
     }
 
