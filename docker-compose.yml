@@ -1,25 +1,16 @@
-version: '3.7'
+version: "3.7"
 
 services:
   ifc-freight-api-orders:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    environment:
-      - PROJECT_NAME
-      - NODE_ENV
-      - DEBUG_PORT
-      - SERVER_HTTP_PORT
-    volumes:
-      - ./:/app/
     ports:
-      - '${DEBUG_PORT}:${DEBUG_PORT}'
-      - '${SERVER_HTTP_PORT}:${SERVER_HTTP_PORT}'
-    command: npm run dev
+      - "${APPLICATION_PORT}:3000"
     networks:
-      - ihub-ecosystem-network
+      - cxaas-ecosystem-network
 
 networks:
-  ihub-ecosystem-network:
+  cxaas-ecosystem-network:
     external: true
-    name: ihub-ecosystem-network
+    name: cxaas-ecosystem-network

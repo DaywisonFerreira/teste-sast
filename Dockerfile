@@ -4,14 +4,16 @@ WORKDIR /app
 
 COPY package.json package-lock.json .npmrc ./
 
+RUN npm i -g @nestjs/cli
+
 RUN npm i --only=prod
 
 COPY . .
 
 RUN npm run build
 
-RUN npm uninstall typescript
+RUN npm uninstall typescript @nestjs/cli
 
 EXPOSE 3000
 
-CMD ["npm", "run", "serve"]
+CMD ["npm", "run", "start:prod"]

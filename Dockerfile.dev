@@ -2,12 +2,16 @@ FROM node:14.17.0-alpine
 
 WORKDIR /app
 
-COPY . .
+COPY package.json package-lock.json .npmrc ./
+
+RUN npm i -g @nestjs/cli
 
 RUN npm i
 
+COPY . .
+
 RUN npm run build
 
-EXPOSE 3000 3001
+EXPOSE 3000
 
-CMD ["pm2-runtime", "ecosystem.config.js"]
+CMD ["npm", "run", "start"]
