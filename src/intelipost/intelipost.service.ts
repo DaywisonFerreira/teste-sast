@@ -77,7 +77,7 @@ export class InteliPostService {
         externalOrderId: order.orderSale,
         internalOrderId: orderMerged.internalOrderId,
         shippingEstimateDate: order.estimateDeliveryDateDeliveryCompany,
-        eventDate: order.partnerUpdatedAt,
+        eventDate: order.orderUpdatedAt,
         partnerMessage: order.partnerMessage,
         numberVolumes: order.numberVolumes,
         microStatus: order.microStatus,

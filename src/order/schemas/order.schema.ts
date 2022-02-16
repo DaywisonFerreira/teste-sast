@@ -6,7 +6,6 @@ export const PublicFieldsOrder = {
   orderCreatedAt: 1,
   receiverName: 1,
   orderUpdatedAt: 1,
-  partnerUpdatedAt: 1,
   orderSale: 1,
   order: 1,
   partnerOrder: 1,
@@ -108,9 +107,6 @@ export class OrderEntity extends Document {
 
   @Prop({ type: String, required: false })
   partnerStatus: string;
-
-  @Prop({ type: String, required: false })
-  partnerUpdatedAt: string;
 
   @Prop({ type: String, required: false })
   originZipCode: string;
