@@ -43,7 +43,12 @@ export class ConsumerOrderController {
       `Order ${order.externalOrderId} was received in the integration queue`,
     );
     try {
-      if (order.status === 'dispatched' || order.status === 'invoiced') {
+      if (
+        (order.logisticInfo &&
+          order.logisticInfo[0].deliveryChannel === 'delivery') ||
+        order.status === 'dispatched' ||
+        order.status === 'invoiced'
+      ) {
         // if (order.status === 'dispatched' || order.status === 'invoiced' || order.status === 'ready-for-handling') {
         const orderToSave = OrderMapper.mapMessageToOrder(order);
         await this.orderService.merge(
