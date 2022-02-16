@@ -47,13 +47,9 @@ export class InteliPostService {
       orderSale: payload.sales_order_number,
     });
 
-    if (orderMerged.storeId && orderMerged.storeCode) {
+    if (orderMerged.storeId && orderMerged.storeCode && orderMerged.internalOrderId) {
       const exchange = 'order';
       const routeKey = 'orderTrackingUpdated';
-      const internalOrderId =
-        payload.order_number.split('-').length > 1
-          ? payload.order_number.split('-')[1]
-          : payload.order_number;
       const i18nName =
         typeof order.i18n === 'string'
           ? order.i18n.toLowerCase().replace(/_/g, '-')
@@ -69,7 +65,7 @@ export class InteliPostService {
         storeId: orderMerged.storeId,
         storeCode: orderMerged.storeCode,
         externalOrderId: order.orderSale,
-        internalOrderId: Number.parseInt(internalOrderId, 10),
+        internalOrderId: orderMerged.internalOrderId,
         shippingEstimateDate: order.estimateDeliveryDateDeliveryCompany,
         eventDate: order.partnerUpdatedAt,
         partnerMessage: order.partnerMessage,
@@ -85,14 +81,14 @@ export class InteliPostService {
       };
 
       await this.amqpConnection.publish(exchange, routeKey, exportingOrder);
-      // tasks.send(exchange, routeKey, exportingOrder);
-      logger.add('postIntelipost.sent', {
+
+      logger.log({
         message: `Message sent to exchange ${exchange} and routeKey ${routeKey}`,
-        payload: exportingOrder,
+        data: exportingOrder,
       });
     } else {
       logger.log(
-        `${order.orderSale} order not sent due to lack of storeId storeCode`,
+        `${order.orderSale} order not sent due to lack of storeId, storeCode or internalOrderId`,
       );
     }
   }

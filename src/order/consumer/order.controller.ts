@@ -5,7 +5,8 @@ import {
   KafkaService,
   SubscribeTopic,
 } from '@infralabs/infra-nestjs-kafka';
-import { Controller, Inject, Logger } from '@nestjs/common';
+import { Controller, Inject } from '@nestjs/common';
+import { LogProvider } from '@infralabs/infra-logger';
 import { lightFormat } from 'date-fns';
 import { utils, writeFile } from 'xlsx';
 import { existsSync, mkdirSync, promises } from 'fs';
@@ -19,12 +20,13 @@ import { OrderMapper } from '../mappers/orderMapper';
 
 @Controller()
 export class ConsumerOrderController {
-  private logger = new Logger(ConsumerOrderController.name);
-
   constructor(
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     private readonly orderService: OrderService,
-  ) {}
+    @Inject('LogProvider') private logger: LogProvider,
+  ) {
+    this.logger.context = ConsumerOrderController.name;
+  }
 
   @RabbitSubscribe({
     exchange: Env.ORDER_NOTIFICATION_EXCHANGE,
@@ -37,11 +39,7 @@ export class ConsumerOrderController {
     },
   })
   public async orderNotificationHandler(order: IOrder) {
-    // eslint-disable-next-line no-console
-    console.log(
-      'handleOrderNotification.message',
-      `Order ${order.externalOrderId} was received in the integration queue`,
-    );
+    this.logger.log(`Order ${order.externalOrderId} was received in the integration queue`);
     try {
       if (order.status === 'dispatched' || order.status === 'invoiced') {
         // if (order.status === 'dispatched' || order.status === 'invoiced' || order.status === 'ready-for-handling') {
@@ -53,8 +51,7 @@ export class ConsumerOrderController {
         );
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error(error.message, { payload: JSON.stringify(order) });
+      this.logger.error(error);
     }
   }
 

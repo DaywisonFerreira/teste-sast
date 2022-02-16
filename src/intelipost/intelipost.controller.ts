@@ -36,12 +36,10 @@ export class InteliPostController {
         `${Env.INTELIPOST_USERNAME}:${Env.INTELIPOST_PASSWORD}`,
       ).toString('base64');
 
-      this.logger.log(
-        JSON.stringify({
-          message: `Request received from Intelipost`,
-          data: JSON.stringify(createIntelipost),
-        }),
-      );
+      this.logger.log({
+        message: `Request received from Intelipost`,
+        data: createIntelipost,
+      });
 
       if (credentials !== token) {
         this.logger.error(new Error('Username or password invalid'));
