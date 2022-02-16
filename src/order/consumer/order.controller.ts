@@ -44,10 +44,9 @@ export class ConsumerOrderController {
     );
     try {
       if (
-        (order.logisticInfo &&
-          order.logisticInfo[0].deliveryChannel === 'delivery') ||
-        order.status === 'dispatched' ||
-        order.status === 'invoiced'
+        order.logisticInfo &&
+        order.logisticInfo[0].deliveryChannel === 'delivery' &&
+        (order.status === 'dispatched' || order.status === 'invoiced')
       ) {
         // if (order.status === 'dispatched' || order.status === 'invoiced' || order.status === 'ready-for-handling') {
         const orderToSave = OrderMapper.mapMessageToOrder(order);
