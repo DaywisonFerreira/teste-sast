@@ -6,7 +6,6 @@ export const PublicFieldsOrder = {
   orderCreatedAt: 1,
   receiverName: 1,
   orderUpdatedAt: 1,
-  partnerUpdatedAt: 1,
   orderSale: 1,
   order: 1,
   partnerOrder: 1,
@@ -28,8 +27,8 @@ export class OrderEntity extends Document {
   @Prop({ type: String, required: false })
   storeCode: string;
 
-  @Prop({ type: String, required: false })
-  storeId: string;
+  @Prop({ type: Types.ObjectId, required: false })
+  storeId: Types.ObjectId;
 
   @Prop({ type: String, required: false })
   sellerCode: string;
@@ -110,9 +109,6 @@ export class OrderEntity extends Document {
   partnerStatus: string;
 
   @Prop({ type: String, required: false })
-  partnerUpdatedAt: string;
-
-  @Prop({ type: String, required: false })
   originZipCode: string;
 
   @Prop({ type: String, required: false })
@@ -149,20 +145,42 @@ OrderSchema.index({ _id: 1 }, { unique: true })
     { unique: true },
   )
   .index(
-    { storeId: 1, order: 1, orderSale: 1, partnerOrder: 1, receiverName: 1 },
-    { unique: false },
-  )
-  .index(
-    { storeId: 1, order: 1, orderSale: 1, partnerOrder: 1, orderUpdatedAt: 1 },
-    { unique: false },
-  )
-  .index(
-    { storeId: 1, order: 1, orderSale: 1, partnerOrder: 1, orderCreatedAt: 1 },
+    {
+      storeId: 1,
+      status: 1,
+      order: 1,
+      orderSale: 1,
+      partnerOrder: 1,
+      receiverName: 1,
+    },
     { unique: false },
   )
   .index(
     {
       storeId: 1,
+      status: 1,
+      order: 1,
+      orderSale: 1,
+      partnerOrder: 1,
+      orderUpdatedAt: 1,
+    },
+    { unique: false },
+  )
+  .index(
+    {
+      storeId: 1,
+      status: 1,
+      order: 1,
+      orderSale: 1,
+      partnerOrder: 1,
+      orderCreatedAt: 1,
+    },
+    { unique: false },
+  )
+  .index(
+    {
+      storeId: 1,
+      status: 1,
       order: 1,
       orderSale: 1,
       partnerOrder: 1,
@@ -173,6 +191,7 @@ OrderSchema.index({ _id: 1 }, { unique: true })
   .index(
     {
       storeId: 1,
+      status: 1,
       order: 1,
       orderSale: 1,
       partnerOrder: 1,
@@ -184,6 +203,7 @@ OrderSchema.index({ _id: 1 }, { unique: true })
   .index(
     {
       storeId: 1,
+      status: 1,
       order: 1,
       orderSale: 1,
       partnerOrder: 1,
@@ -196,6 +216,7 @@ OrderSchema.index({ _id: 1 }, { unique: true })
   .index(
     {
       storeId: 1,
+      status: 1,
       order: 1,
       orderSale: 1,
       partnerOrder: 1,
@@ -206,20 +227,38 @@ OrderSchema.index({ _id: 1 }, { unique: true })
     },
     { unique: false },
   )
-  .index({ storeId: 1, receiverName: 1 }, { unique: false })
-  .index({ storeId: 1, receiverName: 1, orderUpdatedAt: 1 }, { unique: false })
-  .index({ storeId: 1, receiverName: 1, orderCreatedAt: 1 }, { unique: false })
+  .index({ storeId: 1, status: 1, receiverName: 1 }, { unique: false })
   .index(
-    { storeId: 1, receiverName: 1, 'logisticInfo.deliveryCompany': 1 },
+    { storeId: 1, status: 1, receiverName: 1, orderUpdatedAt: 1 },
     { unique: false },
   )
   .index(
-    { storeId: 1, receiverName: 1, orderUpdatedAt: 1, orderCreatedAt: 1 },
+    { storeId: 1, status: 1, receiverName: 1, orderCreatedAt: 1 },
     { unique: false },
   )
   .index(
     {
       storeId: 1,
+      status: 1,
+      receiverName: 1,
+      'logisticInfo.deliveryCompany': 1,
+    },
+    { unique: false },
+  )
+  .index(
+    {
+      storeId: 1,
+      status: 1,
+      receiverName: 1,
+      orderUpdatedAt: 1,
+      orderCreatedAt: 1,
+    },
+    { unique: false },
+  )
+  .index(
+    {
+      storeId: 1,
+      status: 1,
       receiverName: 1,
       orderUpdatedAt: 1,
       orderCreatedAt: 1,
@@ -227,27 +266,42 @@ OrderSchema.index({ _id: 1 }, { unique: true })
     },
     { unique: false },
   )
-  .index({ storeId: 1, orderUpdatedAt: 1 }, { unique: false })
+  .index({ storeId: 1, status: 1, orderUpdatedAt: 1 }, { unique: false })
   .index(
-    { storeId: 1, orderUpdatedAt: 1, orderCreatedAt: 1 },
-    { unique: false },
-  )
-  .index(
-    { storeId: 1, orderUpdatedAt: 1, 'logisticInfo.deliveryCompany': 1 },
+    { storeId: 1, status: 1, orderUpdatedAt: 1, orderCreatedAt: 1 },
     { unique: false },
   )
   .index(
     {
       storeId: 1,
+      status: 1,
+      orderUpdatedAt: 1,
+      'logisticInfo.deliveryCompany': 1,
+    },
+    { unique: false },
+  )
+  .index(
+    {
+      storeId: 1,
+      status: 1,
       orderUpdatedAt: 1,
       orderCreatedAt: 1,
       'logisticInfo.deliveryCompany': 1,
     },
     { unique: false },
   )
-  .index({ storeId: 1, orderCreatedAt: 1 }, { unique: false })
+  .index({ storeId: 1, status: 1, orderCreatedAt: 1 }, { unique: false })
   .index(
-    { storeId: 1, orderCreatedAt: 1, 'logisticInfo.deliveryCompany': 1 },
+    {
+      storeId: 1,
+      status: 1,
+      orderCreatedAt: 1,
+      'logisticInfo.deliveryCompany': 1,
+    },
     { unique: false },
   )
-  .index({ storeId: 1, 'logisticInfo.deliveryCompany': 1 }, { unique: false });
+  .index(
+    { storeId: 1, status: 1, 'logisticInfo.deliveryCompany': 1 },
+    { unique: false },
+  )
+  .index({ storeId: 1, status: 1 }, { unique: false });

@@ -34,7 +34,6 @@ export class CsvMapper {
         receiverPhones,
         logisticInfo,
         billingData,
-        partnerUpdatedAt,
         partnerMessage,
         numberVolumes,
         originZipCode,
@@ -75,7 +74,6 @@ export class CsvMapper {
         'Status Transportador': status,
         'Data do último status': orderUpdatedAt,
         'Data Entrega': deliveryDate,
-        'Atualizado em': partnerUpdatedAt,
         'Previsão Entrega Cliente':
           logisticInfo && logisticInfo[0].shippingEstimateDate,
         'Previsão Entrega Transp.': estimateDeliveryDateDeliveryCompany,

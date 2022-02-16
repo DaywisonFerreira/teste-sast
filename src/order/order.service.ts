@@ -35,7 +35,7 @@ export class OrderService {
     // partnerStatus,
   }): Promise<[LeanDocument<OrderEntity[]>, number]> {
     const filter: IFilterObject = {
-      status: { $in: ['dispatched', 'delivered'] },
+      status: { $in: ['dispatched', 'delivered', 'invoiced'] }, // Entregue // Avaria // Extravio // Roubo // Em devolução // Aguardando retirada na agência dos Correios
     };
 
     if (storeId) {
@@ -140,6 +140,7 @@ export class OrderService {
   ) {
     const conditions: any = {
       storeId,
+      status: { $in: ['dispatched', 'delivered', 'invoiced'] }, // Entregue // Avaria // Extravio // Roubo // Em devolução // Aguardando retirada na agência dos Correios
     };
 
     if (orderCreatedAtFrom && orderCreatedAtTo) {
@@ -178,7 +179,7 @@ export class OrderService {
                   lastOccurrenceMicro: data.lastOccurrenceMicro,
                   lastOccurrenceMessage: data.lastOccurrenceMessage,
                   partnerStatus: data.partnerStatus,
-                  partnerUpdatedAt: data.partnerUpdatedAt,
+                  orderUpdatedAt: data.orderUpdatedAt,
                   i18n: data.i18n,
                 },
               ],
@@ -204,7 +205,7 @@ export class OrderService {
                     lastOccurrenceMicro: data.lastOccurrenceMicro,
                     lastOccurrenceMessage: data.lastOccurrenceMessage,
                     partnerStatus: data.partnerStatus,
-                    partnerUpdatedAt: data.partnerUpdatedAt,
+                    orderUpdatedAt: data.orderUpdatedAt,
                     i18n: data.i18n,
                   },
                 },
