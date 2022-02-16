@@ -2,7 +2,7 @@ import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { INotifiedUsers } from '../interfaces/notified-users.interface';
 
-@Schema({ collection: 'notifications', timestamps: true, autoIndex: false })
+@Schema({ collection: 'notifications', timestamps: true })
 export class NotificationEntity extends Document {
   @Prop({ type: String, required: true })
   type: string;
