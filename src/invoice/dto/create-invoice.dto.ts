@@ -129,6 +129,10 @@ export class CreateInvoiceDto {
   isOut: boolean;
 
   @IsNotEmpty()
+  @IsString()
+  estimatedDeliveryDate: string;
+
+  @IsNotEmpty()
   @IsObject()
   order: {
     internalOrderId: string;
