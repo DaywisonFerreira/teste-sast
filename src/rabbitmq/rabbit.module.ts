@@ -14,11 +14,12 @@ import { OrderEntity, OrderSchema } from '../order/schemas/order.schema';
     RabbitMQModule.forRoot(RabbitMQModule, {
       exchanges: [
         {
-          name: Env.ORDER_NOTIFICATION_EXCHANGE,
+          name: Env.RABBITMQ_ORDER_NOTIFICATION_EXCHANGE,
           type: 'fanout',
         },
       ],
       uri: Env.RABBITMQ_URI,
+      prefetchCount: Env.RABBITMQ_PREFETCH,
       connectionInitOptions: { wait: true },
     }),
     MongooseModule.forFeature([

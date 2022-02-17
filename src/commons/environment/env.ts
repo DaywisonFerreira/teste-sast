@@ -92,12 +92,15 @@ export abstract class Env {
   public static readonly INTELIPOST_PASSWORD: string =
     process.env.INTELIPOST_PASSWORD;
 
-  public static readonly ORDER_NOTIFICATION_EXCHANGE: string =
-    process.env.ORDER_NOTIFICATION_EXCHANGE;
-
   public static readonly CONTENT_API_URI: string = process.env.CONTENT_API_URI;
 
   public static readonly RABBITMQ_URI: string = process.env.RABBITMQ_URI;
+
+  public static readonly RABBITMQ_PREFETCH: number =
+    Number.parseInt(process.env.RABBITMQ_PREFETCH, 10);
+
+  public static readonly RABBITMQ_ORDER_NOTIFICATION_EXCHANGE: string =
+    process.env.RABBITMQ_ORDER_NOTIFICATION_EXCHANGE;
 
   public static readonly INTELIPOST_SHIPMENT_ORDER_ENDPOINT: string =
     process.env.INTELIPOST_SHIPMENT_ORDER_ENDPOINT;

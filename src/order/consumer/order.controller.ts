@@ -29,7 +29,7 @@ export class ConsumerOrderController {
   }
 
   @RabbitSubscribe({
-    exchange: Env.ORDER_NOTIFICATION_EXCHANGE,
+    exchange: Env.RABBITMQ_ORDER_NOTIFICATION_EXCHANGE,
     routingKey: '',
     queue: `delivery_hub_order_notification_${Env.NODE_ENV}_q`,
     errorHandler: (channel: Channel, msg: ConsumeMessage) => {
