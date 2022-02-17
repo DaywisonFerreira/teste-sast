@@ -67,7 +67,7 @@ export class ConfigMapper {
       origin_warehouse_code: location.externalWarehouseCode,
       shipment_order_volume_array: shipmentOrderVolumeArray,
       order_number: data.order.internalOrderId,
-      estimated_delivery_date: '',
+      estimated_delivery_date: data.estimatedDeliveryDate,
       sales_channel: location.name,
       sales_order_number: data.order.externalOrderId,
       parent_shipment_order_number: '',

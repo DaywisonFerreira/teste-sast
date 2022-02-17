@@ -45,11 +45,12 @@ export class ConsumerOrderController {
         order.logisticInfo &&
         order.logisticInfo[0].deliveryChannel === 'delivery' &&
         (order.status === 'dispatched' || order.status === 'invoiced')
+        // (order.status === 'dispatched' || order.status === 'invoiced' || order.status === 'ready-for-handling')
       ) {
-        // if (order.status === 'dispatched' || order.status === 'invoiced' || order.status === 'ready-for-handling') {
         const orderToSave = OrderMapper.mapMessageToOrder(order);
         await this.orderService.merge(
           { orderSale: orderToSave.orderSale },
+          // { orderSale: orderToSave.orderSale, partnerOrder: orderToSave.partnerOrder },
           orderToSave,
           'ihub',
         );
