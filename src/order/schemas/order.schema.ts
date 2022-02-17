@@ -60,7 +60,7 @@ export class OrderEntity extends Document {
   @Prop({ type: String, required: false })
   deliveryZipCode: string;
 
-  @Prop({ type: String, required: true, unique: true, index: true })
+  @Prop({ type: String, required: true, index: true })
   orderSale: string;
 
   @Prop({ type: String, required: false, index: true })
@@ -139,10 +139,11 @@ export class OrderEntity extends Document {
 export type OrderDocument = OrderEntity & Document;
 export const OrderSchema = SchemaFactory.createForClass(OrderEntity);
 
-OrderSchema.index(
-  { storeId: 1, order: 1, orderSale: 1, partnerOrder: 1 },
-  { unique: true },
-)
+OrderSchema.index({ orderSale: 1, partnerOrder: 1 }, { unique: true })
+  .index(
+    { storeId: 1, status: 1, order: 1, orderSale: 1, partnerOrder: 1 },
+    { unique: false },
+  )
   .index(
     {
       storeId: 1,

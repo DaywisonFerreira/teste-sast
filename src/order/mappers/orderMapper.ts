@@ -77,6 +77,7 @@ export class OrderMapper {
       deliveryZipCode: deliveryAddress.postalCode,
       orderSale: externalOrderId,
       order: erpInfo.externalOrderId,
+      partnerOrder: erpInfo.externalOrderId,
       billingData: Array.isArray(packageAttachment.packages)
         ? packageAttachment.packages.map(p => ({
             ...p,
