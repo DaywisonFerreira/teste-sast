@@ -6,6 +6,7 @@ import { Logger } from '@infralabs/infra-logger';
 import { AccountService } from './account.service';
 import { AccountEntity, AccountSchema } from './schemas/account.schema';
 import { AccountController } from './account.controller';
+import { ConsumerAccountController } from './consumer/account.controller';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { AccountController } from './account.controller';
       },
     ]),
   ],
-  controllers: [AccountController],
+  controllers: [AccountController, ConsumerAccountController],
   providers: [
     {
       provide: 'LogProvider',

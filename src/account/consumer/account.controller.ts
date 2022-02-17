@@ -8,8 +8,8 @@ import { Env } from 'src/commons/environment/env';
 import { AccountService } from '../account.service';
 
 @Controller()
-export class AccountController {
-  private logger = new Logger(AccountController.name);
+export class ConsumerAccountController {
+  private logger = new Logger(ConsumerAccountController.name);
 
   constructor(
     private readonly accountService: AccountService,
