@@ -139,11 +139,10 @@ export class OrderEntity extends Document {
 export type OrderDocument = OrderEntity & Document;
 export const OrderSchema = SchemaFactory.createForClass(OrderEntity);
 
-OrderSchema.index({ _id: 1 }, { unique: true })
-  .index(
-    { storeId: 1, order: 1, orderSale: 1, partnerOrder: 1 },
-    { unique: true },
-  )
+OrderSchema.index(
+  { storeId: 1, order: 1, orderSale: 1, partnerOrder: 1 },
+  { unique: true },
+)
   .index(
     {
       storeId: 1,
