@@ -50,7 +50,8 @@ export class InteliPostService {
     }
 
     await this.orderService.merge(
-      { orderSale: payload.sales_order_number },
+      { orderSale: order.orderSale },
+      // { orderSale: order.orderSale, partnerOrder: order.partnerOrder },
       order,
       'intelipost',
     );
