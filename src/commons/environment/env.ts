@@ -96,8 +96,10 @@ export abstract class Env {
 
   public static readonly RABBITMQ_URI: string = process.env.RABBITMQ_URI;
 
-  public static readonly RABBITMQ_PREFETCH: number =
-    Number.parseInt(process.env.RABBITMQ_PREFETCH, 10);
+  public static readonly RABBITMQ_PREFETCH: number = Number.parseInt(
+    process.env.RABBITMQ_PREFETCH,
+    10,
+  );
 
   public static readonly RABBITMQ_ORDER_NOTIFICATION_EXCHANGE: string =
     process.env.RABBITMQ_ORDER_NOTIFICATION_EXCHANGE;
