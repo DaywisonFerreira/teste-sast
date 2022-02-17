@@ -45,7 +45,7 @@ export class ConfigMapper {
     const dataFormatted = {
       delivery_method_id: carrier.externalDeliveryMethodId,
       customer_shipping_costs: data.total.freightValue,
-      shipped_date: new Date().toISOString(),,
+      shipped_date: '',
       end_customer: {
         first_name: data.receiver.name.split(' ')[0],
         last_name: data.receiver.name.split(' ')[1] ?? '',
@@ -67,7 +67,7 @@ export class ConfigMapper {
       origin_warehouse_code: location.externalWarehouseCode,
       shipment_order_volume_array: shipmentOrderVolumeArray,
       order_number: data.order.internalOrderId,
-      estimated_delivery_date: data.estimatedDeliveryDate,,
+      estimated_delivery_date: data.estimatedDeliveryDate,
       sales_channel: location.name,
       sales_order_number: data.order.externalOrderId,
       parent_shipment_order_number: '',
