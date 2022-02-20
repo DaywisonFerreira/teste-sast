@@ -8,19 +8,21 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { LogProvider } from '@infralabs/infra-logger';
+
 import { ApiTags } from '@nestjs/swagger';
 import { OnEvent } from '@nestjs/event-emitter';
 import axios, { AxiosRequestConfig } from 'axios';
-import { InteliPostService } from './intelipost.service';
+import { KafkaService } from '@infralabs/infra-nestjs-kafka';
 import { CreateIntelipost } from './dto/create-intelipost.dto';
 import { Env } from '../commons/environment/env';
+import { MessageIntelipostCreated } from './factories';
 
 @Controller('intelipost')
 @ApiTags('Intelipost')
 export class InteliPostController {
   constructor(
-    private readonly storesService: InteliPostService,
     @Inject('LogProvider') private logger: LogProvider,
+    @Inject('KafkaService') private kafkaProducer: KafkaService,
   ) {
     this.logger.context = InteliPostController.name;
   }
@@ -50,7 +52,12 @@ export class InteliPostController {
         );
       }
 
-      await this.storesService.inteliPost(createIntelipost, this.logger);
+      await this.kafkaProducer.send(
+        Env.KAFKA_TOPIC_INTELIPOST_CREATED,
+        MessageIntelipostCreated({
+          createIntelipost,
+        }),
+      );
     } catch (error) {
       this.logger.error(error);
 
