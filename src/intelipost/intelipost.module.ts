@@ -1,7 +1,6 @@
 import { Module, Scope } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Logger } from '@infralabs/infra-logger';
-
 import { RabbitMqModule } from '../rabbitmq/rabbit.module';
 import { InteliPostService } from './intelipost.service';
 import { InteliPostController } from './intelipost.controller';
