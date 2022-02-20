@@ -110,4 +110,7 @@ export abstract class Env {
 
   public static readonly INTELIPOST_SHIPMENT_ORDER_PLATFORM: string =
     process.env.INTELIPOST_SHIPMENT_ORDER_PLATFORM;
+
+  public static readonly KAFKA_TOPIC_INTELIPOST_CREATED: string =
+    process.env.KAFKA_TOPIC_INTELIPOST_CREATED;
 }
