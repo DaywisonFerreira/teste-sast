@@ -85,6 +85,21 @@ export class CarrierService {
       .lean();
   }
 
+  async updateConsumer(
+    id: string,
+    carrierData: Partial<LeanDocument<CarrierDocument>>,
+  ): Promise<LeanDocument<CarrierEntity>> {
+    return this.carrierModel
+      .findOneAndUpdate({ id }, carrierData, {
+        timestamps: true,
+        upsert: true,
+        lean: true,
+        new: true,
+        projection: { __v: 0, _id: 0 },
+      })
+      .lean();
+  }
+
   async findOne(id: string) {
     const carrier = await this.carrierModel.findOne({ id }).lean();
 
