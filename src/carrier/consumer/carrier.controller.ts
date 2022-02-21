@@ -25,8 +25,9 @@ export class ConsumerCarrierController {
       messageKafka.partition,
       messageKafka.offset,
     );
-
-    this.logger.log('carrier.created - Carrier consumer was received');
+    this.logger.log(
+      `${Env.KAFKA_TOPIC_CARRIER_CREATED} - Carrier consumer was received`,
+    );
     await this.carrierService.create(value.data);
   }
 
@@ -39,8 +40,10 @@ export class ConsumerCarrierController {
       messageKafka.partition,
       messageKafka.offset,
     );
-    this.logger.log('carrier.changed - Carrier consumer was received');
-    await this.carrierService.update(value.data.id, value.data);
+    this.logger.log(
+      `${Env.KAFKA_TOPIC_CARRIER_CHANGED} - Carrier consumer was received`,
+    );
+    await this.carrierService.updateConsumer(value.data.id, value.data);
   }
 
   private async removeFromQueue(
@@ -56,7 +59,4 @@ export class ConsumerCarrierController {
       },
     ]);
   }
-
-  // account.saleschannel.associated
-  // account.saleschannel.unassociated
 }
