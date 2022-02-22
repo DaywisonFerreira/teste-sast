@@ -8,6 +8,7 @@ import { OrderEntity, OrderSchema } from '../order/schemas/order.schema';
 import { NestjsLogger } from '../commons/providers/log/nestjs-logger';
 import { Env } from '../commons/environment/env';
 import { OrderService } from '../order/order.service';
+import { ConsumerContractController } from './consumer/intelipost.controller';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { OrderService } from '../order/order.service';
       },
     ]),
   ],
-  controllers: [InteliPostController],
+  controllers: [InteliPostController, ConsumerContractController],
   providers: [
     {
       provide: 'LogProvider',
