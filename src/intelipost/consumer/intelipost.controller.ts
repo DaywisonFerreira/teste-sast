@@ -7,7 +7,6 @@ import { LogProvider } from '@infralabs/infra-logger';
 import { KafkaResponse, SubscribeTopic } from '@infralabs/infra-nestjs-kafka';
 import { Controller, Inject } from '@nestjs/common';
 import { Env } from 'src/commons/environment/env';
-import { CreateIntelipost } from '../dto/create-intelipost.dto';
 import { InteliPostService } from '../intelipost.service';
 
 @Controller()
@@ -20,8 +19,10 @@ export class ConsumerContractController {
   }
 
   @SubscribeTopic(Env.KAFKA_TOPIC_INTELIPOST_CREATED)
-  async consumerCreateContract(messageKafka: KafkaResponse<string>) {
-    const createIntelipost = JSON.parse(messageKafka.value) as CreateIntelipost;
+  async consumerCreateContract({ value }: KafkaResponse<string>) {
+    const createIntelipostKafka = JSON.parse(value);
+    const { createIntelipost } = createIntelipostKafka.data;
+
     await this.storesService.inteliPost(createIntelipost, this.logger);
   }
 }
