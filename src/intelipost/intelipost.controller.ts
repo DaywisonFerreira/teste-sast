@@ -3,7 +3,6 @@ import {
   Post,
   Body,
   Inject,
-  Headers,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
@@ -28,30 +27,8 @@ export class InteliPostController {
   }
 
   @Post()
-  async postIntelipost(
-    @Body() createIntelipost: CreateIntelipost,
-    @Headers('authorization') auth: string,
-  ) {
+  async postIntelipost(@Body() createIntelipost: CreateIntelipost) {
     try {
-      const token = auth.split(' ')[1];
-      const credentials = Buffer.from(
-        `${Env.INTELIPOST_USERNAME}:${Env.INTELIPOST_PASSWORD}`,
-      ).toString('base64');
-
-      this.logger.log({
-        message: `Request received from Intelipost`,
-        data: createIntelipost,
-      });
-
-      if (credentials !== token) {
-        this.logger.error(new Error('Username or password invalid'));
-
-        throw new HttpException(
-          'Username or password invalid',
-          HttpStatus.UNAUTHORIZED,
-        );
-      }
-
       await this.kafkaProducer.send(
         Env.KAFKA_TOPIC_INTELIPOST_CREATED,
         MessageIntelipostCreated({
@@ -60,7 +37,6 @@ export class InteliPostController {
       );
     } catch (error) {
       this.logger.error(error);
-
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
