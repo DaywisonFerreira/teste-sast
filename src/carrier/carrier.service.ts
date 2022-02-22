@@ -57,6 +57,7 @@ export class CarrierService {
       throw new HttpException('Carrier not found.', HttpStatus.NOT_FOUND);
     }
     return this.carrierModel.findOneAndUpdate({ id }, update, {
+      useFindAndModify: false,
       timestamps: true,
       lean: true,
       new: true,
