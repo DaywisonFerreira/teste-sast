@@ -43,13 +43,27 @@ export class UpdateCarrierDto {
     type: Object,
     example: {
       type: 'FTP',
-
       endpoint: '',
-
       attributes: [
         {
           key: 'user',
           value: 'teste',
+        },
+        {
+          key: 'password',
+          value: 'teste',
+        },
+        {
+          key: 'port',
+          value: 21,
+        },
+        {
+          key: 'secure',
+          value: false,
+        },
+        {
+          key: 'destPath',
+          value: '/teste',
         },
       ],
     },
