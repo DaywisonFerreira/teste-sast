@@ -6,7 +6,6 @@ import {
   Param,
   Patch,
   UploadedFile,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import {
@@ -21,7 +20,6 @@ import { diskStorage } from 'multer';
 import { Env } from 'src/commons/environment/env';
 import { LogProvider } from '@infralabs/infra-logger';
 import { createBlobService } from 'azure-storage';
-import { JWTGuard } from '../commons/guards/jwt.guard';
 import { GetCarrierDto } from './dto/get-carrier.dto';
 import { UpdateCarrierDto } from './dto/update-carrier.dto';
 import { CarrierService } from './carrier.service';
@@ -88,7 +86,6 @@ export class CarrierController {
   }
 
   @Patch(':id/logo')
-  @UseGuards(JWTGuard)
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
     FastifyFileInterceptor('file', {
