@@ -33,9 +33,6 @@ export abstract class Env {
   public static readonly APPLICATION_VERSION: string =
     process.env.APPLICATION_VERSION;
 
-  public static readonly SALES_CHANNEL_ID: string =
-    process.env.SALES_CHANNEL_ID || '';
-
   public static readonly AZURE_BS_CONTAINER_NAME: string =
     process.env.AZURE_BS_CONTAINER_NAME;
 

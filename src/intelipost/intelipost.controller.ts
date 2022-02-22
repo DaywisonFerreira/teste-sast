@@ -5,6 +5,7 @@ import {
   Inject,
   HttpException,
   HttpStatus,
+  Headers,
 } from '@nestjs/common';
 import { LogProvider } from '@infralabs/infra-logger';
 
@@ -27,12 +28,16 @@ export class InteliPostController {
   }
 
   @Post()
-  async postIntelipost(@Body() createIntelipost: CreateIntelipost) {
+  async postIntelipost(
+    @Headers() headers: any,
+    @Body() createIntelipost: CreateIntelipost,
+  ) {
     try {
       await this.kafkaProducer.send(
         Env.KAFKA_TOPIC_INTELIPOST_CREATED,
         MessageIntelipostCreated({
           createIntelipost,
+          headers,
         }),
       );
     } catch (error) {

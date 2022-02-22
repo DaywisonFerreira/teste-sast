@@ -21,8 +21,10 @@ export class ConsumerContractController {
   @SubscribeTopic(Env.KAFKA_TOPIC_INTELIPOST_CREATED)
   async consumerCreateContract({ value }: KafkaResponse<string>) {
     const createIntelipostKafka = JSON.parse(value);
-    const { createIntelipost } = createIntelipostKafka.data;
 
-    await this.storesService.inteliPost(createIntelipost, this.logger);
+    await this.storesService.inteliPost(
+      createIntelipostKafka.data,
+      this.logger,
+    );
   }
 }
