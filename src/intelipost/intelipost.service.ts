@@ -63,7 +63,8 @@ export class InteliPostService {
     if (
       orderMerged.storeId &&
       orderMerged.storeCode &&
-      orderMerged.internalOrderId
+      orderMerged.internalOrderId &&
+      !Number.isNaN(parseInt(orderMerged.internalOrderId, 10))
     ) {
       const exchange = 'order';
       const routeKey = 'orderTrackingUpdated';
@@ -76,7 +77,7 @@ export class InteliPostService {
         storeId: orderMerged.storeId,
         storeCode: orderMerged.storeCode,
         externalOrderId: order.orderSale,
-        internalOrderId: orderMerged.internalOrderId,
+        internalOrderId: parseInt(orderMerged.internalOrderId, 10),
         shippingEstimateDate: order.estimateDeliveryDateDeliveryCompany,
         eventDate: order.orderUpdatedAt,
         partnerMessage: order.partnerMessage,
@@ -99,7 +100,7 @@ export class InteliPostService {
       });
     } else {
       logger.log(
-        `${order.orderSale} order not sent due to lack of storeId, storeCode or internalOrderId`,
+        `${order.orderSale} order not sent due to lack of storeId (${orderMerged.storeId}), storeCode (${orderMerged.storeCode}) or internalOrderId (${orderMerged.internalOrderId})`,
       );
     }
   }
