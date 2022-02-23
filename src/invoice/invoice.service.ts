@@ -3,6 +3,7 @@ import * as https from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ClientFtp from 'ftp';
+import * as ClientFtpSSH from 'ssh2-sftp-client';
 import { LogProvider } from '@infralabs/infra-logger';
 import { v4 as uuidV4 } from 'uuid';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
@@ -22,8 +23,7 @@ export class InvoiceService {
       !carrier.generateNotfisFile ||
       !carrier.integration ||
       !carrier.integration.endpoint ||
-      !carrier.integration.attributes ||
-      carrier.integration.type !== 'FTP'
+      !carrier.integration.attributes
     ) {
       return false;
     }
@@ -47,26 +47,40 @@ export class InvoiceService {
 
     if (destPath && secure && port && password && user) {
       const destPathFtpServer = `${destPath.value}/${nameFile}`;
-      await this.sendFileFtpToServer(
-        file,
-        destPathFtpServer,
-        filePathLocal,
-        {
-          host: integration.endpoint,
-          user: user.value,
-          password: password.value,
-          port: port.value,
-          secure: secure.value,
-        },
-        logger,
-      );
+      if (integration.type === 'SFTP') {
+        await this.sendFileToFtpServerSSH(
+          destPathFtpServer,
+          filePathLocal,
+          {
+            host: integration.endpoint,
+            user: user.value,
+            password: password.value,
+            port: port.value,
+          },
+          logger,
+        );
+      } else {
+        await this.sendFileToFtpServer(
+          file,
+          destPathFtpServer,
+          filePathLocal,
+          {
+            host: integration.endpoint,
+            user: user.value,
+            password: password.value,
+            port: port.value,
+            secure: secure.value,
+          },
+          logger,
+        );
+      }
       return true;
     }
 
     return false;
   }
 
-  private async sendFileFtpToServer(
+  private async sendFileToFtpServer(
     file: string | Buffer,
     destPathFtp: string,
     filePathLocal: string,
@@ -93,6 +107,37 @@ export class InvoiceService {
         port: ftpAccess.port,
         secure: ftpAccess.secure,
       });
+    });
+  }
+
+  private async sendFileToFtpServerSSH(
+    destPath: string,
+    filePathLocal: string,
+    ftpAccess: any,
+    logger: LogProvider,
+  ) {
+    return new Promise((resolve, reject) => {
+      const sftp = new ClientFtpSSH();
+      sftp
+        .connect({
+          host: ftpAccess.host,
+          username: ftpAccess.user,
+          password: ftpAccess.password,
+          port: ftpAccess.port,
+        })
+        .then(() => {
+          return sftp.put(fs.createReadStream(filePathLocal), destPath);
+        })
+        .then(() => {
+          this.deleteFileLocal(filePathLocal, logger);
+          logger.log('File successfully uploaded to SSH FTP server!');
+          resolve(sftp.end());
+        })
+        .catch(err => {
+          this.deleteFileLocal(filePathLocal, logger);
+          logger.error(err.message);
+          reject();
+        });
     });
   }
 
