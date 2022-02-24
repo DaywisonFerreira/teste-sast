@@ -19,6 +19,14 @@ export const PublicFieldsOrder = {
   'logisticInfo.shippingEstimateDate': 1,
 };
 
+export class Invoice {
+  key: string;
+
+  serie: string;
+
+  value: string;
+}
+
 @Schema({ collection: 'orders', timestamps: true })
 export class OrderEntity extends Document {
   @Prop({ type: Types.ObjectId, required: false })
@@ -134,12 +142,15 @@ export class OrderEntity extends Document {
 
   @Prop({ type: Array, default: [], required: false })
   history: Array<any>;
+
+  @Prop({ type: Object, required: false })
+  invoice: Invoice;
 }
 
 export type OrderDocument = OrderEntity & Document;
 export const OrderSchema = SchemaFactory.createForClass(OrderEntity);
 
-OrderSchema.index({ orderSale: 1, partnerOrder: 1 }, { unique: true })
+OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index(
     { storeId: 1, status: 1, order: 1, orderSale: 1, partnerOrder: 1 },
     { unique: false },

@@ -1,3 +1,5 @@
+import { Invoice } from '../schemas/order.schema';
+
 export interface Value {
   $numberDecimal: number;
 }
@@ -283,6 +285,8 @@ export class IOrder {
   value: Value;
 
   visitorIp: string;
+
+  invoice: Invoice;
 
   /**
    * List of standard public fields for this entity. Commonly used for return in APIs.

@@ -49,7 +49,10 @@ export class ConsumerOrderController {
       ) {
         const orderToSave = OrderMapper.mapMessageToOrder(order);
         await this.orderService.merge(
-          { orderSale: orderToSave.orderSale },
+          {
+            orderSale: orderToSave.orderSale,
+            'invoice.key': order.invoice.key,
+          },
           // { orderSale: orderToSave.orderSale, partnerOrder: orderToSave.partnerOrder },
           orderToSave,
           'ihub',
