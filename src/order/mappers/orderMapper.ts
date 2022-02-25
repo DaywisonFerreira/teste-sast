@@ -34,6 +34,7 @@ export class OrderMapper {
       storeId,
       sellerCode,
       sellerId,
+      invoice,
     } = payload;
     let paymentDate;
     let deliveryDate;
@@ -99,6 +100,7 @@ export class OrderMapper {
       deliveryDate,
       orderCreatedAt: creationDate,
       paymentDate,
+      invoice,
     };
   }
 

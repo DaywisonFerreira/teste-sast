@@ -52,7 +52,7 @@ export class InteliPostService {
     await this.orderService.merge(
       {
         orderSale: order.orderSale,
-        'invoice.key': payload.invoice.invoice_key,
+        'invoice.key': payload.invoice.key,
       },
       // { orderSale: order.orderSale, partnerOrder: order.partnerOrder },
       order,
@@ -92,7 +92,7 @@ export class InteliPostService {
         partnerStatus: order.partnerStatus,
         i18nName: i18nName === 'cancelled' ? 'canceled' : i18nName,
         status: status === 'cancelled' ? 'canceled' : status,
-        invoiceNumber: payload.invoice.invoice_number,
+        invoiceNumber: payload.invoice.number,
       };
 
       await this.amqpConnection.publish(exchange, routeKey, exportingOrder);

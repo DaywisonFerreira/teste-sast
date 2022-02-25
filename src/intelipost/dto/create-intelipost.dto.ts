@@ -47,9 +47,9 @@ interface Ihistory {
 }
 
 interface Iinvoice {
-  invoice_series: string;
-  invoice_number: string;
-  invoice_key: string;
+  serie: string;
+  number: string;
+  key: string;
 }
 
 interface Ishipment_volume_micro_state {

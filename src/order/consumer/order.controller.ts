@@ -51,7 +51,7 @@ export class ConsumerOrderController {
         await this.orderService.merge(
           {
             orderSale: orderToSave.orderSale,
-            'invoice.key': order.invoice.key,
+            'invoice.key': orderToSave.invoice.key,
           },
           // { orderSale: orderToSave.orderSale, partnerOrder: orderToSave.partnerOrder },
           orderToSave,

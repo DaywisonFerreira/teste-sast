@@ -25,6 +25,8 @@ export class Invoice {
   serie: string;
 
   value: string;
+
+  number: string;
 }
 
 @Schema({ collection: 'orders', timestamps: true })
