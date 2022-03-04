@@ -31,7 +31,7 @@ export class OrderService {
     orderCreatedAtTo,
     orderUpdatedAtFrom,
     orderUpdatedAtTo,
-    // status,
+    status,
     // partnerStatus,
   }): Promise<[LeanDocument<OrderEntity[]>, number]> {
     const filter: IFilterObject = {
@@ -42,12 +42,12 @@ export class OrderService {
       filter.storeId = new Types.ObjectId(storeId);
     }
 
-    // if (status) {
-    //   filter.status = {
-    //     $regex: `${status}.*`,
-    //     $options: 'i',
-    //   };
-    // }
+    if (status) {
+      filter.status = {
+        $regex: `${status}.*`,
+        $options: 'i',
+      };
+    }
 
     // if (partnerStatus) {
     //   filter.partnerStatus = {
