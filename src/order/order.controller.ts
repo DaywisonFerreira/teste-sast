@@ -56,7 +56,7 @@ export class OrderController {
       orderCreatedAtTo,
       orderUpdatedAtFrom,
       orderUpdatedAtTo,
-      // status,
+      status,
       // partnerStatus,
     } = filterPaginateDto;
 
@@ -75,7 +75,7 @@ export class OrderController {
       orderCreatedAtTo,
       orderUpdatedAtFrom,
       orderUpdatedAtTo,
-      // status,
+      status,
       // partnerStatus,
     });
 

@@ -1,9 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional } from 'class-validator';
 import { RequestPaginateDto } from 'src/commons/dtos/request-paginate.dto';
 
 export class FilterPaginateOrderDto extends RequestPaginateDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Search by order, orderSale, partnerOrder or receiverName',
     type: String,
     required: false,
@@ -12,7 +12,7 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
   @IsOptional()
   search?: string | null;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Order creation date (start)',
     type: String,
     example: '2022-10-30',
@@ -21,7 +21,7 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
   @IsOptional()
   orderCreatedAtFrom?: string | null;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Order creation date (end)',
     type: String,
     example: '2022-11-30',
@@ -30,7 +30,7 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
   @IsOptional()
   orderCreatedAtTo?: string | null;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Last update of order date (start)',
     type: String,
     example: '2022-10-30',
@@ -39,7 +39,7 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
   @IsOptional()
   orderUpdatedAtFrom?: string | null;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Last update of order date (end)',
     type: String,
     example: '2022-11-30',
@@ -48,14 +48,14 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
   @IsOptional()
   orderUpdatedAtTo?: string | null;
 
-  // @ApiProperty({
-  //   description: 'Status of order',
-  //   type: String,
-  //   example: 'delivered',
-  //   required: false,
-  // })
-  // @IsOptional()
-  // status?: string | null;
+  @ApiPropertyOptional({
+    description: 'Status of order',
+    type: String,
+    example: 'delivered',
+    required: false,
+  })
+  @IsOptional()
+  status?: string | null;
 
   // @ApiProperty({
   //   description: 'Status of order by partner',
