@@ -44,8 +44,7 @@ export class OrderService {
 
     if (status) {
       filter.status = {
-        $regex: `${status}.*`,
-        $options: 'i',
+        $in: status.split(','),
       };
     }
 
