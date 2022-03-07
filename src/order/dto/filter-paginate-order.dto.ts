@@ -51,7 +51,7 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
   @ApiPropertyOptional({
     description: 'Status of order',
     type: String,
-    example: 'delivered',
+    example: 'dispatched,delivered,invoiced',
     required: false,
   })
   @IsOptional()
