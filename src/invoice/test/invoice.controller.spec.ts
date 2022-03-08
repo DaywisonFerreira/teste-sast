@@ -3,6 +3,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { CarrierService } from 'src/carrier/carrier.service';
 import { CarrierEntity } from 'src/carrier/schemas/carrier.schema';
 import { NestjsEventEmitter } from 'src/commons/providers/event/nestjs-event-emitter';
+import { TrackingCodeEntity } from '../schemas/tracking-code.schema';
 import { InvoiceController } from '../invoice.controller';
 import { InvoiceService } from '../invoice.service';
 import { ConfigMapper } from '../mappers/config.mapper';
@@ -18,6 +19,10 @@ describe('InvoiceController', () => {
         CarrierService,
         {
           provide: getModelToken(CarrierEntity.name),
+          useValue: {},
+        },
+        {
+          provide: getModelToken(TrackingCodeEntity.name),
           useValue: {},
         },
         {

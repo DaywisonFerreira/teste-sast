@@ -3,6 +3,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { CarrierService } from 'src/carrier/carrier.service';
 import { CarrierEntity } from 'src/carrier/schemas/carrier.schema';
 import { InvoiceService } from '../invoice.service';
+import { TrackingCodeEntity } from '../schemas/tracking-code.schema';
 
 describe('InvoiceService', () => {
   let service: InvoiceService;
@@ -14,6 +15,10 @@ describe('InvoiceService', () => {
         CarrierService,
         {
           provide: getModelToken(CarrierEntity.name),
+          useValue: {},
+        },
+        {
+          provide: getModelToken(TrackingCodeEntity.name),
           useValue: {},
         },
         {
