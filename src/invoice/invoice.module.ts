@@ -11,10 +11,6 @@ import {
   CarrierSchema,
 } from '../carrier/schemas/carrier.schema';
 import {
-  TrackingCodeEntity,
-  TrackingCodeSchema,
-} from './schemas/tracking-code.schema';
-import {
   AccountEntity,
   AccountSchema,
 } from '../account/schemas/account.schema';
@@ -31,9 +27,6 @@ import { AccountService } from '../account/account.service';
     ]),
     MongooseModule.forFeature([
       { name: AccountEntity.name, schema: AccountSchema },
-    ]),
-    MongooseModule.forFeature([
-      { name: TrackingCodeEntity.name, schema: TrackingCodeSchema },
     ]),
   ],
   controllers: [InvoiceController],

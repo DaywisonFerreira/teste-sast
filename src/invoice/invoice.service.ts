@@ -5,22 +5,12 @@ import * as path from 'path';
 import * as ClientFtp from 'ftp';
 import { LogProvider } from '@infralabs/infra-logger';
 import { v4 as uuidV4 } from 'uuid';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { CarrierService } from '../carrier/carrier.service';
-import {
-  TrackingCodeDocument,
-  TrackingCodeEntity,
-} from './schemas/tracking-code.schema';
 
 @Injectable()
 export class InvoiceService {
-  constructor(
-    @InjectModel(TrackingCodeEntity.name)
-    private TrackingCodeModel: Model<TrackingCodeDocument>,
-    private readonly carrierService: CarrierService,
-  ) {}
+  constructor(private readonly carrierService: CarrierService) {}
 
   async sendFtp(data: CreateInvoiceDto, logger: LogProvider) {
     const carrier = await this.carrierService.findByDocument(
@@ -69,20 +59,6 @@ export class InvoiceService {
           secure: secure.value,
         },
         logger,
-      );
-      data.packages.forEach(async item => {
-        await this.TrackingCodeModel.create({
-          accountId: data.accountId,
-          carrierId: carrier.id,
-          trackingCode: item.trackingCode,
-          trackingCodeUsed: true,
-        });
-      });
-      logger.log(
-        JSON.stringify({
-          message: 'tracking code(s) saved successfully to the database',
-          trackingsCodes: data.packages.map(item => item.trackingCode),
-        }),
       );
       return true;
     }
