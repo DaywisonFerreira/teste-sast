@@ -155,64 +155,97 @@ export class OrderService {
     return this.OrderModel.find(conditions, {}, options);
   }
 
+  private generateHistory(data, origin, isCreate) {
+    let updateHistory = {};
+    if (origin === 'intelipost') {
+      const history = {
+        dispatchDate: data.dispatchDate,
+        estimateDeliveryDateDeliveryCompany:
+          data.estimateDeliveryDateDeliveryCompany,
+        partnerMessage: data.partnerMessage,
+        microStatus: data.microStatus,
+        lastOccurrenceMacro: data.lastOccurrenceMacro,
+        lastOccurrenceMicro: data.lastOccurrenceMicro,
+        lastOccurrenceMessage: data.lastOccurrenceMessage,
+        partnerStatus: data.partnerStatus,
+        orderUpdatedAt: data.orderUpdatedAt,
+        i18n: data.i18n,
+      };
+      updateHistory = isCreate
+        ? {
+            history: [history],
+          }
+        : { $push: { history } };
+    }
+    return updateHistory;
+  }
+
+  private async createOrder(data, origin) {
+    return this.OrderModel.create({
+      ...data,
+      ...this.generateHistory(data, origin, true),
+    });
+  }
+
+  private async updateOrdersWithMultipleInvoices(
+    configPK,
+    data,
+    origin,
+    options,
+  ) {
+    const { invoice, invoiceKeys, ...dataToSave } = data;
+    return this.OrderModel.updateMany(
+      configPK,
+      {
+        ...dataToSave,
+        ...this.generateHistory(
+          { ...dataToSave, invoice, invoiceKeys },
+          origin,
+          false,
+        ),
+      },
+      options,
+    );
+  }
+
+  private async updateOrder(configPK, data, currentOrder, origin, options) {
+    return this.OrderModel.findOneAndUpdate(
+      configPK,
+      {
+        ...data,
+        invoice: {
+          ...data.invoice,
+          ...currentOrder.invoice,
+        },
+        invoiceKeys: [
+          ...new Set([...data.invoiceKeys, ...currentOrder.invoiceKeys]),
+        ],
+        ...this.generateHistory(data, origin, false),
+      },
+      options,
+    );
+  }
+
   async merge(
     configPK: any,
     data: any = {},
     origin: string,
     options: any = { runValidators: true, useFindAndModify: false },
   ) {
-    const response = await this.OrderModel.findOne(configPK);
-    if (!response) {
-      await this.OrderModel.create({
-        ...data,
-        ...(origin === 'intelipost'
-          ? {
-              history: [
-                {
-                  dispatchDate: data.dispatchDate,
-                  estimateDeliveryDateDeliveryCompany:
-                    data.estimateDeliveryDateDeliveryCompany,
-                  partnerMessage: data.partnerMessage,
-                  microStatus: data.microStatus,
-                  lastOccurrenceMacro: data.lastOccurrenceMacro,
-                  lastOccurrenceMicro: data.lastOccurrenceMicro,
-                  lastOccurrenceMessage: data.lastOccurrenceMessage,
-                  partnerStatus: data.partnerStatus,
-                  orderUpdatedAt: data.orderUpdatedAt,
-                  i18n: data.i18n,
-                },
-              ],
-            }
-          : {}),
-      });
-    } else {
-      // await this.OrderModel.findOneAndUpdate(configPK, data, options);
-      await this.OrderModel.findOneAndUpdate(
+    const orders = await this.OrderModel.find(configPK);
+
+    if (!orders.length) {
+      await this.createOrder(data, origin);
+    }
+    if (orders.length > 1) {
+      await this.updateOrdersWithMultipleInvoices(
         configPK,
-        {
-          ...data,
-          ...(origin === 'intelipost'
-            ? {
-                $push: {
-                  history: {
-                    dispatchDate: data.dispatchDate,
-                    estimateDeliveryDateDeliveryCompany:
-                      data.estimateDeliveryDateDeliveryCompany,
-                    partnerMessage: data.partnerMessage,
-                    microStatus: data.microStatus,
-                    lastOccurrenceMacro: data.lastOccurrenceMacro,
-                    lastOccurrenceMicro: data.lastOccurrenceMicro,
-                    lastOccurrenceMessage: data.lastOccurrenceMessage,
-                    partnerStatus: data.partnerStatus,
-                    orderUpdatedAt: data.orderUpdatedAt,
-                    i18n: data.i18n,
-                  },
-                },
-              }
-            : {}),
-        },
+        data,
+        origin,
         options,
       );
+    } else {
+      await this.updateOrder(configPK, data, orders[0], origin, options);
     }
   }
 

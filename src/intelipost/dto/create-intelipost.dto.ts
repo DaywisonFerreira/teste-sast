@@ -33,7 +33,7 @@ interface Ihistory {
   shipment_order_volume_state: string;
   tracking_state: string;
   created: number;
-  created_iso: string;
+  created_iso: Date;
   provider_message: string;
   provider_state: string;
   shipper_provider_state: string;
@@ -43,7 +43,7 @@ interface Ihistory {
   shipment_order_volume_state_localized: string;
   shipment_order_volume_state_history: number;
   event_date: number;
-  event_date_iso: string;
+  event_date_iso: Date;
 }
 
 interface Iinvoice {
@@ -65,7 +65,7 @@ interface Ishipment_volume_micro_state {
 
 interface Iclient {
   current: number;
-  current_iso: string;
+  current_iso: Date;
   original: number;
   original_iso: string;
 }

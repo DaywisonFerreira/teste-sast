@@ -15,8 +15,7 @@ import {
   AccountSchema,
 } from '../account/schemas/account.schema';
 import { InvoiceService } from './invoice.service';
-import { InvoiceController } from './invoice.controller';
-import { ConfigMapper } from './mappers/config.mapper';
+import { InvoiceController } from './consumer/invoice.controller';
 import { CarrierService } from '../carrier/carrier.service';
 import { AccountService } from '../account/account.service';
 
@@ -40,7 +39,6 @@ import { AccountService } from '../account/account.service';
     InvoiceService,
     CarrierService,
     AccountService,
-    ConfigMapper,
   ],
 })
 export class InvoiceModule {}
