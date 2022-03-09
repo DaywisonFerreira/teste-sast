@@ -228,16 +228,16 @@ export class OrderEntity extends Document {
   history?: Array<any>;
 
   @Prop({ type: String, required: false })
-  originZipCode?: string; // quem salva isso?
+  originZipCode?: string; // campo só usado no relatorio
 
   @Prop({ type: String, required: false })
-  square?: string; // quem salva isso?
+  square?: string; // campo só usado no relatorio
 
   @Prop({ type: Number, required: false })
-  physicalWeight?: number; // quem salva isso?
+  physicalWeight?: number; // campo só usado no relatorio
 
   @Prop({ type: Number, required: false })
-  quantityOccurrences?: number; // quem salva isso?
+  quantityOccurrences?: number; // campo só usado no relatorio
 }
 
 export type OrderDocument = OrderEntity & Document;
