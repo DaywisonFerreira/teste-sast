@@ -9,6 +9,7 @@ import { NestjsLogger } from '../commons/providers/log/nestjs-logger';
 import { Env } from '../commons/environment/env';
 import { OrderService } from '../order/order.service';
 import { ConsumerContractController } from './consumer/intelipost.controller';
+import { IntelipostMapper } from './mappers/intelipostMapper';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ConsumerContractController } from './consumer/intelipost.controller';
     },
     InteliPostService,
     OrderService,
+    IntelipostMapper,
   ],
 })
 export class IntelipostModule {}

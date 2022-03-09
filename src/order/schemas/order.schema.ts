@@ -19,140 +19,232 @@ export const PublicFieldsOrder = {
   'logisticInfo.shippingEstimateDate': 1,
 };
 
-export class Invoice {
-  key: string;
+export class Total {
+  id: string;
 
+  name: string;
+
+  value: number;
+}
+
+export class Item {
+  sku: string;
+
+  quantity: number;
+
+  price: number;
+
+  isSubsidized: boolean;
+}
+export class Invoice {
   serie: string;
 
-  value: string;
+  value?: number;
 
   number: string;
+
+  key: string;
+
+  issuanceDate?: Date;
+
+  carrierName?: string;
+
+  trackingNumber?: string;
+
+  trackingUrl?: string;
+
+  items?: Array<Item>;
+
+  customerDocument?: string;
+}
+
+export class Delivery {
+  receiverName: string;
+
+  city: string;
+
+  state: string;
+
+  zipCode: string;
+
+  country: string;
+}
+
+export class Phone {
+  phone: string;
+
+  type: string;
+}
+
+export class Customer {
+  phones: Array<Phone>;
+
+  email: string;
+
+  isCorporate: boolean;
+
+  firstName: string;
+
+  lastName: string;
+
+  document: string;
+
+  documentType: string;
+
+  corporateName: string;
+
+  fullName: string;
 }
 
 @Schema({ collection: 'orders', timestamps: true })
 export class OrderEntity extends Document {
   @Prop({ type: Types.ObjectId, required: false })
-  orderId: Types.ObjectId;
+  orderId?: Types.ObjectId;
 
   @Prop({ type: String, required: false })
-  storeCode: string;
+  storeCode?: string;
 
   @Prop({ type: Types.ObjectId, required: false })
-  storeId: Types.ObjectId;
+  storeId?: Types.ObjectId;
 
   @Prop({ type: String, required: false })
-  sellerCode: string;
+  sellerCode?: string;
 
   @Prop({ type: Types.ObjectId, required: false })
-  sellerId: Types.ObjectId;
+  sellerId?: Types.ObjectId;
 
   @Prop({ type: String, required: false })
-  internalOrderId: string;
+  internalOrderId?: string;
 
+  // @deprecated
   @Prop({ type: String, required: false })
-  receiverName: string;
+  receiverName?: string;
 
+  // @deprecated
   @Prop({ type: String, required: false })
-  receiverEmail: string;
+  receiverEmail?: string;
 
+  // @deprecated
   @Prop({ type: Array, required: false })
-  receiverPhones: Array<any>;
+  receiverPhones?: Array<Phone>;
 
   @Prop({ type: String, required: false })
-  salesChannel: string;
+  salesChannel?: string;
 
+  // @deprecated
   @Prop({ type: String, required: false })
-  deliveryCity: string;
+  deliveryCity?: string;
 
+  // @deprecated
   @Prop({ type: String, required: false })
-  deliveryState: string;
+  deliveryState?: string;
 
+  // @deprecated
   @Prop({ type: String, required: false })
-  deliveryZipCode: string;
+  deliveryZipCode?: string;
 
   @Prop({ type: String, required: true, index: true })
   orderSale: string;
 
   @Prop({ type: String, required: false, index: true })
-  order: string;
+  order?: string;
 
   @Prop({ type: String, required: false, index: true })
-  partnerOrder: string;
+  partnerOrder?: string;
 
   @Prop({ type: Array, required: false })
-  billingData: Array<any>;
+  billingData?: Array<any>;
 
   @Prop({ type: Array, required: false })
-  logisticInfo: Array<any>;
+  logisticInfo?: Array<any>;
 
   @Prop({ type: String, required: false })
-  status: string;
+  status?: string;
 
   @Prop({ type: Number, required: false })
-  totalShippingPrice: number;
+  totalShippingPrice?: number;
 
   @Prop({ type: Date, required: false })
-  orderUpdatedAt: Date;
+  orderUpdatedAt?: Date;
 
   @Prop({ type: Date, required: false })
-  deliveryDate: Date;
+  deliveryDate?: Date;
 
   @Prop({ type: Date, required: false })
-  orderCreatedAt: Date;
+  orderCreatedAt?: Date;
 
   @Prop({ type: Date, required: false })
-  paymentDate: Date;
+  paymentDate?: Date;
 
-  @Prop({ type: Date, required: false })
-  dispatchDate: Date;
+  @Prop({ type: Array, required: false })
+  invoiceKeys?: Array<string>;
 
-  @Prop({ type: Date, required: false })
-  estimateDeliveryDateDeliveryCompany: Date;
-
-  @Prop({ type: String, required: false })
-  partnerMessage: string;
+  @Prop({ type: Array, required: false })
+  totals?: Array<Total>;
 
   @Prop({ type: Number, required: false })
-  numberVolumes: number;
-
-  @Prop({ type: String, required: false })
-  partnerStatus: string;
-
-  @Prop({ type: String, required: false })
-  originZipCode: string;
-
-  @Prop({ type: String, required: false })
-  square: string;
-
-  @Prop({ type: Number, required: false })
-  physicalWeight: number;
-
-  @Prop({ type: String, required: false })
-  lastOccurrenceMacro: string;
-
-  @Prop({ type: String, required: false })
-  lastOccurrenceMicro: string;
-
-  @Prop({ type: String, required: false })
-  lastOccurrenceMessage: string;
-
-  @Prop({ type: Number, required: false })
-  quantityOccurrences: number;
-
-  @Prop({ type: String, required: false })
-  i18n: string;
-
-  @Prop({ type: Array, default: [], required: false })
-  history: Array<any>;
+  value?: number;
 
   @Prop({ type: Object, required: false })
-  invoice: Invoice;
+  invoice?: Invoice;
+
+  @Prop({ type: Object, required: false })
+  delivery?: Delivery;
+
+  @Prop({ type: Object, required: false })
+  customer?: Customer;
+
+  @Prop({ type: Date, required: false })
+  dispatchDate?: Date;
+
+  @Prop({ type: Date, required: false })
+  estimateDeliveryDateDeliveryCompany?: Date;
+
+  @Prop({ type: String, required: false })
+  partnerMessage?: string;
+
+  @Prop({ type: Number, required: false })
+  numberVolumes?: number;
+
+  @Prop({ type: String, required: false })
+  microStatus?: string;
+
+  @Prop({ type: String, required: false })
+  lastOccurrenceMacro?: string;
+
+  @Prop({ type: String, required: false })
+  lastOccurrenceMicro?: string;
+
+  @Prop({ type: String, required: false })
+  lastOccurrenceMessage?: string;
+
+  @Prop({ type: String, required: false })
+  partnerStatus?: string;
+
+  @Prop({ type: String, required: false })
+  i18n?: string;
+
+  @Prop({ type: Array, default: [], required: false })
+  history?: Array<any>;
+
+  @Prop({ type: String, required: false })
+  originZipCode?: string; // quem salva isso?
+
+  @Prop({ type: String, required: false })
+  square?: string; // quem salva isso?
+
+  @Prop({ type: Number, required: false })
+  physicalWeight?: number; // quem salva isso?
+
+  @Prop({ type: Number, required: false })
+  quantityOccurrences?: number; // quem salva isso?
 }
 
 export type OrderDocument = OrderEntity & Document;
 export const OrderSchema = SchemaFactory.createForClass(OrderEntity);
 
 OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
+  .index({ orderSale: 1, invoiceKeys: 1 }, { unique: false })
   .index(
     { storeId: 1, status: 1, order: 1, orderSale: 1, partnerOrder: 1 },
     { unique: false },

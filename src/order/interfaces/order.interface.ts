@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { Invoice } from '../schemas/order.schema';
 
 export interface Value {
@@ -187,6 +188,7 @@ export interface Customer {
   document: string;
   documentType: string;
   fullName: string;
+  corporateName: string;
 }
 
 export interface Body {
@@ -207,8 +209,8 @@ export interface ACKData {
   body: Body[];
 }
 
-export class IOrder {
-  _id: string;
+export class IHubOrder {
+  _id: Types.ObjectId;
 
   __v: number;
 

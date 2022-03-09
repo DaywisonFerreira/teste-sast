@@ -15,7 +15,7 @@ import { v4 as uuidV4 } from 'uuid';
 import { Env } from '../../commons/environment/env';
 import { CsvMapper } from '../mappers/csvMapper';
 import { OrderService } from '../order.service';
-import { IOrder } from '../interfaces/order.interface';
+import { IHubOrder } from '../interfaces/order.interface';
 import { OrderMapper } from '../mappers/orderMapper';
 
 @Controller()
@@ -36,7 +36,7 @@ export class ConsumerOrderController {
       channel.reject(msg, false);
     },
   })
-  public async orderNotificationHandler(order: IOrder) {
+  public async orderNotificationHandler(order: IHubOrder) {
     this.logger.log(
       `Order ${order.externalOrderId} was received in the integration queue`,
     );
@@ -47,15 +47,18 @@ export class ConsumerOrderController {
         (order.status === 'dispatched' || order.status === 'invoiced')
         // (order.status === 'dispatched' || order.status === 'invoiced' || order.status === 'ready-for-handling')
       ) {
-        const orderToSave = OrderMapper.mapMessageToOrder(order);
-        await this.orderService.merge(
-          {
-            orderSale: orderToSave.orderSale,
-            'invoice.key': orderToSave.invoice.key,
-          },
-          // { orderSale: orderToSave.orderSale, partnerOrder: orderToSave.partnerOrder },
-          orderToSave,
-          'ihub',
+        const orderToSaves: Array<any> = OrderMapper.mapMessageToOrders(order);
+        await Promise.all(
+          orderToSaves.map(async orderToSave =>
+            this.orderService.merge(
+              {
+                orderSale: orderToSave.orderSale,
+                'invoice.key': orderToSave.invoice.key,
+              },
+              { ...orderToSave },
+              'ihub',
+            ),
+          ),
         );
       }
     } catch (error) {
