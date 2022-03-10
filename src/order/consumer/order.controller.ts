@@ -6,7 +6,7 @@ import {
   SubscribeTopic,
 } from '@infralabs/infra-nestjs-kafka';
 import { Controller, Inject } from '@nestjs/common';
-import { LogProvider } from '@infralabs/infra-logger';
+import { InfraLogger } from '@infralabs/infra-logger';
 import { lightFormat } from 'date-fns';
 import { utils, writeFile } from 'xlsx';
 import { existsSync, mkdirSync, promises } from 'fs';
@@ -23,10 +23,7 @@ export class ConsumerOrderController {
   constructor(
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     private readonly orderService: OrderService,
-    @Inject('LogProvider') private logger: LogProvider,
-  ) {
-    this.logger.context = ConsumerOrderController.name;
-  }
+  ) {}
 
   @RabbitSubscribe({
     exchange: Env.RABBITMQ_ORDER_NOTIFICATION_EXCHANGE,
@@ -36,8 +33,13 @@ export class ConsumerOrderController {
       channel.reject(msg, false);
     },
   })
-  public async orderNotificationHandler(order: IHubOrder) {
-    this.logger.log(
+  public async orderNotificationHandler(
+    order: IHubOrder,
+    { headers }: KafkaResponse<string>,
+  ) {
+    const logger = new InfraLogger(headers, ConsumerOrderController.name);
+
+    logger.log(
       `Order ${order.externalOrderId} was received in the integration queue`,
     );
     try {
@@ -62,20 +64,25 @@ export class ConsumerOrderController {
         );
       }
     } catch (error) {
-      this.logger.error(error);
+      logger.error(error);
     }
   }
 
   @SubscribeTopic(Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT)
-  async consumerExportOrders(messageKafka: KafkaResponse<string>) {
+  async consumerExportOrders({
+    value,
+    partition,
+    headers,
+    offset,
+  }: KafkaResponse<string>) {
     let file;
-    const { headers } = messageKafka;
-    const { data, user } = JSON.parse(messageKafka.value);
+    const { data, user } = JSON.parse(value);
+    const logger = new InfraLogger(headers, ConsumerOrderController.name);
 
     await this.removeFromQueue(
       Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT,
-      messageKafka.partition,
-      messageKafka.offset,
+      partition,
+      offset,
     );
     try {
       const dataToFormat = await this.orderService.exportData(data, {
@@ -104,7 +111,7 @@ export class ConsumerOrderController {
         },
       );
     } catch (error) {
-      this.logger.error(error);
+      logger.error(error);
     } finally {
       if (existsSync(file.path)) {
         await this.deleteFileLocally(file.path);

@@ -1,18 +1,22 @@
 import { ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { LogService, RequestInterceptor } from '@infralabs/infra-logger';
-import { NestjsLogger } from '../providers/log/nestjs-logger';
-import { Env } from '../environment/env';
+import {
+  RequestLoggerInterceptor,
+  TransformInterceptor,
+} from '@infralabs/infra-logger';
+import { catchError, map } from 'rxjs';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: any): any {
-    const request = context.switchToHttp().getRequest();
     const response = context.switchToHttp().getResponse();
-    return RequestInterceptor.intercept(
-      request,
-      response,
-      next,
-      Env.NODE_ENV === 'local' ? NestjsLogger : LogService,
+    const logger = new RequestLoggerInterceptor();
+    const handler = logger.intercept(context, next);
+
+    const transformInterceptor = new TransformInterceptor();
+
+    return handler.pipe(
+      map(data => transformInterceptor.transformResponse(data, response)),
+      catchError(error => transformInterceptor.transformError(error) as any),
     );
   }
 }

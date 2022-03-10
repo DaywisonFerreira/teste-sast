@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { LogProvider } from '@infralabs/infra-logger';
 import {
   Body,
   Controller,
   Get,
-  Inject,
   Param,
   Patch,
+  Req,
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
@@ -20,12 +19,7 @@ import { UpdateWarehouseCodeDto } from './dto/update-warehousecode.dto';
 @ApiTags('Accounts')
 @ApiBearerAuth()
 export class AccountController {
-  constructor(
-    private readonly accountService: AccountService,
-    @Inject('LogProvider') private logger: LogProvider,
-  ) {
-    this.logger.context = AccountController.name;
-  }
+  constructor(private readonly accountService: AccountService) {}
 
   @Get()
   @ApiOkResponse({ type: PaginateAccountDto })
@@ -76,12 +70,19 @@ export class AccountController {
   async updateExternalWarehouseCode(
     @Param('id') id: string,
     @Body() update: UpdateWarehouseCodeDto,
+    @Req() req: any,
   ): Promise<GetAccountDto> {
-    const { warehouseCode } = update;
+    try {
+      const { warehouseCode } = update;
 
-    const account = await this.accountService.updateWarehouseCode(id, {
-      externalWarehouseCode: warehouseCode,
-    });
-    return GetAccountDto.factory(account) as GetAccountDto;
+      const account = await this.accountService.updateWarehouseCode(id, {
+        externalWarehouseCode: warehouseCode,
+      });
+      req.logger.log(`Account location ${warehouseCode} updated`);
+      return GetAccountDto.factory(account) as GetAccountDto;
+    } catch (error) {
+      req.logger.error(error);
+      throw error;
+    }
   }
 }

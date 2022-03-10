@@ -1,5 +1,4 @@
 /* eslint-disable import/named */
-import { LogProvider } from '@infralabs/infra-logger';
 import { KafkaService } from '@infralabs/infra-nestjs-kafka';
 import { v4 as uuidV4 } from 'uuid';
 import {
@@ -35,10 +34,7 @@ export class OrderController {
   constructor(
     private readonly orderService: OrderService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
-    @Inject('LogProvider') private logger: LogProvider,
-  ) {
-    this.logger.context = OrderController.name;
-  }
+  ) {}
 
   @Get()
   @ApiOkResponse({ type: PaginateOrderDto })

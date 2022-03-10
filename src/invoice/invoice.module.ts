@@ -1,5 +1,5 @@
 import { Module, Scope } from '@nestjs/common';
-import { Logger } from '@infralabs/infra-logger';
+import { InfraLogger as Logger } from '@infralabs/infra-logger';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { NestjsEventEmitter } from '../commons/providers/event/nestjs-event-emitter';
