@@ -38,7 +38,7 @@ import { AccountService } from '../account/account.service';
     NestjsEventEmitter,
     InvoiceService,
     CarrierService,
-    AccountService
+    AccountService,
   ],
 })
 export class InvoiceModule {}
