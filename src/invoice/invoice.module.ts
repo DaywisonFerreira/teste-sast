@@ -10,14 +10,22 @@ import {
   CarrierEntity,
   CarrierSchema,
 } from '../carrier/schemas/carrier.schema';
+import {
+  AccountEntity,
+  AccountSchema,
+} from '../account/schemas/account.schema';
 import { InvoiceService } from './invoice.service';
 import { InvoiceController } from './consumer/invoice.controller';
 import { CarrierService } from '../carrier/carrier.service';
+import { AccountService } from '../account/account.service';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: CarrierEntity.name, schema: CarrierSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: AccountEntity.name, schema: AccountSchema },
     ]),
   ],
   controllers: [InvoiceController],
@@ -30,6 +38,7 @@ import { CarrierService } from '../carrier/carrier.service';
     NestjsEventEmitter,
     InvoiceService,
     CarrierService,
+    AccountService,
   ],
 })
 export class InvoiceModule {}
