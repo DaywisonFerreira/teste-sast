@@ -7,7 +7,7 @@ class Attributes {
   key: string;
 
   @IsNotEmpty()
-  value: string|number|boolean;
+  value: string | number | boolean;
 }
 class Integration {
   @IsString()

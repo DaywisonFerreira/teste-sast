@@ -4,7 +4,7 @@ import { Document } from 'mongoose';
 class Attributes {
   key: string;
 
-  value: string|number|boolean;
+  value: string | number | boolean;
 }
 class Integration {
   type: string;
