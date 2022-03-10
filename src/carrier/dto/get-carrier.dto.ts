@@ -4,7 +4,7 @@ import { classToClass, plainToClass } from 'class-transformer';
 class Attributes {
   key: string;
 
-  value: string;
+  value: string|number|boolean;
 }
 class Integration {
   type: string;

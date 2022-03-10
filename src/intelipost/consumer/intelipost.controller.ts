@@ -14,13 +14,13 @@ import { InteliPostService } from '../intelipost.service';
 import { IntelipostMapper } from '../mappers/intelipostMapper';
 
 @Controller()
-export class ConsumerContractController {
+export class ConsumerIntelipostController {
   constructor(
     @Inject('LogProvider') private logger: LogProvider,
     private readonly storesService: InteliPostService,
     private readonly intelipostMapper: IntelipostMapper,
   ) {
-    this.logger.context = ConsumerContractController.name;
+    this.logger.context = ConsumerIntelipostController.name;
   }
 
   @SubscribeTopic(Env.KAFKA_TOPIC_INTELIPOST_CREATED)
@@ -53,20 +53,16 @@ export class ConsumerContractController {
         config,
       );
       if (response.status === 200) {
-        this.logger.log(
-          JSON.stringify({
-            message: 'Intelipost - Shipping order successfully completed!',
-            data: response.data,
-          }),
-        );
+        this.logger.log({
+          message: 'Intelipost - Shipping order successfully completed!',
+          data: response.data,
+        });
       }
     } catch (error) {
-      this.logger.log(
-        JSON.stringify({
-          error: error.message,
-          message: error?.response?.data?.messages,
-        }),
-      );
+      this.logger.log({
+        error: error.message,
+        message: error?.response?.data?.messages,
+      });
     }
   }
 }

@@ -20,7 +20,7 @@ import { CarrierService } from '../carrier/carrier.service';
 import { AccountService } from '../account/account.service';
 import { InteliPostService } from './intelipost.service';
 import { IntelipostMapper } from './mappers/intelipostMapper';
-import { ConsumerContractController } from './consumer/intelipost.controller';
+import { ConsumerIntelipostController } from './consumer/intelipost.controller';
 import { InteliPostController } from './intelipost.controller';
 
 @Module({
@@ -32,7 +32,7 @@ import { InteliPostController } from './intelipost.controller';
       { name: AccountEntity.name, schema: AccountSchema },
     ]),
   ],
-  controllers: [InteliPostController, ConsumerContractController],
+  controllers: [InteliPostController, ConsumerIntelipostController],
   providers: [
     {
       provide: 'LogProvider',

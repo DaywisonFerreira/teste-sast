@@ -1,13 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsString, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsString, ValidateNested } from 'class-validator';
 
 class Attributes {
   @IsString()
   key: string;
 
-  @IsString()
-  value: string;
+  @IsNotEmpty()
+  value: string|number|boolean;
 }
 class Integration {
   @IsString()
