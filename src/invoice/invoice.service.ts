@@ -45,7 +45,7 @@ export class InvoiceService {
       .replace('dist', 'src');
     const file = fs.readFileSync(filePathLocal, 'utf8');
 
-    if (destPath && secure && port && password && user) {
+    if (destPath && port && password && user) {
       const destPathFtpServer = `${destPath.value}/${nameFile}`;
       if (integration.type === 'SFTP') {
         await this.sendFileToFtpServerSSH(
@@ -59,7 +59,7 @@ export class InvoiceService {
           },
           logger,
         );
-      } else {
+      } else if (integration.type === 'FTP' && secure) {
         await this.sendFileToFtpServer(
           file,
           destPathFtpServer,
