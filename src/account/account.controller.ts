@@ -15,6 +15,7 @@ import { FilterPaginateAccountDto } from './dto/filter-paginate-account.dto';
 import { GetAccountDto } from './dto/get-account.dto';
 import { PaginateAccountDto } from './dto/paginate-account.dto';
 import { UpdateWarehouseCodeDto } from './dto/update-warehousecode.dto';
+import { UpdateGenerateNotfisFile } from './dto/update-generatenotfisfile.dto';
 
 @Controller('accounts')
 @ApiTags('Accounts')
@@ -81,6 +82,18 @@ export class AccountController {
 
     const account = await this.accountService.updateWarehouseCode(id, {
       externalWarehouseCode: warehouseCode,
+    });
+    return GetAccountDto.factory(account) as GetAccountDto;
+  }
+
+  @Patch('/:id')
+  async updateGenerateNotfisFile(
+    @Param('id') id: string,
+    @Body() update: UpdateGenerateNotfisFile,
+  ): Promise<GetAccountDto> {
+    const { generateNotfisFile } = update;
+    const account = await this.accountService.updateGenerateNotfisFile(id, {
+      generateNotfisFile,
     });
     return GetAccountDto.factory(account) as GetAccountDto;
   }

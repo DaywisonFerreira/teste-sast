@@ -8,7 +8,7 @@ import { LogProvider } from '@infralabs/infra-logger';
 
 import { NestjsEventEmitter } from '../../commons/providers/event/nestjs-event-emitter';
 import { Env } from '../../commons/environment/env';
-
+import { AccountService } from '../../account/account.service';
 import { InvoiceService } from '../invoice.service';
 
 @Controller()
@@ -16,6 +16,7 @@ export class InvoiceController {
   constructor(
     private readonly eventEmitter: NestjsEventEmitter,
     private readonly invoiceService: InvoiceService,
+    private readonly accountService: AccountService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     @Inject('LogProvider') private logger: LogProvider,
   ) {
@@ -29,10 +30,10 @@ export class InvoiceController {
         `Payload was received from the ${Env.KAFKA_TOPIC_INVOICE_CREATED} topic`,
       );
       const { data } = this.parseValueFromQueue(value);
-      if (data.notfisFile) {
+      const account = await this.accountService.findOneLocation(data.accountId);
+      if (data.notfisFile && account.generateNotfisFile) {
         await this.invoiceService.sendFtp(data, this.logger);
       }
-
       this.eventEmitter.emit('ftp.sent', data);
     } catch (error) {
       this.logger.error(error);

@@ -268,4 +268,23 @@ export class AccountService {
       projection: { __v: 0, _id: 0 },
     });
   }
+
+  async updateGenerateNotfisFile(
+    id: string,
+    generateNotfisFile: Partial<LeanDocument<AccountEntity>>,
+  ) {
+    const location = await this.accountModel.findOne({
+      id,
+      accountType: AccountTypeEnum.location,
+    });
+    if (!location) {
+      throw new HttpException('Location not found.', HttpStatus.NOT_FOUND);
+    }
+    return this.accountModel.findOneAndUpdate({ id }, generateNotfisFile, {
+      timestamps: true,
+      lean: true,
+      new: true,
+      projection: { __v: 0, _id: 0 },
+    });
+  }
 }

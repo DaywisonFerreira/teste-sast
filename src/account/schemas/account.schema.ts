@@ -52,6 +52,9 @@ export class AccountEntity extends Document {
   @Type(() => SalesChannelEntity)
   salesChannels: SalesChannelEntity[];
 
+  @Prop({ type: Boolean, default: false, required: false })
+  generateNotfisFile: boolean;
+
   createdAt: Date;
 
   updatedAt: Date;
