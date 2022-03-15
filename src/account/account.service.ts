@@ -212,16 +212,16 @@ export class AccountService {
 
   async updateGenerateNotfisFile(
     id: string,
-    generateNotfisFile: Partial<LeanDocument<AccountEntity>>,
+    updateData: Partial<LeanDocument<AccountEntity>>,
   ) {
-    const location = await this.accountModel.findOne({
+    const account = await this.accountModel.findOne({
       id,
-      accountType: AccountTypeEnum.location,
+      accountType: AccountTypeEnum.account,
     });
-    if (!location) {
-      throw new HttpException('Location not found.', HttpStatus.NOT_FOUND);
+    if (!account) {
+      throw new HttpException('Account not found.', HttpStatus.NOT_FOUND);
     }
-    return this.accountModel.findOneAndUpdate({ id }, generateNotfisFile, {
+    return this.accountModel.findOneAndUpdate({ id }, updateData, {
       timestamps: true,
       lean: true,
       new: true,
