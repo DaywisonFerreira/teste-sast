@@ -37,7 +37,7 @@ export class AccountEntity extends Document {
   externalWarehouseCode: string;
 
   @Prop({ type: AccountTypeEnum, enum: Object.values(AccountTypeEnum) })
-  accountType: AccountTypeEnum;
+  accountType: string;
 
   @Prop({ default: true, required: false })
   shipToAddress: boolean;

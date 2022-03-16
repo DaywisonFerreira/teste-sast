@@ -5,7 +5,6 @@ import * as path from 'path';
 import * as ClientFtp from 'ftp';
 import * as ClientFtpSSH from 'ssh2-sftp-client';
 import { LogProvider } from '@infralabs/infra-logger';
-import { v4 as uuidV4 } from 'uuid';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { CarrierService } from '../carrier/carrier.service';
 
@@ -18,7 +17,6 @@ export class InvoiceService {
       data.carrier.document,
     );
     if (
-      !data.notfisFile ||
       !carrier ||
       !carrier.generateNotfisFile ||
       !carrier.integration ||
@@ -39,7 +37,11 @@ export class InvoiceService {
     );
     const user = integration.attributes.find(({ key }) => key === 'user');
 
-    const nameFile = await this.downloadFileLocal(data.notfisFile, logger);
+    const nameFile = await this.downloadFileLocal(
+      data.notfisFile,
+      data.notfisFileName,
+      logger,
+    );
     const filePathLocal = path
       .join(__dirname, '../tmp', nameFile)
       .replace('dist', 'src');
@@ -150,6 +152,7 @@ export class InvoiceService {
 
   private async downloadFileLocal(
     url: string,
+    nameFile: string,
     logger: LogProvider,
   ): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -169,7 +172,6 @@ export class InvoiceService {
             if (!fs.existsSync(pathFolder)) {
               fs.mkdirSync(pathFolder);
             }
-            const nameFile = `${uuidV4()}.txt`;
             const file = fs.createWriteStream(
               path.join(pathFolder, nameFile),
               'utf8',

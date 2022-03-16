@@ -1,5 +1,5 @@
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
-import { Logger } from '@infralabs/infra-logger';
+import { InfraLogger as Logger } from '@infralabs/infra-logger';
 import { Module, Scope } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 

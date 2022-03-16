@@ -17,7 +17,6 @@ import {
 import { InvoiceService } from './invoice.service';
 import { InvoiceController } from './consumer/invoice.controller';
 import { CarrierService } from '../carrier/carrier.service';
-import { AccountService } from '../account/account.service';
 
 @Module({
   imports: [
@@ -38,7 +37,6 @@ import { AccountService } from '../account/account.service';
     NestjsEventEmitter,
     InvoiceService,
     CarrierService,
-    AccountService,
   ],
 })
 export class InvoiceModule {}

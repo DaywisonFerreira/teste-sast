@@ -148,10 +148,10 @@ export class AccountService {
     return [result, count];
   }
 
-  async findOneLocation(id: string) {
+  async findOneAccountOrLocation(id: string, accountType: string) {
     const account = await this.accountModel
       .findOne(
-        { id, accountType: AccountTypeEnum.location },
+        { id, accountType },
         {
           _id: 0,
           __v: 0,
@@ -160,7 +160,10 @@ export class AccountService {
       .lean();
 
     if (!account) {
-      throw new HttpException('Location not found.', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'Account or Location not found.',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     return account;

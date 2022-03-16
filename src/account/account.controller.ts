@@ -58,10 +58,36 @@ export class AccountController {
     );
   }
 
+  @Get(':id')
+  @ApiOkResponse({ type: GetAccountDto })
+  async findOneAccount(@Param('id') id: string): Promise<GetAccountDto> {
+    const account = await this.accountService.findOneAccountOrLocation(
+      id,
+      'account',
+    );
+    // @ts-ignore
+    return GetAccountDto.factory(account) as GetAccountDto;
+  }
+
+  @Patch(':id')
+  async updateGenerateNotfisFile(
+    @Param('id') id: string,
+    @Body() update: UpdateGenerateNotfisFile,
+  ): Promise<GetAccountDto> {
+    const { generateNotfisFile } = update;
+    const account = await this.accountService.updateGenerateNotfisFile(id, {
+      generateNotfisFile,
+    });
+    return GetAccountDto.factory(account) as GetAccountDto;
+  }
+
   @Get('locations/:id')
   @ApiOkResponse({ type: GetAccountDto })
   async findOneLocation(@Param('id') id: string): Promise<GetAccountDto> {
-    const account = await this.accountService.findOneLocation(id);
+    const account = await this.accountService.findOneAccountOrLocation(
+      id,
+      'location',
+    );
     // @ts-ignore
     return GetAccountDto.factory(account) as GetAccountDto;
   }
@@ -85,17 +111,5 @@ export class AccountController {
       req.logger.error(error);
       throw error;
     }
-  }
-
-  @Patch('/:id')
-  async updateGenerateNotfisFile(
-    @Param('id') id: string,
-    @Body() update: UpdateGenerateNotfisFile,
-  ): Promise<GetAccountDto> {
-    const { generateNotfisFile } = update;
-    const account = await this.accountService.updateGenerateNotfisFile(id, {
-      generateNotfisFile,
-    });
-    return GetAccountDto.factory(account) as GetAccountDto;
   }
 }
