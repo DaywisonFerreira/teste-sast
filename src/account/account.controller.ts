@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { LogProvider } from '@infralabs/infra-logger';
 import {
   Body,
   Controller,
   Get,
-  Inject,
   Param,
   Patch,
+  Req,
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
@@ -15,17 +14,13 @@ import { FilterPaginateAccountDto } from './dto/filter-paginate-account.dto';
 import { GetAccountDto } from './dto/get-account.dto';
 import { PaginateAccountDto } from './dto/paginate-account.dto';
 import { UpdateWarehouseCodeDto } from './dto/update-warehousecode.dto';
+import { UpdateGenerateNotfisFile } from './dto/update-generatenotfisfile.dto';
 
 @Controller('accounts')
 @ApiTags('Accounts')
 @ApiBearerAuth()
 export class AccountController {
-  constructor(
-    private readonly accountService: AccountService,
-    @Inject('LogProvider') private logger: LogProvider,
-  ) {
-    this.logger.context = AccountController.name;
-  }
+  constructor(private readonly accountService: AccountService) {}
 
   @Get()
   @ApiOkResponse({ type: PaginateAccountDto })
@@ -63,10 +58,36 @@ export class AccountController {
     );
   }
 
+  @Get(':id')
+  @ApiOkResponse({ type: GetAccountDto })
+  async findOneAccount(@Param('id') id: string): Promise<GetAccountDto> {
+    const account = await this.accountService.findOneAccountOrLocation(
+      id,
+      'account',
+    );
+    // @ts-ignore
+    return GetAccountDto.factory(account) as GetAccountDto;
+  }
+
+  @Patch(':id')
+  async updateGenerateNotfisFile(
+    @Param('id') id: string,
+    @Body() update: UpdateGenerateNotfisFile,
+  ): Promise<GetAccountDto> {
+    const { generateNotfisFile } = update;
+    const account = await this.accountService.updateGenerateNotfisFile(id, {
+      generateNotfisFile,
+    });
+    return GetAccountDto.factory(account) as GetAccountDto;
+  }
+
   @Get('locations/:id')
   @ApiOkResponse({ type: GetAccountDto })
   async findOneLocation(@Param('id') id: string): Promise<GetAccountDto> {
-    const account = await this.accountService.findOneLocation(id);
+    const account = await this.accountService.findOneAccountOrLocation(
+      id,
+      'location',
+    );
     // @ts-ignore
     return GetAccountDto.factory(account) as GetAccountDto;
   }
@@ -76,12 +97,19 @@ export class AccountController {
   async updateExternalWarehouseCode(
     @Param('id') id: string,
     @Body() update: UpdateWarehouseCodeDto,
+    @Req() req: any,
   ): Promise<GetAccountDto> {
-    const { warehouseCode } = update;
+    try {
+      const { warehouseCode } = update;
 
-    const account = await this.accountService.updateWarehouseCode(id, {
-      externalWarehouseCode: warehouseCode,
-    });
-    return GetAccountDto.factory(account) as GetAccountDto;
+      const account = await this.accountService.updateWarehouseCode(id, {
+        externalWarehouseCode: warehouseCode,
+      });
+      req.logger.log(`Account location ${warehouseCode} updated`);
+      return GetAccountDto.factory(account) as GetAccountDto;
+    } catch (error) {
+      req.logger.error(error);
+      throw error;
+    }
   }
 }

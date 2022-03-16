@@ -1,6 +1,6 @@
 import { Module, Scope } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Logger } from '@infralabs/infra-logger';
+import { InfraLogger as Logger } from '@infralabs/infra-logger';
 import { CnpjAlreadyExist, NameAlreadyExist } from './validators';
 import { CarrierEntity, CarrierSchema } from './schemas/carrier.schema';
 import { CarrierController } from './carrier.controller';

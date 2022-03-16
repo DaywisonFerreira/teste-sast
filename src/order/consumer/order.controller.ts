@@ -1,12 +1,12 @@
 import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
-import { ConsumeMessage, Channel } from 'amqplib';
+import { Channel } from 'amqplib';
 import {
   KafkaResponse,
   KafkaService,
   SubscribeTopic,
 } from '@infralabs/infra-nestjs-kafka';
 import { Controller, Inject } from '@nestjs/common';
-import { LogProvider } from '@infralabs/infra-logger';
+import { InfraLogger } from '@infralabs/infra-logger';
 import { lightFormat } from 'date-fns';
 import { utils, writeFile } from 'xlsx';
 import { existsSync, mkdirSync, promises } from 'fs';
@@ -15,7 +15,7 @@ import { v4 as uuidV4 } from 'uuid';
 import { Env } from '../../commons/environment/env';
 import { CsvMapper } from '../mappers/csvMapper';
 import { OrderService } from '../order.service';
-import { IOrder } from '../interfaces/order.interface';
+import { IHubOrder } from '../interfaces/order.interface';
 import { OrderMapper } from '../mappers/orderMapper';
 
 @Controller()
@@ -23,22 +23,37 @@ export class ConsumerOrderController {
   constructor(
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     private readonly orderService: OrderService,
-    @Inject('LogProvider') private logger: LogProvider,
-  ) {
-    this.logger.context = ConsumerOrderController.name;
-  }
+  ) {}
 
   @RabbitSubscribe({
     exchange: Env.RABBITMQ_ORDER_NOTIFICATION_EXCHANGE,
     routingKey: '',
     queue: `delivery_hub_order_notification_${Env.NODE_ENV}_q`,
-    errorHandler: (channel: Channel, msg: ConsumeMessage) => {
+    errorHandler: (channel: Channel, msg: any, error) => {
+      const logger = new InfraLogger(
+        {
+          'X-Version': '1.0',
+          'X-Correlation-Id': uuidV4(),
+          'X-Tenant-Id': msg.storeId,
+        },
+        ConsumerOrderController.name,
+      );
+      logger.error(error);
       channel.reject(msg, false);
     },
   })
-  public async orderNotificationHandler(order: IOrder) {
-    this.logger.log(
-      `Order ${order.externalOrderId} was received in the integration queue`,
+  public async orderNotificationHandler(order: IHubOrder) {
+    const logger = new InfraLogger(
+      {
+        'X-Version': '1.0',
+        'X-Correlation-Id': uuidV4(),
+        'X-Tenant-Id': order.storeId,
+      },
+      ConsumerOrderController.name,
+    );
+
+    logger.verbose(
+      `delivery_hub_order_notification_${Env.NODE_ENV}_q - iHub order received with orderSale ${order.externalOrderId} in the integration queue`,
     );
     try {
       if (
@@ -47,29 +62,51 @@ export class ConsumerOrderController {
         (order.status === 'dispatched' || order.status === 'invoiced')
         // (order.status === 'dispatched' || order.status === 'invoiced' || order.status === 'ready-for-handling')
       ) {
-        const orderToSave = OrderMapper.mapMessageToOrder(order);
-        await this.orderService.merge(
-          { orderSale: orderToSave.orderSale },
-          // { orderSale: orderToSave.orderSale, partnerOrder: orderToSave.partnerOrder },
-          orderToSave,
-          'ihub',
+        const orderToSaves: Array<any> = OrderMapper.mapMessageToOrders(order);
+        await Promise.all(
+          orderToSaves.map(async orderToSave =>
+            this.orderService.merge(
+              {
+                orderSale: orderToSave.orderSale,
+                'invoice.key': orderToSave.invoice.key,
+              },
+              { ...orderToSave },
+              'ihub',
+            ),
+          ),
         );
+        if (orderToSaves.length) {
+          logger.log(
+            `Order with invoiceKeys ${orderToSaves[0].invoiceKeys.join(
+              ',',
+            )} was saved`,
+          );
+        }
       }
     } catch (error) {
-      this.logger.error(error);
+      logger.error(error);
     }
   }
 
   @SubscribeTopic(Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT)
-  async consumerExportOrders(messageKafka: KafkaResponse<string>) {
+  async consumerExportOrders({
+    value,
+    partition,
+    headers,
+    offset,
+  }: KafkaResponse<string>) {
     let file;
-    const { headers } = messageKafka;
-    const { data, user } = JSON.parse(messageKafka.value);
+    const { data, user } = JSON.parse(value);
+    const logger = new InfraLogger(headers, ConsumerOrderController.name);
 
     await this.removeFromQueue(
       Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT,
-      messageKafka.partition,
-      messageKafka.offset,
+      partition,
+      offset,
+    );
+
+    logger.log(
+      `${Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT} - Report request was received for storeId: ${data.storeId} - From ${data.rderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
     );
     try {
       const dataToFormat = await this.orderService.exportData(data, {
@@ -98,7 +135,7 @@ export class ConsumerOrderController {
         },
       );
     } catch (error) {
-      this.logger.error(error);
+      logger.error(error);
     } finally {
       if (existsSync(file.path)) {
         await this.deleteFileLocally(file.path);

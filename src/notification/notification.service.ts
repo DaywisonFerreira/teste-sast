@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { IFilterObject } from 'src/commons/interfaces/filter-object.interface';
@@ -9,8 +9,6 @@ import {
 
 @Injectable()
 export class NotificationService {
-  private logger = new Logger(NotificationService.name);
-
   constructor(
     @InjectModel(NotificationEntity.name)
     private notificationModel: Model<NotificationDocument>,

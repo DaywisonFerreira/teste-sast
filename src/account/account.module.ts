@@ -2,7 +2,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Module, Scope } from '@nestjs/common';
 import { Env } from 'src/commons/environment/env';
 import { NestjsLogger } from 'src/commons/providers/log/nestjs-logger';
-import { Logger } from '@infralabs/infra-logger';
+import { InfraLogger as Logger } from '@infralabs/infra-logger';
 import { AccountService } from './account.service';
 import { AccountEntity, AccountSchema } from './schemas/account.schema';
 import { AccountController } from './account.controller';

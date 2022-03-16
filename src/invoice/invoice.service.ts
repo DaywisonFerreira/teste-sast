@@ -3,8 +3,8 @@ import * as https from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ClientFtp from 'ftp';
+import * as ClientFtpSSH from 'ssh2-sftp-client';
 import { LogProvider } from '@infralabs/infra-logger';
-import { v4 as uuidV4 } from 'uuid';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { CarrierService } from '../carrier/carrier.service';
 
@@ -17,13 +17,11 @@ export class InvoiceService {
       data.carrier.document,
     );
     if (
-      !data.notfisFile ||
       !carrier ||
       !carrier.generateNotfisFile ||
       !carrier.integration ||
       !carrier.integration.endpoint ||
-      !carrier.integration.attributes ||
-      carrier.integration.type !== 'FTP'
+      !carrier.integration.attributes
     ) {
       return false;
     }
@@ -39,34 +37,52 @@ export class InvoiceService {
     );
     const user = integration.attributes.find(({ key }) => key === 'user');
 
-    const nameFile = await this.downloadFileLocal(data.notfisFile, logger);
+    const nameFile = await this.downloadFileLocal(
+      data.notfisFile,
+      data.notfisFileName,
+      logger,
+    );
     const filePathLocal = path
       .join(__dirname, '../tmp', nameFile)
       .replace('dist', 'src');
     const file = fs.readFileSync(filePathLocal, 'utf8');
 
-    if (destPath && secure && port && password && user) {
+    if (destPath && port && password && user) {
       const destPathFtpServer = `${destPath.value}/${nameFile}`;
-      await this.sendFileFtpToServer(
-        file,
-        destPathFtpServer,
-        filePathLocal,
-        {
-          host: integration.endpoint,
-          user: user.value,
-          password: password.value,
-          port: port.value,
-          secure: secure.value,
-        },
-        logger,
-      );
+      if (integration.type === 'SFTP') {
+        await this.sendFileToFtpServerSSH(
+          destPathFtpServer,
+          filePathLocal,
+          {
+            host: integration.endpoint,
+            user: user.value,
+            password: password.value,
+            port: port.value,
+          },
+          logger,
+        );
+      } else if (integration.type === 'FTP' && secure) {
+        await this.sendFileToFtpServer(
+          file,
+          destPathFtpServer,
+          filePathLocal,
+          {
+            host: integration.endpoint,
+            user: user.value,
+            password: password.value,
+            port: port.value,
+            secure: secure.value,
+          },
+          logger,
+        );
+      }
       return true;
     }
 
     return false;
   }
 
-  private async sendFileFtpToServer(
+  private async sendFileToFtpServer(
     file: string | Buffer,
     destPathFtp: string,
     filePathLocal: string,
@@ -96,6 +112,37 @@ export class InvoiceService {
     });
   }
 
+  private async sendFileToFtpServerSSH(
+    destPath: string,
+    filePathLocal: string,
+    ftpAccess: any,
+    logger: LogProvider,
+  ) {
+    return new Promise((resolve, reject) => {
+      const sftp = new ClientFtpSSH();
+      sftp
+        .connect({
+          host: ftpAccess.host,
+          username: ftpAccess.user,
+          password: ftpAccess.password,
+          port: ftpAccess.port,
+        })
+        .then(() => {
+          return sftp.put(fs.createReadStream(filePathLocal), destPath);
+        })
+        .then(() => {
+          this.deleteFileLocal(filePathLocal, logger);
+          logger.log('File successfully uploaded to SSH FTP server!');
+          resolve(sftp.end());
+        })
+        .catch(err => {
+          this.deleteFileLocal(filePathLocal, logger);
+          logger.error(err.message);
+          reject();
+        });
+    });
+  }
+
   private deleteFileLocal(path: string, logger: LogProvider) {
     if (fs.existsSync(path)) {
       fs.unlinkSync(path);
@@ -105,6 +152,7 @@ export class InvoiceService {
 
   private async downloadFileLocal(
     url: string,
+    nameFile: string,
     logger: LogProvider,
   ): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -124,7 +172,6 @@ export class InvoiceService {
             if (!fs.existsSync(pathFolder)) {
               fs.mkdirSync(pathFolder);
             }
-            const nameFile = `${uuidV4()}.txt`;
             const file = fs.createWriteStream(
               path.join(pathFolder, nameFile),
               'utf8',

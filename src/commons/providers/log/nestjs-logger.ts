@@ -4,21 +4,9 @@ import { LogProvider } from '@infralabs/infra-logger';
 export class NestjsLogger extends LogProvider {
   private logger: Logger;
 
-  constructor(context) {
-    super(context);
+  constructor() {
+    super();
     this.logger = new Logger();
-  }
-
-  startAt() {
-    // do something
-  }
-
-  endAt() {
-    // do something
-  }
-
-  sendLog() {
-    // do something
   }
 
   add(context, data): void {
@@ -38,6 +26,18 @@ export class NestjsLogger extends LogProvider {
   }
 
   warn(data): void {
+    this.logger.log(data, this.context);
+  }
+
+  alert(data): void {
+    this.logger.log(data, this.context);
+  }
+
+  info(data): void {
+    this.logger.log(data, this.context);
+  }
+
+  verbose(data): void {
     this.logger.log(data, this.context);
   }
 }
