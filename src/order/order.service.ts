@@ -232,8 +232,7 @@ export class OrderService {
 
     if (!orders.length) {
       await this.createOrder(data, origin);
-    }
-    if (orders.length > 1) {
+    } else if (orders.length > 1) {
       await this.updateOrdersWithMultipleInvoices(
         configPK,
         data,

@@ -15,16 +15,17 @@ export class OrderMapper {
     return {
       orderSale: payload.sales_order_number,
       partnerOrder: payload.order_number,
-      orderUpdatedAt: payload.history.event_date_iso,
+      orderUpdatedAt: new Date(payload.history.event_date_iso),
       invoiceKeys: [payload.invoice.invoice_key],
       invoice: {
         key: payload.invoice.invoice_key,
         serie: payload.invoice.invoice_series,
         number: payload.invoice.invoice_number,
       },
-      dispatchDate: payload.history.created_iso,
-      estimateDeliveryDateDeliveryCompany:
+      dispatchDate: new Date(payload.history.created_iso),
+      estimateDeliveryDateDeliveryCompany: new Date(
         payload.estimated_delivery_date.client.current_iso,
+      ),
       partnerMessage: payload.history.provider_message,
       numberVolumes: parseInt(payload.volume_number, 10),
       microStatus: payload.history.shipment_volume_micro_state.name,

@@ -27,7 +27,9 @@ export class InteliPostController {
     @Req() req: any,
   ) {
     try {
-      req.logger.log(`Intelipost created`);
+      req.logger.verbose(
+        `Intelipost request received for order ${createIntelipost.sales_order_number}`,
+      );
 
       await this.kafkaProducer.send(
         Env.KAFKA_TOPIC_INTELIPOST_CREATED,

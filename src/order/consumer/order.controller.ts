@@ -1,5 +1,5 @@
 import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
-import { ConsumeMessage, Channel } from 'amqplib';
+import { Channel } from 'amqplib';
 import {
   KafkaResponse,
   KafkaService,
@@ -29,18 +29,31 @@ export class ConsumerOrderController {
     exchange: Env.RABBITMQ_ORDER_NOTIFICATION_EXCHANGE,
     routingKey: '',
     queue: `delivery_hub_order_notification_${Env.NODE_ENV}_q`,
-    errorHandler: (channel: Channel, msg: ConsumeMessage) => {
+    errorHandler: (channel: Channel, msg: any, error) => {
+      const logger = new InfraLogger(
+        {
+          'X-Version': '1.0',
+          'X-Correlation-Id': uuidV4(),
+          'X-Tenant-Id': msg.storeId,
+        },
+        ConsumerOrderController.name,
+      );
+      logger.error(error);
       channel.reject(msg, false);
     },
   })
-  public async orderNotificationHandler(
-    order: IHubOrder,
-    { headers }: KafkaResponse<string>,
-  ) {
-    const logger = new InfraLogger(headers, ConsumerOrderController.name);
+  public async orderNotificationHandler(order: IHubOrder) {
+    const logger = new InfraLogger(
+      {
+        'X-Version': '1.0',
+        'X-Correlation-Id': uuidV4(),
+        'X-Tenant-Id': order.storeId,
+      },
+      ConsumerOrderController.name,
+    );
 
-    logger.log(
-      `Order ${order.externalOrderId} was received in the integration queue`,
+    logger.verbose(
+      `delivery_hub_order_notification_${Env.NODE_ENV}_q - iHub order received with orderSale ${order.externalOrderId} in the integration queue`,
     );
     try {
       if (
@@ -62,6 +75,13 @@ export class ConsumerOrderController {
             ),
           ),
         );
+        if (orderToSaves.length) {
+          logger.log(
+            `Order with invoiceKeys ${orderToSaves[0].invoiceKeys.join(
+              ',',
+            )} was saved`,
+          );
+        }
       }
     } catch (error) {
       logger.error(error);
@@ -83,6 +103,10 @@ export class ConsumerOrderController {
       Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT,
       partition,
       offset,
+    );
+
+    logger.log(
+      `${Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT} - Report request was received for storeId: ${data.storeId} - From ${data.rderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
     );
     try {
       const dataToFormat = await this.orderService.exportData(data, {

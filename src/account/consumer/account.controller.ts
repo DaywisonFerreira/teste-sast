@@ -23,11 +23,13 @@ export class ConsumerAccountController {
     offset,
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerAccountController.name);
-    const data = JSON.parse(value);
+    const { data } = JSON.parse(value);
 
     try {
-      logger.log('account.created - Account consumer was received');
-      await this.accountService.create(data.data);
+      logger.log(
+        `${Env.KAFKA_TOPIC_ACCOUNT_CREATED} - Account consumer was received`,
+      );
+      await this.accountService.create(data);
     } catch (error) {
       logger.error(error);
     } finally {
@@ -47,11 +49,13 @@ export class ConsumerAccountController {
     offset,
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerAccountController.name);
-    const data = JSON.parse(value);
+    const { data } = JSON.parse(value);
 
     try {
-      logger.log('account.changed - Account consumer was received');
-      await this.accountService.update(data.data.id, data.data);
+      logger.log(
+        `${Env.KAFKA_TOPIC_ACCOUNT_CHANGED} - Account consumer was received`,
+      );
+      await this.accountService.update(data.id, data);
     } catch (error) {
       logger.error(error);
     } finally {
@@ -71,11 +75,13 @@ export class ConsumerAccountController {
     offset,
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerAccountController.name);
-    const data = JSON.parse(value);
+    const { data } = JSON.parse(value);
 
     try {
-      logger.log('location.created - Account consumer was received');
-      await this.accountService.create(data.data);
+      logger.log(
+        `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_CREATED} - Account consumer was received`,
+      );
+      await this.accountService.create(data);
     } catch (error) {
       logger.error(error);
     } finally {
@@ -95,11 +101,13 @@ export class ConsumerAccountController {
     offset,
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerAccountController.name);
-    const data = JSON.parse(value);
+    const { data } = JSON.parse(value);
 
     try {
-      logger.log('location.changed - Account consumer was received');
-      await this.accountService.update(data.data.id, data.data);
+      logger.log(
+        `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_CHANGED} - Account consumer was received`,
+      );
+      await this.accountService.update(data.id, data);
     } catch (error) {
       logger.error(error);
     } finally {
@@ -119,15 +127,15 @@ export class ConsumerAccountController {
     offset,
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerAccountController.name);
-    const data = JSON.parse(value);
+    const { data } = JSON.parse(value);
 
     try {
       logger.log(
-        `location.associated - Account consumer was received ${data.data.id}`,
+        `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_ASSOCIATED} - Account consumer was received ${data.id}`,
       );
       await this.accountService.associateLocation(
         headers['X-Tenant-Id'],
-        data.data.id,
+        data.id,
       );
     } catch (error) {
       logger.error(error);
@@ -148,16 +156,16 @@ export class ConsumerAccountController {
     offset,
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerAccountController.name);
-    const data = JSON.parse(value);
+    const { data } = JSON.parse(value);
 
     try {
       logger.log(
-        `location.unassociated - Account consumer was received ${data.data.id}`,
+        `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_UNASSOCIATED} - Account consumer was received ${data.id}`,
       );
 
       await this.accountService.unassociateLocation(
         headers['X-Tenant-Id'],
-        data.data.id,
+        data.id,
       );
     } catch (error) {
       logger.error(error);
