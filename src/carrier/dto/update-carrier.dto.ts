@@ -1,13 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsString, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsString, ValidateNested } from 'class-validator';
 
 class Attributes {
   @IsString()
   key: string;
 
-  @IsString()
-  value: string;
+  @IsNotEmpty()
+  value: string | number | boolean;
 }
 class Integration {
   @IsString()
@@ -43,13 +43,27 @@ export class UpdateCarrierDto {
     type: Object,
     example: {
       type: 'FTP',
-
       endpoint: '',
-
       attributes: [
         {
           key: 'user',
           value: 'teste',
+        },
+        {
+          key: 'password',
+          value: 'teste',
+        },
+        {
+          key: 'port',
+          value: 21,
+        },
+        {
+          key: 'secure',
+          value: false,
+        },
+        {
+          key: 'destPath',
+          value: '/teste',
         },
       ],
     },

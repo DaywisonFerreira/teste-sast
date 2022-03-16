@@ -18,6 +18,7 @@ import { join, resolve } from 'path';
 
 import { AppModule } from './app.module';
 import { Env } from './commons/environment/env';
+import { LoggingInterceptor } from './commons/interceptors/logging.interceptor';
 
 const bootstrap = async (): Promise<void> => {
   const fastifyAdapter = new FastifyAdapter({
@@ -54,6 +55,8 @@ const bootstrap = async (): Promise<void> => {
   app.enableCors(corsOptions);
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   app.setViewEngine({
     engine: {

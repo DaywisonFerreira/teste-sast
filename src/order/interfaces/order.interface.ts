@@ -1,3 +1,6 @@
+import { Types } from 'mongoose';
+import { Invoice } from '../schemas/order.schema';
+
 export interface Value {
   $numberDecimal: number;
 }
@@ -185,6 +188,7 @@ export interface Customer {
   document: string;
   documentType: string;
   fullName: string;
+  corporateName: string;
 }
 
 export interface Body {
@@ -205,8 +209,8 @@ export interface ACKData {
   body: Body[];
 }
 
-export class IOrder {
-  _id: string;
+export class IHubOrder {
+  _id: Types.ObjectId;
 
   __v: number;
 
@@ -283,6 +287,8 @@ export class IOrder {
   value: Value;
 
   visitorIp: string;
+
+  invoice: Invoice;
 
   /**
    * List of standard public fields for this entity. Commonly used for return in APIs.

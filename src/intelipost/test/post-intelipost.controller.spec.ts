@@ -24,6 +24,10 @@ describe('InteliPostController', () => {
           provide: 'LogProvider',
           useValue: {},
         },
+        {
+          provide: 'KafkaService',
+          useValue: {},
+        },
       ],
     }).compile();
 

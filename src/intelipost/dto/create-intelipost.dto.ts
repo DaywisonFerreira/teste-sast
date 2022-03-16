@@ -1,85 +1,224 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsObject, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  ArrayNotEmpty,
+  IsDateString,
+  IsNotEmpty,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
-interface Ishipment_volume_micro_state {
-  id: number;
-  code: string;
-  default_name: string;
-  i18n_name: string;
-  description: string;
-  shipment_order_volume_state_id: number;
-  shipment_volume_state_source_id: number;
-  name: string;
-}
-
-interface Iattachments {
+class AttachmentsDto {
+  @IsNotEmpty()
+  @IsString()
   file_name: string;
+
+  @IsNotEmpty()
+  @IsString()
   mime_type: string;
+
+  @IsNotEmpty()
+  @IsString()
   type: string;
+
+  @IsNotEmpty()
+  @IsString()
   processing_status: string;
+
+  @IsOptional()
+  @IsObject()
+  // TODO: transformar em classe
   additional_information: {
     key1: string;
     key2: string;
   };
-  url: string;
+
+  // @IsOptional()
+  // @IsString()
+  url?: string;
+
+  @IsNotEmpty()
+  @IsNumber()
   created: number;
+
+  @IsNotEmpty()
+  @IsDateString()
   created_iso: string;
+
+  @IsNotEmpty()
+  @IsNumber()
   modified: number;
+
+  @IsNotEmpty()
+  @IsDateString()
   modified_iso: string;
 }
 
-interface Ihistory {
-  shipment_order_volume_id: number;
-  shipment_order_volume_state: string;
-  tracking_state: string;
-  created: number;
-  created_iso: string;
-  provider_message: string;
-  provider_state: string;
-  shipper_provider_state: string;
-  esprinter_message: string;
-  shipment_volume_micro_state: Ishipment_volume_micro_state;
-  attachments: Iattachments[];
-  shipment_order_volume_state_localized: string;
-  shipment_order_volume_state_history: number;
-  event_date: number;
-  event_date_iso: string;
-}
-
-interface Iinvoice {
-  invoice_series: string;
-  invoice_number: string;
-  invoice_key: string;
-}
-
-interface Ishipment_volume_micro_state {
+class ShipmentVolumeMicroState {
+  @IsNotEmpty()
+  @IsNumber()
   id: number;
+
+  @IsNotEmpty()
+  @IsString()
   code: string;
+
+  @IsNotEmpty()
+  @IsString()
   default_name: string;
-  i18n_name: string;
+
+  // @IsNotEmpty()
+  // @IsString()
+  i18n_name?: string;
+
+  @IsNotEmpty()
+  @IsString()
   description: string;
+
+  @IsNotEmpty()
+  @IsNumber()
   shipment_order_volume_state_id: number;
+
+  @IsNotEmpty()
+  @IsNumber()
   shipment_volume_state_source_id: number;
+
+  @IsNotEmpty()
+  @IsString()
   name: string;
 }
 
-interface Iclient {
+class HistoryDto {
+  @IsNotEmpty()
+  @IsNumber()
+  shipment_order_volume_id: number;
+
+  @IsNotEmpty()
+  @IsString()
+  shipment_order_volume_state: string;
+
+  // @IsNotEmpty()
+  // @IsString()
+  tracking_state?: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  created: number;
+
+  @IsNotEmpty()
+  @IsDateString()
+  created_iso: string;
+
+  @IsNotEmpty()
+  @IsString()
+  provider_message: string;
+
+  @IsNotEmpty()
+  @IsString()
+  provider_state: string;
+
+  @IsNotEmpty()
+  @IsString()
+  shipper_provider_state: string;
+
+  @IsNotEmpty()
+  @IsString()
+  esprinter_message: string;
+
+  @IsNotEmpty()
+  @IsObject()
+  @Type(() => ShipmentVolumeMicroState)
+  @ValidateNested({ message: 'shipment_volume_micro_state invalid.format' })
+  shipment_volume_micro_state: ShipmentVolumeMicroState;
+
+  @ArrayNotEmpty()
+  @Type(() => AttachmentsDto)
+  @ValidateNested({ each: true })
+  @IsNotEmpty()
+  attachments: AttachmentsDto[];
+
+  @IsNotEmpty()
+  @IsString()
+  shipment_order_volume_state_localized: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  shipment_order_volume_state_history: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  event_date: number;
+
+  @IsNotEmpty()
+  @IsDateString()
+  event_date_iso: string;
+}
+
+class InvoiceDto {
+  @IsNotEmpty()
+  @IsString()
+  invoice_series: string;
+
+  @IsNotEmpty()
+  @IsString()
+  invoice_number: string;
+
+  @IsNotEmpty()
+  @IsString()
+  invoice_key: string;
+}
+
+class LogisticProviderDto {
+  @IsNotEmpty()
+  @IsNumber()
   current: number;
+
+  @IsNotEmpty()
+  @IsDateString()
   current_iso: string;
+
+  @IsNotEmpty()
+  @IsNumber()
   original: number;
+
+  @IsNotEmpty()
+  @IsDateString()
   original_iso: string;
 }
 
-interface Ilogistic_provider {
+class ClientDto {
+  @IsNotEmpty()
+  @IsNumber()
   current: number;
+
+  @IsNotEmpty()
+  @IsDateString()
   current_iso: string;
+
+  @IsNotEmpty()
+  @IsNumber()
   original: number;
+
+  @IsNotEmpty()
+  @IsDateString()
   original_iso: string;
 }
 
-interface Iestimated_delivery_date {
-  client: Iclient;
-  logistic_provider: Ilogistic_provider;
+class EstimatedDeliveryDateDto {
+  @IsNotEmpty()
+  @IsObject()
+  @Type(() => ClientDto)
+  @ValidateNested({ message: 'client invalid.format' })
+  client: ClientDto;
+
+  @IsNotEmpty()
+  @IsObject()
+  @Type(() => LogisticProviderDto)
+  @ValidateNested({ message: 'logistic_provider invalid.format' })
+  logistic_provider: LogisticProviderDto;
 }
 
 export class CreateIntelipost {
@@ -89,7 +228,9 @@ export class CreateIntelipost {
   })
   @IsNotEmpty()
   @IsObject()
-  history: Ihistory;
+  @Type(() => HistoryDto)
+  @ValidateNested({ message: 'history invalid.format' })
+  history: HistoryDto;
 
   @ApiProperty({
     type: Object,
@@ -97,7 +238,9 @@ export class CreateIntelipost {
   })
   @IsNotEmpty()
   @IsObject()
-  invoice: Iinvoice;
+  @Type(() => InvoiceDto)
+  @ValidateNested({ message: 'invoice invalid.format' })
+  invoice: InvoiceDto;
 
   @ApiProperty({
     type: String,
@@ -137,7 +280,9 @@ export class CreateIntelipost {
   })
   @IsNotEmpty()
   @IsObject()
-  estimated_delivery_date: Iestimated_delivery_date;
+  @Type(() => EstimatedDeliveryDateDto)
+  @ValidateNested({ message: 'estimated_delivery_date invalid.format' })
+  estimated_delivery_date: EstimatedDeliveryDateDto;
 
   @ApiProperty({
     type: String,
