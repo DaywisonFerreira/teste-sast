@@ -46,7 +46,7 @@ export class IntelipostMapper {
       end_customer: {
         first_name: data.receiver.name.split(' ')[0],
         last_name: data.receiver.name.split(' ')[1] ?? '',
-        email: data.receiver.email,
+        email: data.receiver.email || '',
         phone: data.receiver.phone,
         cellphone: data.receiver.phone,
         is_company: data.receiver.documentType.toUpperCase() !== 'CPF',

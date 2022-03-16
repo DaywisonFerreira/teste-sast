@@ -35,13 +35,11 @@ export class Address {
 export class ER {
   name: string;
 
-  email: string;
+  email?: string;
 
   document: string;
 
   documentType: string;
-
-  stateInscription: string;
 
   phone: string;
 
@@ -49,19 +47,19 @@ export class ER {
 }
 
 export class Carrier {
-  name: string;
+  name?: string;
 
-  email: string;
+  email?: string;
 
   document: string;
 
   documentType: string;
 
-  stateInscription: string;
+  stateInscription?: string;
 
-  phone: string;
+  phone?: string;
 
-  address: Address;
+  address?: Address;
 }
 
 export class Package {
@@ -99,6 +97,10 @@ export class CreateInvoiceDto {
   @IsUrl()
   @IsString()
   notfisFile: string;
+
+  @IsOptional()
+  @IsString()
+  notfisFileName: string;
 
   @IsNotEmpty()
   @IsNumber()

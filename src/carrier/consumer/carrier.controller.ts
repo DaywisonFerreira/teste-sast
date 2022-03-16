@@ -3,47 +3,68 @@ import {
   KafkaService,
   SubscribeTopic,
 } from '@infralabs/infra-nestjs-kafka';
-import { Controller, Inject, Logger } from '@nestjs/common';
+import { Controller, Inject } from '@nestjs/common';
 import { Env } from 'src/commons/environment/env';
+import { InfraLogger } from '@infralabs/infra-logger';
 import { CarrierService } from '../carrier.service';
 
 @Controller()
 export class ConsumerCarrierController {
-  private logger = new Logger(ConsumerCarrierController.name);
-
   constructor(
     private readonly carrierService: CarrierService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
   ) {}
 
   @SubscribeTopic(Env.KAFKA_TOPIC_CARRIER_CREATED)
-  async createCarrier(messageKafka: KafkaResponse<string>) {
-    const value = JSON.parse(messageKafka.value);
+  async createCarrier({
+    value,
+    partition,
+    headers,
+    offset,
+  }: KafkaResponse<string>) {
+    const logger = new InfraLogger(headers, ConsumerCarrierController.name);
+    const data = JSON.parse(value);
 
-    await this.removeFromQueue(
-      Env.KAFKA_TOPIC_CARRIER_CREATED,
-      messageKafka.partition,
-      messageKafka.offset,
-    );
-    this.logger.log(
-      `${Env.KAFKA_TOPIC_CARRIER_CREATED} - Carrier consumer was received`,
-    );
-    await this.carrierService.create(value.data);
+    try {
+      logger.log(
+        `${Env.KAFKA_TOPIC_CARRIER_CREATED} - Carrier consumer was received`,
+      );
+      await this.carrierService.create(data);
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      await this.removeFromQueue(
+        Env.KAFKA_TOPIC_CARRIER_CREATED,
+        partition,
+        offset,
+      );
+    }
   }
 
   @SubscribeTopic(Env.KAFKA_TOPIC_CARRIER_CHANGED)
-  async updateCarrier(messageKafka: KafkaResponse<string>) {
-    const value = JSON.parse(messageKafka.value);
+  async updateCarrier({
+    value,
+    partition,
+    headers,
+    offset,
+  }: KafkaResponse<string>) {
+    const logger = new InfraLogger(headers, ConsumerCarrierController.name);
+    const data = JSON.parse(value);
 
-    await this.removeFromQueue(
-      Env.KAFKA_TOPIC_CARRIER_CHANGED,
-      messageKafka.partition,
-      messageKafka.offset,
-    );
-    this.logger.log(
-      `${Env.KAFKA_TOPIC_CARRIER_CHANGED} - Carrier consumer was received`,
-    );
-    await this.carrierService.updateConsumer(value.data.id, value.data);
+    try {
+      logger.log(
+        `${Env.KAFKA_TOPIC_CARRIER_CHANGED} - Carrier consumer was received`,
+      );
+      await this.carrierService.updateConsumer(data.data.id, data.data);
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      await this.removeFromQueue(
+        Env.KAFKA_TOPIC_CARRIER_CHANGED,
+        partition,
+        offset,
+      );
+    }
   }
 
   private async removeFromQueue(

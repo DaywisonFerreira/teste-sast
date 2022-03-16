@@ -1,13 +1,13 @@
 import {
-  Controller,
-  Post,
   Body,
-  Inject,
+  Controller,
+  Headers,
   HttpException,
   HttpStatus,
-  Headers,
+  Inject,
+  Req,
+  Post,
 } from '@nestjs/common';
-import { LogProvider } from '@infralabs/infra-logger';
 
 import { ApiTags } from '@nestjs/swagger';
 import { KafkaService } from '@infralabs/infra-nestjs-kafka';
@@ -18,19 +18,19 @@ import { MessageIntelipostCreated } from './factories';
 @Controller('intelipost')
 @ApiTags('Intelipost')
 export class InteliPostController {
-  constructor(
-    @Inject('LogProvider') private logger: LogProvider,
-    @Inject('KafkaService') private kafkaProducer: KafkaService,
-  ) {
-    this.logger.context = InteliPostController.name;
-  }
+  constructor(@Inject('KafkaService') private kafkaProducer: KafkaService) {}
 
   @Post()
   async postIntelipost(
     @Headers() headers: any,
     @Body() createIntelipost: CreateIntelipost,
+    @Req() req: any,
   ) {
     try {
+      req.logger.verbose(
+        `Intelipost request received for order ${createIntelipost.sales_order_number}`,
+      );
+
       await this.kafkaProducer.send(
         Env.KAFKA_TOPIC_INTELIPOST_CREATED,
         MessageIntelipostCreated({
@@ -39,7 +39,7 @@ export class InteliPostController {
         }),
       );
     } catch (error) {
-      this.logger.error(error);
+      req.logger.error(error);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

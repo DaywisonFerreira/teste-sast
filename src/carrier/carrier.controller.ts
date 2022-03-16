@@ -2,9 +2,9 @@ import {
   Body,
   Controller,
   Get,
-  Inject,
   Param,
   Patch,
+  Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -18,7 +18,6 @@ import { existsSync, unlinkSync } from 'fs';
 import { FastifyFileInterceptor } from 'src/commons/interceptors/file.interceptor';
 import { diskStorage } from 'multer';
 import { Env } from 'src/commons/environment/env';
-import { LogProvider } from '@infralabs/infra-logger';
 import { createBlobService } from 'azure-storage';
 import { GetCarrierDto } from './dto/get-carrier.dto';
 import { UpdateCarrierDto } from './dto/update-carrier.dto';
@@ -30,12 +29,7 @@ import { UploadLogoDto } from './dto/upload-logo.dto';
 @ApiTags('Carrier')
 @ApiBearerAuth()
 export class CarrierController {
-  constructor(
-    private readonly carrierService: CarrierService,
-    @Inject('LogProvider') private logger: LogProvider,
-  ) {
-    this.logger.context = CarrierController.name;
-  }
+  constructor(private readonly carrierService: CarrierService) {}
 
   @Get(':id')
   @ApiOkResponse({ type: GetCarrierDto })
@@ -49,16 +43,23 @@ export class CarrierController {
   async updateCredentials(
     @Param('id') id: string,
     @Body() updateShippingDto: UpdateCarrierDto,
+    @Req() req: any,
   ): Promise<GetCarrierDto> {
-    const { generateNotfisFile, integration, externalDeliveryMethodId } =
-      updateShippingDto;
+    try {
+      const { generateNotfisFile, integration, externalDeliveryMethodId } =
+        updateShippingDto;
 
-    const carrier = await this.carrierService.update(id, {
-      generateNotfisFile,
-      integration,
-      externalDeliveryMethodId,
-    });
-    return GetCarrierDto.factory(carrier) as GetCarrierDto;
+      const carrier = await this.carrierService.update(id, {
+        generateNotfisFile,
+        integration,
+        externalDeliveryMethodId,
+      });
+      req.logger.log(`Carrier id: ${carrier.id} updated`);
+      return GetCarrierDto.factory(carrier) as GetCarrierDto;
+    } catch (error) {
+      req.logger.error(error);
+      throw error;
+    }
   }
 
   private async uploadFile(
@@ -104,6 +105,7 @@ export class CarrierController {
     @UploadedFile() file: any,
     @Param('id') id: string,
     @Body() _: UploadLogoDto,
+    @Req() req: any,
   ) {
     const localFileName = `${file.filename}_${file.originalname}`;
     try {
@@ -111,8 +113,9 @@ export class CarrierController {
       await this.carrierService.updateLogo(id, {
         logo,
       });
+      req.logger.log(`File logo updated`);
     } catch (error) {
-      this.logger.log(error);
+      req.logger.log(error);
       throw error;
     } finally {
       if (existsSync(file.path)) {

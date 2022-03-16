@@ -1,5 +1,4 @@
 /* eslint-disable import/named */
-import { LogProvider } from '@infralabs/infra-logger';
 import { KafkaService } from '@infralabs/infra-nestjs-kafka';
 import { v4 as uuidV4 } from 'uuid';
 import {
@@ -14,6 +13,7 @@ import {
   Request,
   UseGuards,
   ValidationPipe,
+  Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Env } from 'src/commons/environment/env';
@@ -35,10 +35,7 @@ export class OrderController {
   constructor(
     private readonly orderService: OrderService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
-    @Inject('LogProvider') private logger: LogProvider,
-  ) {
-    this.logger.context = OrderController.name;
-  }
+  ) {}
 
   @Get()
   @ApiOkResponse({ type: PaginateOrderDto })
@@ -94,11 +91,19 @@ export class OrderController {
 
   @Get(':id')
   @ApiOkResponse({ type: GetOrderDto })
-  async findOne(@Param('id') id: string): Promise<GetOrderDto> {
-    const order = await this.orderService.findOne(id);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return order;
+  async findOne(
+    @Param('id') id: string,
+    @Req() req: any,
+  ): Promise<GetOrderDto> {
+    try {
+      const order = await this.orderService.findOne(id);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      return order;
+    } catch (error) {
+      req.logger.error(error);
+      throw error;
+    }
   }
 
   @Post('/export')
@@ -108,31 +113,36 @@ export class OrderController {
     @Request() request: RequestDto,
     @Headers() headers: HeadersExportOrdersDto,
   ) {
-    const { userId, userName, email } = request;
-    const { orderCreatedAtFrom, orderCreatedAtTo } = exportOrdersDto;
+    const { userId, userName, email, logger } = request;
+    try {
+      const { orderCreatedAtFrom, orderCreatedAtTo } = exportOrdersDto;
 
-    const filter = {
-      orderCreatedAtFrom,
-      orderCreatedAtTo,
-      storeId: headers['x-tenant-id'],
-    };
+      const filter = {
+        orderCreatedAtFrom,
+        orderCreatedAtTo,
+        storeId: headers['x-tenant-id'],
+      };
 
-    await this.kafkaProducer.send(Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT, {
-      headers: {
-        'X-Correlation-Id': headers['x-correlation-id'] || uuidV4(),
-        'X-Version': '1.0',
-      },
-      key: uuidV4(),
-      value: JSON.stringify({
-        data: {
-          ...filter,
+      await this.kafkaProducer.send(Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT, {
+        headers: {
+          'X-Correlation-Id': headers['x-correlation-id'] || uuidV4(),
+          'X-Version': '1.0',
         },
-        user: {
-          id: userId,
-          name: userName,
-          email,
-        },
-      }),
-    });
+        key: uuidV4(),
+        value: JSON.stringify({
+          data: {
+            ...filter,
+          },
+          user: {
+            id: userId,
+            name: userName,
+            email,
+          },
+        }),
+      });
+    } catch (error) {
+      logger.error(error);
+      throw error;
+    }
   }
 }

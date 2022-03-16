@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { LogProvider } from '@infralabs/infra-logger';
+import { InfraLogger } from '@infralabs/infra-logger';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 
 import { OrderMapper } from '../order/mappers/orderMapper';
@@ -18,7 +18,7 @@ export class InteliPostService {
     private readonly amqpConnection: AmqpConnection,
   ) {}
 
-  async intelipost(payload: CreateIntelipost, logger: LogProvider) {
+  async intelipost(payload: CreateIntelipost, logger: InfraLogger) {
     const order: Partial<OrderDocument> =
       OrderMapper.mapPartnerToOrder(payload);
 
@@ -58,14 +58,15 @@ export class InteliPostService {
 
       await this.amqpConnection.publish(exchange, routeKey, exportingOrder);
 
-      logger.log({
-        message: `Message sent to exchange ${exchange} and routeKey ${routeKey}`,
-        data: exportingOrder,
-      });
+      logger.log(
+        `Order ${order.orderSale} sent to exchange '${exchange}' and routeKey '${routeKey}'`,
+      );
     } else {
       logger.log(
         `${order.orderSale} order not sent due to lack of storeId (${orderMerged.storeId}), storeCode (${orderMerged.storeCode}) or internalOrderId (${orderMerged.internalOrderId})`,
       );
     }
+
+    return orderMerged;
   }
 }

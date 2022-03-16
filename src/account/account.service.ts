@@ -1,10 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { LeanDocument, Model } from 'mongoose';
 import { IFilterObject } from 'src/commons/interfaces/filter-object.interface';
@@ -16,152 +10,99 @@ import {
 
 @Injectable()
 export class AccountService {
-  private logger = new Logger(AccountService.name);
-
   constructor(
     @InjectModel(AccountEntity.name)
     private accountModel: Model<AccountDocument>,
   ) {}
 
   async create(accountData): Promise<LeanDocument<AccountEntity>> {
-    try {
-      const mapData = {
-        ...accountData,
-        document: accountData.fiscalCode
-          .replace(/-/g, '')
-          .replace(/\./g, '')
-          .replace(/\//g, ''),
-        zipCode: accountData.address.zipCode
-          .replace(/-/g, '')
-          .replace(/\./g, ''),
-      };
+    const mapData = {
+      ...accountData,
+      document: accountData.fiscalCode
+        .replace(/-/g, '')
+        .replace(/\./g, '')
+        .replace(/\//g, ''),
+      zipCode: accountData.address.zipCode.replace(/-/g, '').replace(/\./g, ''),
+    };
 
-      const alreadyExist = await this.accountModel
-        .findOne({ id: accountData.id })
-        .lean();
+    const alreadyExist = await this.accountModel
+      .findOne({ id: accountData.id })
+      .lean();
 
-      if (alreadyExist) {
-        throw new HttpException(
-          'Account already exist',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      // eslint-disable-next-line new-cap
-      const accountToSave = new this.accountModel(mapData);
-      const accountSaved = await accountToSave.save();
-      return accountSaved.toJSON();
-    } catch (error) {
-      let message: string;
-      if (error instanceof Error) {
-        message = error.message;
-        this.logger.error(JSON.stringify(error.message));
-      }
-      throw new InternalServerErrorException(
-        message || 'Internal server error',
-      );
+    if (alreadyExist) {
+      throw new Error('Account already exist');
     }
+
+    // eslint-disable-next-line new-cap
+    const accountToSave = new this.accountModel(mapData);
+    const accountSaved = await accountToSave.save();
+    return accountSaved.toJSON();
   }
 
   async update(id: string, accountData): Promise<LeanDocument<AccountEntity>> {
-    try {
-      const mapData = {
-        ...accountData,
-        document: accountData.fiscalCode
-          .replace(/-/g, '')
-          .replace(/\./g, '')
-          .replace(/\//g, ''),
-        zipCode: accountData.address.zipCode
-          .replace(/-/g, '')
-          .replace(/\./g, ''),
-      };
+    const mapData = {
+      ...accountData,
+      document: accountData.fiscalCode
+        .replace(/-/g, '')
+        .replace(/\./g, '')
+        .replace(/\//g, ''),
+      zipCode: accountData.address.zipCode.replace(/-/g, '').replace(/\./g, ''),
+    };
 
-      return await this.accountModel
-        .findOneAndUpdate({ id }, mapData as AccountDocument, {
-          timestamps: true,
-          new: true,
-          upsert: true,
-        })
-        .lean();
-    } catch (error) {
-      let message: string;
-      if (error instanceof Error) {
-        message = error.message;
-        this.logger.error(JSON.stringify(error.message));
-      }
-      throw new InternalServerErrorException(
-        message || 'Internal server error',
-      );
-    }
+    return this.accountModel
+      .findOneAndUpdate({ id }, mapData as AccountDocument, {
+        timestamps: true,
+        new: true,
+        upsert: true,
+      })
+      .lean();
   }
 
   async associateLocation(accountId: string, locationId: string) {
-    try {
-      const location = await this.accountModel.findOne({
-        id: locationId,
-        accountType: AccountTypeEnum.location,
-      });
+    const location = await this.accountModel.findOne({
+      id: locationId,
+      accountType: AccountTypeEnum.location,
+    });
 
-      const account = await this.accountModel.findOne(
-        {
-          id: accountId,
-          accountType: AccountTypeEnum.account,
-        },
-        { id: 1, name: 1 },
-      );
+    const account = await this.accountModel.findOne(
+      {
+        id: accountId,
+        accountType: AccountTypeEnum.account,
+      },
+      { id: 1, name: 1 },
+    );
 
-      if (!location || !account) {
-        throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
-      }
-
-      const alreadyHasAccount = location.accounts.find(
-        accountAssociated => accountAssociated.id === account.id,
-      );
-
-      if (alreadyHasAccount) {
-        throw new HttpException('Already associated', HttpStatus.BAD_REQUEST);
-      }
-
-      await this.accountModel.findOneAndUpdate(
-        { id: location.id, accountType: AccountTypeEnum.location },
-        {
-          $push: {
-            accounts: account,
-          },
-        },
-      );
-    } catch (error) {
-      let message: string;
-      if (error instanceof Error) {
-        message = error.message;
-        this.logger.error(JSON.stringify(error.message));
-      }
-      throw new InternalServerErrorException(
-        message || 'Internal server error',
-      );
+    if (!location || !account) {
+      throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
     }
+
+    const alreadyHasAccount = location.accounts.find(
+      accountAssociated => accountAssociated.id === account.id,
+    );
+
+    if (alreadyHasAccount) {
+      throw new HttpException('Already associated', HttpStatus.BAD_REQUEST);
+    }
+
+    await this.accountModel.findOneAndUpdate(
+      { id: location.id, accountType: AccountTypeEnum.location },
+      {
+        $push: {
+          accounts: account,
+        },
+      },
+    );
   }
 
   async unassociateLocation(accountId: string, locationId: string) {
-    try {
-      await this.accountModel.findOneAndUpdate(
-        { id: locationId, accountType: AccountTypeEnum.location },
-        {
-          $pull: {
-            accounts: { id: accountId },
-          },
+    await this.accountModel.findOneAndUpdate(
+      { id: locationId, accountType: AccountTypeEnum.location },
+      {
+        $pull: {
+          accounts: { id: accountId },
         },
-      );
-    } catch (error) {
-      let message: string;
-      if (error instanceof Error) {
-        message = error.message;
-        this.logger.error(JSON.stringify(error.message));
-      }
-      throw new InternalServerErrorException(
-        message || 'Internal server error',
-      );
-    }
+      },
+    );
   }
 
   async findAll(
@@ -207,10 +148,10 @@ export class AccountService {
     return [result, count];
   }
 
-  async findOneLocation(id: string) {
+  async findOneAccountOrLocation(id: string, accountType: string) {
     const account = await this.accountModel
       .findOne(
-        { id, accountType: AccountTypeEnum.location },
+        { id, accountType },
         {
           _id: 0,
           __v: 0,
@@ -219,7 +160,10 @@ export class AccountService {
       .lean();
 
     if (!account) {
-      throw new HttpException('Location not found.', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'Account or Location not found.',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     return account;
@@ -262,6 +206,25 @@ export class AccountService {
       throw new HttpException('Location not found.', HttpStatus.NOT_FOUND);
     }
     return this.accountModel.findOneAndUpdate({ id }, externalWarehouseCode, {
+      timestamps: true,
+      lean: true,
+      new: true,
+      projection: { __v: 0, _id: 0 },
+    });
+  }
+
+  async updateGenerateNotfisFile(
+    id: string,
+    updateData: Partial<LeanDocument<AccountEntity>>,
+  ) {
+    const account = await this.accountModel.findOne({
+      id,
+      accountType: AccountTypeEnum.account,
+    });
+    if (!account) {
+      throw new HttpException('Account not found.', HttpStatus.NOT_FOUND);
+    }
+    return this.accountModel.findOneAndUpdate({ id }, updateData, {
       timestamps: true,
       lean: true,
       new: true,

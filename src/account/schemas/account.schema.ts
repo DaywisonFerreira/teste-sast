@@ -37,7 +37,7 @@ export class AccountEntity extends Document {
   externalWarehouseCode: string;
 
   @Prop({ type: AccountTypeEnum, enum: Object.values(AccountTypeEnum) })
-  accountType: AccountTypeEnum;
+  accountType: string;
 
   @Prop({ default: true, required: false })
   shipToAddress: boolean;
@@ -51,6 +51,9 @@ export class AccountEntity extends Document {
   })
   @Type(() => SalesChannelEntity)
   salesChannels: SalesChannelEntity[];
+
+  @Prop({ type: Boolean, default: false, required: false })
+  generateNotfisFile: boolean;
 
   createdAt: Date;
 

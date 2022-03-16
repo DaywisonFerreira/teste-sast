@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { KafkaModule } from '@infralabs/infra-nestjs-kafka';
 
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { APP_FILTER } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { Env } from './commons/environment/env';
 import { OrderModule } from './order/order.module';
@@ -11,6 +12,7 @@ import { NotificationModule } from './notification/notification.module';
 import { CarrierModule } from './carrier/carrier.module';
 import { AccountModule } from './account/account.module';
 import { InvoiceModule } from './invoice/invoice.module';
+import { DefaultExceptionsFilter } from './commons/filters/default-exception.filter';
 
 @Module({
   imports: [
@@ -46,6 +48,11 @@ import { InvoiceModule } from './invoice/invoice.module';
     InvoiceModule,
   ],
   controllers: [AppController],
-  providers: [],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: DefaultExceptionsFilter,
+    },
+  ],
 })
 export class AppModule {}

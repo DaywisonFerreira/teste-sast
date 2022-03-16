@@ -1,5 +1,4 @@
-import { LogProvider } from '@infralabs/infra-logger';
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { differenceInDays, isBefore } from 'date-fns';
 import { LeanDocument, Model, Types } from 'mongoose';
@@ -15,10 +14,7 @@ export class OrderService {
   constructor(
     @InjectModel(OrderEntity.name)
     private OrderModel: Model<OrderDocument>,
-    @Inject('LogProvider') private logger: LogProvider,
-  ) {
-    this.logger.context = OrderService.name;
-  }
+  ) {}
 
   async findAll({
     page,
@@ -236,8 +232,7 @@ export class OrderService {
 
     if (!orders.length) {
       await this.createOrder(data, origin);
-    }
-    if (orders.length > 1) {
+    } else if (orders.length > 1) {
       await this.updateOrdersWithMultipleInvoices(
         configPK,
         data,
