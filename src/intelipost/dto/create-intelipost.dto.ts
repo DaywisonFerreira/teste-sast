@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
-  ArrayNotEmpty,
   IsDateString,
   IsNotEmpty,
   IsNumber,
@@ -100,9 +99,9 @@ class HistoryDto {
   @IsString()
   shipment_order_volume_state: string;
 
-  // @IsNotEmpty()
-  // @IsString()
-  tracking_state?: string;
+  @IsString()
+  @IsOptional()
+  tracking_state: string;
 
   @IsNotEmpty()
   @IsNumber()
@@ -112,20 +111,20 @@ class HistoryDto {
   @IsDateString()
   created_iso: string;
 
-  @IsNotEmpty()
   @IsString()
+  @IsOptional()
   provider_message: string;
 
-  @IsNotEmpty()
   @IsString()
+  @IsOptional()
   provider_state: string;
 
-  @IsNotEmpty()
   @IsString()
+  @IsOptional()
   shipper_provider_state: string;
 
-  @IsNotEmpty()
   @IsString()
+  @IsOptional()
   esprinter_message: string;
 
   @IsNotEmpty()
@@ -134,10 +133,8 @@ class HistoryDto {
   @ValidateNested({ message: 'shipment_volume_micro_state invalid.format' })
   shipment_volume_micro_state: ShipmentVolumeMicroState;
 
-  @ArrayNotEmpty()
   @Type(() => AttachmentsDto)
   @ValidateNested({ each: true })
-  @IsNotEmpty()
   attachments: AttachmentsDto[];
 
   @IsNotEmpty()
@@ -214,10 +211,10 @@ class EstimatedDeliveryDateDto {
   @ValidateNested({ message: 'client invalid.format' })
   client: ClientDto;
 
-  @IsNotEmpty()
-  @IsObject()
   @Type(() => LogisticProviderDto)
   @ValidateNested({ message: 'logistic_provider invalid.format' })
+  @IsObject()
+  @IsOptional()
   logistic_provider: LogisticProviderDto;
 }
 
