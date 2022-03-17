@@ -58,7 +58,7 @@ export class IntelipostMapper {
         shipping_city: data.receiver.address.city,
         shipping_state: data.receiver.address.state,
         shipping_zip_code: data.receiver.address.zipCode,
-        shipping_country: data.receiver.address.country,
+        shipping_country: data.receiver.address.country || '',
       },
       origin_federal_tax_payer_id: location.document,
       origin_warehouse_code: location.externalWarehouseCode,
