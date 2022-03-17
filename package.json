@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@golevelup/nestjs-rabbitmq": "^1.19.0",
-    "@infralabs/infra-logger": "^2.2.3",
+    "@infralabs/infra-logger": "^2.2.4",
     "@infralabs/infra-nestjs-kafka": "^1.5.0",
     "@nestjs/common": "^8.0.6",
     "@nestjs/config": "^1.0.1",
