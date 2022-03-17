@@ -19,7 +19,7 @@ export class Address {
 
   number: string;
 
-  complement: string;
+  complement?: string;
 
   neighborhood: string;
 
@@ -29,7 +29,7 @@ export class Address {
 
   zipCode: string;
 
-  country: string;
+  country?: string;
 }
 
 export class ER {
