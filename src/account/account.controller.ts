@@ -28,8 +28,10 @@ export class AccountController {
     @Query() filterPaginateDto: FilterPaginateAccountDto,
     @Req() req: any,
   ): Promise<PaginateAccountDto> {
-    req.logger.log(
-      `A request was received to get accounts with the query: ${filterPaginateDto}`,
+    req.logger.verbose(
+      `A request was received to get accounts with the query: ${JSON.stringify(
+        filterPaginateDto,
+      )}`,
     );
     const {
       name,
@@ -72,7 +74,7 @@ export class AccountController {
       id,
       'account',
     );
-    req.logger.log(
+    req.logger.verbose(
       `A request has been received to get the account ${account.id}`,
     );
     // @ts-ignore
@@ -89,7 +91,7 @@ export class AccountController {
     const account = await this.accountService.updateGenerateNotfisFile(id, {
       generateNotfisFile,
     });
-    req.logger.log(
+    req.logger.verbose(
       `Account location ${account.id} - Invoice generation: ${generateNotfisFile}`,
     );
     return GetAccountDto.factory(account) as GetAccountDto;
@@ -105,7 +107,7 @@ export class AccountController {
       id,
       'location',
     );
-    req.logger.log(
+    req.logger.verbose(
       `A request has been received to get the location ${account.id}`,
     );
     // @ts-ignore
@@ -125,7 +127,7 @@ export class AccountController {
       const account = await this.accountService.updateWarehouseCode(id, {
         externalWarehouseCode: warehouseCode,
       });
-      req.logger.log(`Account location ${warehouseCode} updated`);
+      req.logger.verbose(`Account location ${warehouseCode} updated`);
       return GetAccountDto.factory(account) as GetAccountDto;
     } catch (error) {
       req.logger.error(error);

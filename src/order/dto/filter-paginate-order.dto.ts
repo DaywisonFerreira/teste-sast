@@ -56,13 +56,4 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
   })
   @IsOptional()
   status?: string | null;
-
-  // @ApiProperty({
-  //   description: 'Status of order by partner',
-  //   type: String,
-  //   example: 'Entregue',
-  //   required: false,
-  // })
-  // @IsOptional()
-  // partnerStatus?: string | null;
 }

@@ -54,7 +54,7 @@ export class CarrierController {
         integration,
         externalDeliveryMethodId,
       });
-      req.logger.log(`Carrier id: ${carrier.id} updated`);
+      req.logger.verbose(`Carrier id: ${carrier.id} updated`);
       return GetCarrierDto.factory(carrier) as GetCarrierDto;
     } catch (error) {
       req.logger.error(error);
@@ -113,7 +113,7 @@ export class CarrierController {
       await this.carrierService.updateLogo(id, {
         logo,
       });
-      req.logger.log(`File logo updated`);
+      req.logger.verbose(`File logo updated to carrierId: ${id}`);
     } catch (error) {
       req.logger.log(error);
       throw error;
