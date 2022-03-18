@@ -42,7 +42,11 @@ export class OrderController {
   async findAll(
     @Query(ValidationPipe) filterPaginateDto: FilterPaginateOrderDto,
     @Headers('x-tenant-id') xTenantId: string,
+    @Req() req: any,
   ): Promise<PaginateOrderDto> {
+    req.logger.log(
+      `A request was received to get all orders with the query: ${filterPaginateDto}`,
+    );
     const {
       page = 1,
       perPage = 20,
@@ -61,20 +65,23 @@ export class OrderController {
     const pageSize = Number(perPage);
     const sortBy = orderBy || 'orderCreatedAt';
 
-    const [resultQuery, count] = await this.orderService.findAll({
-      page,
-      pageSize,
-      orderBy: sortBy,
-      orderDirection,
-      search,
-      storeId: xTenantId,
-      orderCreatedAtFrom,
-      orderCreatedAtTo,
-      orderUpdatedAtFrom,
-      orderUpdatedAtTo,
-      status,
-      // partnerStatus,
-    });
+    const [resultQuery, count] = await this.orderService.findAll(
+      {
+        page,
+        pageSize,
+        orderBy: sortBy,
+        orderDirection,
+        search,
+        storeId: xTenantId,
+        orderCreatedAtFrom,
+        orderCreatedAtTo,
+        orderUpdatedAtFrom,
+        orderUpdatedAtTo,
+        status,
+        // partnerStatus,
+      },
+      req.logger,
+    );
 
     const result = resultQuery.map(order => ({
       ...order,
@@ -96,6 +103,7 @@ export class OrderController {
     @Req() req: any,
   ): Promise<GetOrderDto> {
     try {
+      req.logger(`Request was received to get order ${id}`);
       const order = await this.orderService.findOne(id);
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
