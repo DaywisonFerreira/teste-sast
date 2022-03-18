@@ -16,23 +16,19 @@ export class OrderService {
     private OrderModel: Model<OrderDocument>,
   ) {}
 
-  async findAll(
-    {
-      page,
-      pageSize,
-      orderBy,
-      orderDirection,
-      search,
-      storeId,
-      orderCreatedAtFrom,
-      orderCreatedAtTo,
-      orderUpdatedAtFrom,
-      orderUpdatedAtTo,
-      status,
-      // partnerStatus,
-    },
-    logger: any,
-  ): Promise<[LeanDocument<OrderEntity[]>, number]> {
+  async findAll({
+    page,
+    pageSize,
+    orderBy,
+    orderDirection,
+    search,
+    storeId,
+    orderCreatedAtFrom,
+    orderCreatedAtTo,
+    orderUpdatedAtFrom,
+    orderUpdatedAtTo,
+    status,
+  }): Promise<[LeanDocument<OrderEntity[]>, number]> {
     const filter: IFilterObject = {
       status: { $in: ['dispatched', 'delivered', 'invoiced'] }, // Entregue // Avaria // Extravio // Roubo // Em devolução // Aguardando retirada na agência dos Correios
     };
@@ -46,13 +42,6 @@ export class OrderService {
         $in: status.split(','),
       };
     }
-
-    // if (partnerStatus) {
-    //   filter.partnerStatus = {
-    //     $regex: `${partnerStatus}.*`,
-    //     $options: 'i',
-    //   };
-    // }
 
     if (search) {
       filter.$or = [
@@ -109,8 +98,6 @@ export class OrderService {
       };
     }
 
-    logger.log(`Filters for order search: ${filter}`);
-
     const sortBy = { [orderBy]: orderDirection === 'asc' ? 1 : -1 };
     const count = await this.OrderModel.countDocuments(filter);
     const result = await this.OrderModel.find(filter, PublicFieldsOrder)
@@ -118,9 +105,6 @@ export class OrderService {
       .skip(pageSize * (page - 1))
       .sort(sortBy)
       .lean();
-
-    logger.log(`Filters for order search: ${count}`);
-    logger.log(`Result query: ${result}`)
 
     return [result, count];
   }
