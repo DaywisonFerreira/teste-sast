@@ -13,19 +13,20 @@ export class OrderMapper {
         : payload.history.shipment_order_volume_state;
 
     return {
-      orderSale: payload.sales_order_number,
-      partnerOrder: payload.order_number,
+      orderSale: payload.sales_order_number, //
+      partnerOrder: payload.order_number, //
       orderUpdatedAt: new Date(payload.history.event_date_iso),
-      invoiceKeys: [payload.invoice.invoice_key],
+      invoiceKeys: [payload.invoice.invoice_key], //*
       invoice: {
-        key: payload.invoice.invoice_key,
-        serie: payload.invoice.invoice_series,
-        number: payload.invoice.invoice_number,
+        key: payload.invoice.invoice_key, //*
+        serie: payload.invoice.invoice_series, //*
+        number: payload.invoice.invoice_number, //*
       },
       dispatchDate: new Date(payload.history.created_iso),
-      estimateDeliveryDateDeliveryCompany: new Date(
-        payload.estimated_delivery_date.client.current_iso,
-      ),
+      estimateDeliveryDateDeliveryCompany: payload?.estimated_delivery_date
+        ?.client
+        ? new Date(payload.estimated_delivery_date.client.current_iso)
+        : null,
       partnerMessage: payload.history.provider_message,
       numberVolumes: parseInt(payload.volume_number, 10),
       microStatus: payload.history.shipment_volume_micro_state.name,
@@ -50,7 +51,9 @@ export class OrderMapper {
       storeCode: payload.storeCode,
       externalOrderId: payload.orderSale,
       internalOrderId: parseInt(payload.internalOrderId, 10),
-      shippingEstimateDate: payload.estimateDeliveryDateDeliveryCompany,
+      shippingEstimateDate: payload?.estimateDeliveryDateDeliveryCompany
+        ? payload.estimateDeliveryDateDeliveryCompany
+        : null,
       eventDate: payload.orderUpdatedAt,
       partnerMessage: payload.partnerMessage,
       numberVolumes: payload.numberVolumes,

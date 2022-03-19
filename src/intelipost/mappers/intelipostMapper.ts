@@ -72,4 +72,44 @@ export class IntelipostMapper {
     };
     return dataFormatted;
   }
+
+  mapResponseIntelipostToCxaas(data: any) {
+    const {
+      shipment_order_volume_array: volumes,
+      order_number,
+      sales_order_number,
+      external_order_numbers,
+      tracking_url,
+    } = data;
+    const result = [];
+
+    volumes.forEach(volume => {
+      const {
+        shipment_order_volume_invoice,
+        logistic_provider_tracking_code,
+        shipment_order_volume_number,
+        shipment_order_volume_state_history_array: historys,
+      } = volume;
+
+      historys.reverse();
+      historys.forEach(history => {
+        result.push({
+          history,
+          invoice: {
+            invoice_series: shipment_order_volume_invoice.invoice_series,
+            invoice_number: shipment_order_volume_invoice.invoice_number,
+            invoice_key: shipment_order_volume_invoice.invoice_key,
+          },
+          order_number,
+          sales_order_number,
+          external_order_numbers,
+          tracking_code: logistic_provider_tracking_code || '',
+          volume_number: shipment_order_volume_number,
+          tracking_url,
+        });
+      });
+    });
+
+    return result;
+  }
 }

@@ -80,6 +80,17 @@ export class ConsumerIntelipostController {
           message: 'Intelipost - Shipping order successfully completed!',
           data: response.data,
         });
+
+        const newOrders = this.intelipostMapper.mapResponseIntelipostToCxaas(
+          response.data.content,
+        );
+
+        for await (const order of newOrders) {
+          await this.storesService.intelipost(order, logger);
+          logger.log(
+            `Order with invoiceKey ${order.invoice.invoice_key} was saved`,
+          );
+        }
       }
     } catch (error) {
       logger.log({

@@ -157,7 +157,9 @@ export class OrderService {
       const history = {
         dispatchDate: data.dispatchDate,
         estimateDeliveryDateDeliveryCompany:
-          data.estimateDeliveryDateDeliveryCompany,
+          data.estimateDeliveryDateDeliveryCompany
+            ? data.estimateDeliveryDateDeliveryCompany
+            : null,
         partnerMessage: data.partnerMessage,
         microStatus: data.microStatus,
         lastOccurrenceMacro: data.lastOccurrenceMacro,
