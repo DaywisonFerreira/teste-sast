@@ -51,9 +51,7 @@ export class OrderMapper {
       storeCode: payload.storeCode,
       externalOrderId: payload.orderSale,
       internalOrderId: parseInt(payload.internalOrderId, 10),
-      shippingEstimateDate: payload?.estimateDeliveryDateDeliveryCompany
-        ? payload.estimateDeliveryDateDeliveryCompany
-        : null,
+      shippingEstimateDate: payload.estimateDeliveryDateDeliveryCompany,
       eventDate: payload.orderUpdatedAt,
       partnerMessage: payload.partnerMessage,
       numberVolumes: payload.numberVolumes,
