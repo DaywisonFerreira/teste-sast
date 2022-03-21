@@ -156,10 +156,7 @@ export class OrderService {
     if (origin === 'intelipost') {
       const history = {
         dispatchDate: data.dispatchDate,
-        estimateDeliveryDateDeliveryCompany:
-          data.estimateDeliveryDateDeliveryCompany
-            ? data.estimateDeliveryDateDeliveryCompany
-            : null,
+        estimateDeliveryDateDeliveryCompany: data.estimateDeliveryDateDeliveryCompany,
         partnerMessage: data.partnerMessage,
         microStatus: data.microStatus,
         lastOccurrenceMacro: data.lastOccurrenceMacro,
