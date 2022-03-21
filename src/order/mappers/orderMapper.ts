@@ -13,14 +13,14 @@ export class OrderMapper {
         : payload.history.shipment_order_volume_state;
 
     return {
-      orderSale: payload.sales_order_number, //
-      partnerOrder: payload.order_number, //
+      orderSale: payload.sales_order_number,
+      partnerOrder: payload.order_number,
       orderUpdatedAt: new Date(payload.history.event_date_iso),
-      invoiceKeys: [payload.invoice.invoice_key], //*
+      invoiceKeys: [payload.invoice.invoice_key],
       invoice: {
-        key: payload.invoice.invoice_key, //*
-        serie: payload.invoice.invoice_series, //*
-        number: payload.invoice.invoice_number, //*
+        key: payload.invoice.invoice_key,
+        serie: payload.invoice.invoice_series,
+        number: payload.invoice.invoice_number,
       },
       dispatchDate: new Date(payload.history.created_iso),
       estimateDeliveryDateDeliveryCompany: payload?.estimated_delivery_date
