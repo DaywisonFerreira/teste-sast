@@ -59,7 +59,7 @@ export class OrderMapper {
       partnerStatus: payload.partnerStatus,
       orderUpdatedAt: payload.orderUpdatedAt,
       i18n: payload.i18n,
-    }
+    };
   }
 
   static mapPartnerToExportingOrder(payload: Partial<OrderDocument>): any {
@@ -89,7 +89,7 @@ export class OrderMapper {
           : payload.partnerStatus,
       invoiceNumber: payload.invoice.number,
       trackingNumber: payload.invoice.trackingNumber,
-      carrierName: payload.invoice.carrierName
+      carrierName: payload.invoice.carrierName,
     };
   }
 

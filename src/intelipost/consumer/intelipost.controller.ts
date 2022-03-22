@@ -77,12 +77,13 @@ export class ConsumerIntelipostController {
       );
       if (response.status === 200) {
         logger.log(
-          `Order created successfully on Intelipost with trackingUrl: ${response?.data?.content?.tracking_url}`
+          `Order created successfully on Intelipost with trackingUrl: ${response?.data?.content?.tracking_url}`,
         );
 
-        const newOrders = this.intelipostMapper.mapResponseIntelipostToDeliveryHub(
-          response.data.content,
-        );
+        const newOrders =
+          this.intelipostMapper.mapResponseIntelipostToDeliveryHub(
+            response.data.content,
+          );
 
         for await (const order of newOrders) {
           await this.storesService.intelipost(order, logger);
