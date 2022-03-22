@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { differenceInDays, isBefore } from 'date-fns';
 import { LeanDocument, Model, Types } from 'mongoose';
 import { IFilterObject } from 'src/commons/interfaces/filter-object.interface';
+import { OrderMapper } from './mappers/orderMapper';
 import {
   OrderDocument,
   OrderEntity,
@@ -154,19 +155,7 @@ export class OrderService {
   private generateHistory(data, origin, isCreate) {
     let updateHistory = {};
     if (origin === 'intelipost') {
-      const history = {
-        dispatchDate: data.dispatchDate,
-        estimateDeliveryDateDeliveryCompany:
-          data.estimateDeliveryDateDeliveryCompany,
-        partnerMessage: data.partnerMessage,
-        microStatus: data.microStatus,
-        lastOccurrenceMacro: data.lastOccurrenceMacro,
-        lastOccurrenceMicro: data.lastOccurrenceMicro,
-        lastOccurrenceMessage: data.lastOccurrenceMessage,
-        partnerStatus: data.partnerStatus,
-        orderUpdatedAt: data.orderUpdatedAt,
-        i18n: data.i18n,
-      };
+      const history = OrderMapper.mapPartnerHistoryToOrderHistory(data);
       updateHistory = isCreate
         ? {
             history: [history],

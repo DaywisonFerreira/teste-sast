@@ -73,7 +73,7 @@ export class IntelipostMapper {
     return dataFormatted;
   }
 
-  mapResponseIntelipostToCxaas(data: any) {
+  mapResponseIntelipostToDeliveryHub(data: any) {
     const {
       shipment_order_volume_array: volumes,
       order_number,
@@ -86,13 +86,13 @@ export class IntelipostMapper {
     volumes.forEach(volume => {
       const {
         shipment_order_volume_invoice,
-        logistic_provider_tracking_code,
+        tracking_code,
         shipment_order_volume_number,
-        shipment_order_volume_state_history_array: historys,
+        shipment_order_volume_state_history_array: histories,
       } = volume;
 
-      historys.reverse();
-      historys.forEach(history => {
+      histories.reverse();
+      histories.forEach(history => {
         result.push({
           history,
           invoice: {
@@ -103,7 +103,7 @@ export class IntelipostMapper {
           order_number,
           sales_order_number,
           external_order_numbers,
-          tracking_code: logistic_provider_tracking_code || '',
+          tracking_code: tracking_code || '',
           volume_number: shipment_order_volume_number,
           tracking_url,
         });
