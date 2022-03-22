@@ -2,6 +2,7 @@ import { Module, Scope } from '@nestjs/common';
 import { InfraLogger as Logger } from '@infralabs/infra-logger';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import { AccountService } from 'src/account/account.service';
 import { NestjsEventEmitter } from '../commons/providers/event/nestjs-event-emitter';
 import { Env } from '../commons/environment/env';
 import { NestjsLogger } from '../commons/providers/log/nestjs-logger';
@@ -37,6 +38,7 @@ import { CarrierService } from '../carrier/carrier.service';
     NestjsEventEmitter,
     InvoiceService,
     CarrierService,
+    AccountService,
   ],
 })
 export class InvoiceModule {}
