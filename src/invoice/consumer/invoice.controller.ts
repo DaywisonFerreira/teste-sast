@@ -22,10 +22,11 @@ export class InvoiceController {
   async create({ value, partition, offset, headers }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, InvoiceController.name);
     try {
-      logger.log(
-        `Payload was received from the ${Env.KAFKA_TOPIC_INVOICE_CREATED} topic`,
-      );
       const { data } = this.parseValueFromQueue(value);
+
+      logger.log(
+        `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Invoice was received with the key ${data.key}`,
+      );
 
       if (data.notfisFile && data.notfisFileName) {
         await this.invoiceService.sendFtp(data, logger);

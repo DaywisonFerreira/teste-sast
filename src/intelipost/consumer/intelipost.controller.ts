@@ -76,10 +76,21 @@ export class ConsumerIntelipostController {
         config,
       );
       if (response.status === 200) {
-        logger.log({
-          message: 'Intelipost - Shipping order successfully completed!',
-          data: response.data,
-        });
+        logger.log(
+          `Order created successfully on Intelipost with trackingUrl: ${response?.data?.content?.tracking_url}`,
+        );
+
+        const newOrders =
+          this.intelipostMapper.mapResponseIntelipostToDeliveryHub(
+            response.data.content,
+          );
+
+        for await (const order of newOrders) {
+          await this.storesService.intelipost(order, logger);
+          logger.log(
+            `Order with invoiceKey ${order.invoice.invoice_key} was saved`,
+          );
+        }
       }
     } catch (error) {
       logger.log({

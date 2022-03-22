@@ -60,7 +60,6 @@ export class ConsumerOrderController {
         order.logisticInfo &&
         order.logisticInfo[0].deliveryChannel === 'delivery' &&
         (order.status === 'dispatched' || order.status === 'invoiced')
-        // (order.status === 'dispatched' || order.status === 'invoiced' || order.status === 'ready-for-handling')
       ) {
         const orderToSaves: Array<any> = OrderMapper.mapMessageToOrders(order);
         await Promise.all(
