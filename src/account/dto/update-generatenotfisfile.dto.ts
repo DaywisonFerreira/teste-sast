@@ -13,7 +13,7 @@ export class UpdateGenerateNotfisFile {
     description: 'Controls invoice integrated intelipost ftp server',
     type: Boolean,
     example: true,
-    required: true,
+    required: false,
   })
   integratedIntelipost: boolean;
 }
