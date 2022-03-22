@@ -203,8 +203,15 @@ export class OrderEntity extends Document {
   @Prop({ type: String, required: false })
   partnerMessage?: string;
 
+  @Prop({ type: String, required: false })
+  partnerStatusId?: string;
+
+  // @deprecated
   @Prop({ type: Number, required: false })
   numberVolumes?: number;
+
+  @Prop({ type: Number, required: false })
+  volumeNumber?: number;
 
   @Prop({ type: String, required: false })
   microStatus?: string;
