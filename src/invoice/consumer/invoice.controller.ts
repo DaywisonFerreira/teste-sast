@@ -9,10 +9,12 @@ import { InfraLogger } from '@infralabs/infra-logger';
 import { NestjsEventEmitter } from '../../commons/providers/event/nestjs-event-emitter';
 import { Env } from '../../commons/environment/env';
 import { InvoiceService } from '../invoice.service';
+import { AccountService } from 'src/account/account.service';
 
 @Controller()
 export class InvoiceController {
   constructor(
+    private readonly accountService: AccountService,
     private readonly eventEmitter: NestjsEventEmitter,
     private readonly invoiceService: InvoiceService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
@@ -23,7 +25,7 @@ export class InvoiceController {
     const logger = new InfraLogger(headers, InvoiceController.name);
     try {
       const { data } = this.parseValueFromQueue(value);
-      //const accountId = headers['X-Tenant-Id'];
+      const accountId = headers['X-Tenant-Id'];
 
       logger.log(
         `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Invoice was received with the key ${data.key}`,
@@ -32,7 +34,11 @@ export class InvoiceController {
       if (data.notfisFile && data.notfisFileName) {
         await this.invoiceService.sendFtp(data, logger);
       }
-      this.eventEmitter.emit('intelipost.sent', data);
+
+      const account = await this.accountService.findOne(accountId);
+
+      if (await account.integratedIntelipost)
+        this.eventEmitter.emit('intelipost.sent', data);
     } catch (error) {
       logger.error(error);
     } finally {
