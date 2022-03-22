@@ -23,6 +23,7 @@ export class InvoiceController {
     const logger = new InfraLogger(headers, InvoiceController.name);
     try {
       const { data } = this.parseValueFromQueue(value);
+      //const accountId = headers['X-Tenant-Id'];
 
       logger.log(
         `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Invoice was received with the key ${data.key}`,
@@ -31,7 +32,7 @@ export class InvoiceController {
       if (data.notfisFile && data.notfisFileName) {
         await this.invoiceService.sendFtp(data, logger);
       }
-      this.eventEmitter.emit('ftp.sent', data);
+      this.eventEmitter.emit('intelipost.sent', data);
     } catch (error) {
       logger.error(error);
     } finally {
