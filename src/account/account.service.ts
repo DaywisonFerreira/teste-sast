@@ -231,4 +231,12 @@ export class AccountService {
       projection: { __v: 0, _id: 0 },
     });
   }
+
+  async findOne(id: string): Promise<LeanDocument<AccountEntity>> {
+    const account = await this.accountModel.findOne({ id }).lean();
+    if (!account) {
+      throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
+    }
+    return account;
+  }
 }
