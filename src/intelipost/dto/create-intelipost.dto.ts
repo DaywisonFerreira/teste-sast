@@ -277,6 +277,7 @@ export class CreateIntelipost {
   })
   @IsNotEmpty()
   @IsObject()
+  @IsNotEmpty()
   @Type(() => EstimatedDeliveryDateDto)
   @ValidateNested({ message: 'estimated_delivery_date invalid.format' })
   estimated_delivery_date: EstimatedDeliveryDateDto;

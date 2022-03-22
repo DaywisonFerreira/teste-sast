@@ -8,7 +8,6 @@ import { AppController } from './app.controller';
 import { Env } from './commons/environment/env';
 import { OrderModule } from './order/order.module';
 import { IntelipostModule } from './intelipost/intelipost.module';
-import { NotificationModule } from './notification/notification.module';
 import { CarrierModule } from './carrier/carrier.module';
 import { AccountModule } from './account/account.module';
 import { InvoiceModule } from './invoice/invoice.module';
@@ -42,7 +41,6 @@ import { DefaultExceptionsFilter } from './commons/filters/default-exception.fil
     }),
     OrderModule,
     IntelipostModule,
-    NotificationModule,
     CarrierModule,
     AccountModule,
     InvoiceModule,
