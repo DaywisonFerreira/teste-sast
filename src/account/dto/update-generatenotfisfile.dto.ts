@@ -8,4 +8,12 @@ export class UpdateGenerateNotfisFile {
     required: false,
   })
   generateNotfisFile: boolean;
+
+  @ApiProperty({
+    description: 'Controls invoice integrated intelipost ftp server',
+    type: Boolean,
+    example: true,
+    required: false,
+  })
+  integratedIntelipost: boolean;
 }

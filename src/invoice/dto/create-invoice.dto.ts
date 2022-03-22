@@ -85,14 +85,6 @@ export class CreateInvoiceDto {
   @IsString()
   id: string;
 
-  @IsNotEmpty()
-  @IsString()
-  accountId: string;
-
-  @IsNotEmpty()
-  @IsString()
-  accountName: string;
-
   @IsOptional()
   @IsUrl()
   @IsString()

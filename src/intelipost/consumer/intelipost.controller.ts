@@ -55,7 +55,7 @@ export class ConsumerIntelipostController {
     }
   }
 
-  @OnEvent('ftp.sent')
+  @OnEvent('intelipost.sent')
   async sendIntelipostData(data: any) {
     const logger = new InfraLogger({}, ConsumerIntelipostController.name);
     try {
