@@ -10,10 +10,10 @@ export class UpdateGenerateNotfisFile {
   generateNotfisFile: boolean;
 
   @ApiProperty({
-    description: 'Controls invoice integrated intelipost ftp server',
+    description: 'Controls invoice integrate intelipost ftp server',
     type: Boolean,
     example: true,
     required: false,
   })
-  integratedIntelipost: boolean;
+  integrateIntelipost: boolean;
 }

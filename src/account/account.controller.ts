@@ -87,10 +87,10 @@ export class AccountController {
     @Body() update: UpdateGenerateNotfisFile,
     @Req() req: any,
   ): Promise<GetAccountDto> {
-    const { generateNotfisFile, integratedIntelipost } = update;
+    const { generateNotfisFile, integrateIntelipost } = update;
     const account = await this.accountService.updateGenerateNotfisFile(id, {
       generateNotfisFile,
-      integratedIntelipost,
+      integrateIntelipost,
     });
     req.logger.verbose(
       `Account location ${account.id} - Invoice generation: ${generateNotfisFile}`,

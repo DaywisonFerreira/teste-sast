@@ -37,7 +37,7 @@ export class InvoiceController {
 
       const account = await this.accountService.findOne(accountId);
 
-      if (account.integratedIntelipost)
+      if (account.integrateIntelipost)
         this.eventEmitter.emit('intelipost.sent', data);
     } catch (error) {
       logger.error(error);
