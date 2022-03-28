@@ -89,6 +89,7 @@ export class OrderMapper {
           : payload.partnerStatus,
       invoiceNumber: payload.invoice.number,
       trackingNumber: payload.invoice.trackingNumber,
+      trackingUrl: payload.invoice.trackingUrl,
       carrierName: payload.invoice.carrierName,
     };
   }

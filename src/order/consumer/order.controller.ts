@@ -12,6 +12,7 @@ import { utils, writeFile } from 'xlsx';
 import { existsSync, mkdirSync, promises } from 'fs';
 import { createBlobService } from 'azure-storage';
 import { v4 as uuidV4 } from 'uuid';
+import { NotificationTypes } from 'src/commons/enums/notification.enum';
 import { Env } from '../../commons/environment/env';
 import { CsvMapper } from '../mappers/csvMapper';
 import { OrderService } from '../order.service';
@@ -117,22 +118,20 @@ export class ConsumerOrderController {
       file = this.createCsvLocally(dataFormatted, data);
       const urlFile = await this.uploadFile(file);
 
-      await this.kafkaProducer.send(
-        Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT_NOTIFY,
-        {
-          headers: {
-            'X-Correlation-Id': headers['X-Correlation-Id'] || uuidV4(),
-            'X-Version': '1.0',
-          },
-          key: uuidV4(),
-          value: JSON.stringify({
-            data: {
-              urlFile,
-            },
-            user,
-          }),
+      await this.kafkaProducer.send(Env.KAFKA_TOPIC_NOTIFY_MESSAGE_WEBSOCKET, {
+        headers: {
+          'X-Correlation-Id': headers['X-Correlation-Id'] || uuidV4(),
+          'X-Version': '1.0',
         },
-      );
+        value: {
+          data: {
+            to: user.id,
+            origin: Env.APPLICATION_NAME,
+            type: NotificationTypes.OrdersExport,
+            payload: { urlFile },
+          },
+        },
+      });
     } catch (error) {
       logger.error(error);
     } finally {
