@@ -16,7 +16,7 @@ import {
   AccountSchema,
 } from '../account/schemas/account.schema';
 import { InvoiceService } from './invoice.service';
-import { InvoiceController } from './consumer/invoice.controller';
+import { ConsumerInvoiceController } from './consumer/invoice.controller';
 import { CarrierService } from '../carrier/carrier.service';
 
 @Module({
@@ -28,7 +28,7 @@ import { CarrierService } from '../carrier/carrier.service';
       { name: AccountEntity.name, schema: AccountSchema },
     ]),
   ],
-  controllers: [InvoiceController],
+  controllers: [ConsumerInvoiceController],
   providers: [
     {
       provide: 'LogProvider',
