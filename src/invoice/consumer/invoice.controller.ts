@@ -12,7 +12,7 @@ import { Env } from '../../commons/environment/env';
 import { InvoiceService } from '../invoice.service';
 
 @Controller()
-export class InvoiceController {
+export class ConsumerInvoiceController {
   constructor(
     private readonly accountService: AccountService,
     private readonly eventEmitter: NestjsEventEmitter,
@@ -22,7 +22,7 @@ export class InvoiceController {
 
   @SubscribeTopic(Env.KAFKA_TOPIC_INVOICE_CREATED)
   async create({ value, partition, offset, headers }: KafkaResponse<string>) {
-    const logger = new InfraLogger(headers, InvoiceController.name);
+    const logger = new InfraLogger(headers, ConsumerInvoiceController.name);
     try {
       const { data } = this.parseValueFromQueue(value);
       const accountId = headers['X-Tenant-Id'];
@@ -38,7 +38,7 @@ export class InvoiceController {
       const account = await this.accountService.findOne(accountId);
 
       if (account.integrateIntelipost)
-        this.eventEmitter.emit('intelipost.sent', data);
+        this.eventEmitter.emit('intelipost.sent', { headers, data });
     } catch (error) {
       logger.error(error);
     } finally {

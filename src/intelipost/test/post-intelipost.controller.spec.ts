@@ -3,15 +3,15 @@ import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrderService } from 'src/order/order.service';
 import { OrderEntity } from 'src/order/schemas/order.schema';
-import { InteliPostController } from '../intelipost.controller';
+import { IntelipostController } from '../intelipost.controller';
 import { InteliPostService } from '../intelipost.service';
 
-describe('InteliPostController', () => {
-  let controller: InteliPostController;
+describe('IntelipostController', () => {
+  let controller: IntelipostController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [InteliPostController],
+      controllers: [IntelipostController],
       providers: [
         InteliPostService,
         OrderService,
@@ -31,7 +31,7 @@ describe('InteliPostController', () => {
       ],
     }).compile();
 
-    controller = module.get<InteliPostController>(InteliPostController);
+    controller = module.get<IntelipostController>(IntelipostController);
   });
 
   it('should be defined', () => {
