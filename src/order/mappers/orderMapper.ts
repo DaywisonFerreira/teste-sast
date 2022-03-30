@@ -21,13 +21,18 @@ export class OrderMapper {
         key: payload.invoice.invoice_key,
         serie: payload.invoice.invoice_series,
         number: payload.invoice.invoice_number,
+        trackingUrl: payload.tracking_url,
+        trackingNumber: payload.tracking_code,
       },
       dispatchDate: new Date(payload.history.created_iso),
-      estimateDeliveryDateDeliveryCompany: new Date(
-        payload.estimated_delivery_date.client.current_iso,
-      ),
+      estimateDeliveryDateDeliveryCompany: payload?.estimated_delivery_date
+        ?.client
+        ? new Date(payload.estimated_delivery_date.client.current_iso)
+        : null,
       partnerMessage: payload.history.provider_message,
+      partnerStatusId: `${payload.history.shipment_volume_micro_state.id}`,
       numberVolumes: parseInt(payload.volume_number, 10),
+      volumeNumber: parseInt(payload.volume_number, 10),
       microStatus: payload.history.shipment_volume_micro_state.name,
       lastOccurrenceMacro: payload.history.esprinter_message,
       lastOccurrenceMicro:
@@ -36,6 +41,24 @@ export class OrderMapper {
         payload.history.shipment_volume_micro_state.description,
       partnerStatus: status,
       i18n: payload.history.shipment_volume_micro_state.i18n_name,
+    };
+  }
+
+  static mapPartnerHistoryToOrderHistory(payload: Partial<OrderDocument>): any {
+    return {
+      volumeNumber: payload.volumeNumber,
+      dispatchDate: payload.dispatchDate,
+      estimateDeliveryDateDeliveryCompany:
+        payload.estimateDeliveryDateDeliveryCompany,
+      partnerMessage: payload.partnerMessage,
+      microStatus: payload.microStatus,
+      lastOccurrenceMacro: payload.lastOccurrenceMacro,
+      lastOccurrenceMicro: payload.lastOccurrenceMicro,
+      lastOccurrenceMessage: payload.lastOccurrenceMessage,
+      partnerStatusId: payload.partnerStatusId,
+      partnerStatus: payload.partnerStatus,
+      orderUpdatedAt: payload.orderUpdatedAt,
+      i18n: payload.i18n,
     };
   }
 
@@ -65,6 +88,9 @@ export class OrderMapper {
           ? 'canceled'
           : payload.partnerStatus,
       invoiceNumber: payload.invoice.number,
+      trackingNumber: payload.invoice.trackingNumber,
+      trackingUrl: payload.invoice.trackingUrl,
+      carrierName: payload.invoice.carrierName,
     };
   }
 

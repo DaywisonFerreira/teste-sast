@@ -26,7 +26,13 @@ export class AccountController {
   @ApiOkResponse({ type: PaginateAccountDto })
   async findAll(
     @Query() filterPaginateDto: FilterPaginateAccountDto,
+    @Req() req: any,
   ): Promise<PaginateAccountDto> {
+    req.logger.verbose(
+      `A request was received to get accounts with the query: ${JSON.stringify(
+        filterPaginateDto,
+      )}`,
+    );
     const {
       name,
       shipToAddress,
@@ -60,10 +66,16 @@ export class AccountController {
 
   @Get(':id')
   @ApiOkResponse({ type: GetAccountDto })
-  async findOneAccount(@Param('id') id: string): Promise<GetAccountDto> {
+  async findOneAccount(
+    @Param('id') id: string,
+    @Req() req: any,
+  ): Promise<GetAccountDto> {
     const account = await this.accountService.findOneAccountOrLocation(
       id,
       'account',
+    );
+    req.logger.verbose(
+      `A request has been received to get the account ${account.id}`,
     );
     // @ts-ignore
     return GetAccountDto.factory(account) as GetAccountDto;
@@ -73,20 +85,31 @@ export class AccountController {
   async updateGenerateNotfisFile(
     @Param('id') id: string,
     @Body() update: UpdateGenerateNotfisFile,
+    @Req() req: any,
   ): Promise<GetAccountDto> {
-    const { generateNotfisFile } = update;
+    const { generateNotfisFile, integrateIntelipost } = update;
     const account = await this.accountService.updateGenerateNotfisFile(id, {
       generateNotfisFile,
+      integrateIntelipost,
     });
+    req.logger.verbose(
+      `Account location ${account.id} - Invoice generation: ${generateNotfisFile}`,
+    );
     return GetAccountDto.factory(account) as GetAccountDto;
   }
 
   @Get('locations/:id')
   @ApiOkResponse({ type: GetAccountDto })
-  async findOneLocation(@Param('id') id: string): Promise<GetAccountDto> {
+  async findOneLocation(
+    @Param('id') id: string,
+    @Req() req: any,
+  ): Promise<GetAccountDto> {
     const account = await this.accountService.findOneAccountOrLocation(
       id,
       'location',
+    );
+    req.logger.verbose(
+      `A request has been received to get the location ${account.id}`,
     );
     // @ts-ignore
     return GetAccountDto.factory(account) as GetAccountDto;
@@ -105,7 +128,7 @@ export class AccountController {
       const account = await this.accountService.updateWarehouseCode(id, {
         externalWarehouseCode: warehouseCode,
       });
-      req.logger.log(`Account location ${warehouseCode} updated`);
+      req.logger.verbose(`Account location ${warehouseCode} updated`);
       return GetAccountDto.factory(account) as GetAccountDto;
     } catch (error) {
       req.logger.error(error);

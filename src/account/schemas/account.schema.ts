@@ -30,6 +30,9 @@ export class AccountEntity extends Document {
   @Prop({ default: false, required: false })
   active: boolean;
 
+  @Prop({ type: Boolean, required: true })
+  integrateIntelipost: boolean;
+
   @Prop({ type: String, required: true })
   document: string;
 

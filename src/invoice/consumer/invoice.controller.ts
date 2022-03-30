@@ -6,6 +6,7 @@ import {
 import { Inject, Controller } from '@nestjs/common';
 
 import { InfraLogger } from '@infralabs/infra-logger';
+import { AccountService } from 'src/account/account.service';
 import { NestjsEventEmitter } from '../../commons/providers/event/nestjs-event-emitter';
 import { Env } from '../../commons/environment/env';
 import { InvoiceService } from '../invoice.service';
@@ -13,6 +14,7 @@ import { InvoiceService } from '../invoice.service';
 @Controller()
 export class InvoiceController {
   constructor(
+    private readonly accountService: AccountService,
     private readonly eventEmitter: NestjsEventEmitter,
     private readonly invoiceService: InvoiceService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
@@ -22,15 +24,21 @@ export class InvoiceController {
   async create({ value, partition, offset, headers }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, InvoiceController.name);
     try {
-      logger.log(
-        `Payload was received from the ${Env.KAFKA_TOPIC_INVOICE_CREATED} topic`,
-      );
       const { data } = this.parseValueFromQueue(value);
+      const accountId = headers['X-Tenant-Id'];
+
+      logger.log(
+        `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Invoice was received with the key ${data.key}`,
+      );
 
       if (data.notfisFile && data.notfisFileName) {
         await this.invoiceService.sendFtp(data, logger);
       }
-      this.eventEmitter.emit('ftp.sent', data);
+
+      const account = await this.accountService.findOne(accountId);
+
+      if (account.integrateIntelipost)
+        this.eventEmitter.emit('intelipost.sent', data);
     } catch (error) {
       logger.error(error);
     } finally {

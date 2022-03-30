@@ -42,7 +42,13 @@ export class OrderController {
   async findAll(
     @Query(ValidationPipe) filterPaginateDto: FilterPaginateOrderDto,
     @Headers('x-tenant-id') xTenantId: string,
+    @Req() req: any,
   ): Promise<PaginateOrderDto> {
+    req.logger.verbose(
+      `A request was received to get all orders with the query: ${JSON.stringify(
+        filterPaginateDto,
+      )}`,
+    );
     const {
       page = 1,
       perPage = 20,
@@ -54,7 +60,6 @@ export class OrderController {
       orderUpdatedAtFrom,
       orderUpdatedAtTo,
       status,
-      // partnerStatus,
     } = filterPaginateDto;
 
     const pageNumber = Number(page);
@@ -73,7 +78,6 @@ export class OrderController {
       orderUpdatedAtFrom,
       orderUpdatedAtTo,
       status,
-      // partnerStatus,
     });
 
     const result = resultQuery.map(order => ({
@@ -96,6 +100,7 @@ export class OrderController {
     @Req() req: any,
   ): Promise<GetOrderDto> {
     try {
+      req.logger.verbose(`Request was received to get order ${id}`);
       const order = await this.orderService.findOne(id);
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
