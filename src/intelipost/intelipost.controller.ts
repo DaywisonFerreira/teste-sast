@@ -17,7 +17,7 @@ import { MessageIntelipostCreated } from './factories';
 
 @Controller('intelipost')
 @ApiTags('Intelipost')
-export class InteliPostController {
+export class IntelipostController {
   constructor(@Inject('KafkaService') private kafkaProducer: KafkaService) {}
 
   @Post()

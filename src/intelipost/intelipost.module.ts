@@ -21,7 +21,8 @@ import { AccountService } from '../account/account.service';
 import { InteliPostService } from './intelipost.service';
 import { IntelipostMapper } from './mappers/intelipostMapper';
 import { ConsumerIntelipostController } from './consumer/intelipost.controller';
-import { InteliPostController } from './intelipost.controller';
+import { OnEventIntelipostController } from './consumer/intelipost-event.controller';
+import { IntelipostController } from './intelipost.controller';
 
 @Module({
   imports: [
@@ -32,7 +33,11 @@ import { InteliPostController } from './intelipost.controller';
       { name: AccountEntity.name, schema: AccountSchema },
     ]),
   ],
-  controllers: [InteliPostController, ConsumerIntelipostController],
+  controllers: [
+    IntelipostController,
+    ConsumerIntelipostController,
+    OnEventIntelipostController,
+  ],
   providers: [
     {
       provide: 'LogProvider',

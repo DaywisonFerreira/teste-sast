@@ -5,16 +5,16 @@ import { CarrierEntity } from 'src/carrier/schemas/carrier.schema';
 import { NestjsEventEmitter } from 'src/commons/providers/event/nestjs-event-emitter';
 import { TrackingCodeEntity } from '../schemas/tracking-code.schema';
 import { AccountEntity } from '../../account/schemas/account.schema';
-import { InvoiceController } from '../consumer/invoice.controller';
+import { ConsumerInvoiceController } from '../consumer/invoice.controller';
 import { InvoiceService } from '../invoice.service';
 import { AccountService } from '../../account/account.service';
 
-describe('InvoiceController', () => {
-  let controller: InvoiceController;
+describe('ConsumerInvoiceController', () => {
+  let controller: ConsumerInvoiceController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [InvoiceController],
+      controllers: [ConsumerInvoiceController],
       providers: [
         InvoiceService,
         CarrierService,
@@ -43,7 +43,9 @@ describe('InvoiceController', () => {
       ],
     }).compile();
 
-    controller = module.get<InvoiceController>(InvoiceController);
+    controller = module.get<ConsumerInvoiceController>(
+      ConsumerInvoiceController,
+    );
   });
 
   it('should be defined', () => {
