@@ -49,11 +49,11 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
   orderUpdatedAtTo?: string | null;
 
   @ApiPropertyOptional({
-    description: 'Status of order',
+    description: 'Status code of order',
     type: String,
     example: 'dispatched,delivered,invoiced',
     required: false,
   })
   @IsOptional()
-  status?: string | null;
+  statusCode?: string | null;
 }

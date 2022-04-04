@@ -27,7 +27,7 @@ export class CsvMapper {
         paymentDate,
         dispatchDate,
         estimateDeliveryDateDeliveryCompany,
-        status,
+        statusCode,
         partnerStatus,
         orderSale,
         order,
@@ -71,7 +71,7 @@ export class CsvMapper {
           .join(', '),
         Transportadora: logisticInfo && logisticInfo[0].deliveryCompany,
         'Data Despacho': dispatchDate,
-        'Status Transportador': status,
+        'Status Transportador': statusCode,
         'Data do último status': orderUpdatedAt,
         'Data Entrega': deliveryDate,
         'Previsão Entrega Cliente':

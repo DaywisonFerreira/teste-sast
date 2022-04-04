@@ -98,6 +98,13 @@ export class GetOrderDto {
   })
   history: Array<any>;
 
+  @ApiProperty({
+    description: 'Macro and micro status code of the order ',
+    type: Object,
+    required: false,
+  })
+  statusCode;
+
   public static factory(
     resultQuery: GetOrderDto | GetOrderDto[],
   ): GetOrderDto | GetOrderDto[] {
