@@ -12,6 +12,7 @@ import { CarrierModule } from './carrier/carrier.module';
 import { AccountModule } from './account/account.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { DefaultExceptionsFilter } from './commons/filters/default-exception.filter';
+import { StatusCodeModule } from './status-code/status-code.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { DefaultExceptionsFilter } from './commons/filters/default-exception.fil
     CarrierModule,
     AccountModule,
     InvoiceModule,
+    StatusCodeModule,
   ],
   controllers: [AppController],
   providers: [
