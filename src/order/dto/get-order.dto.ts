@@ -103,7 +103,7 @@ export class GetOrderDto {
     type: Object,
     required: false,
   })
-  statusCode;
+  statusCode: Record<string, any>;
 
   public static factory(
     resultQuery: GetOrderDto | GetOrderDto[],
