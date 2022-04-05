@@ -106,7 +106,7 @@ export class ConsumerOrderController {
     );
 
     logger.log(
-      `${Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT} - Report request was received for storeId: ${data.storeId} - From ${data.rderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
+      `${Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT} - Report request was received for storeId: ${data.storeId} - From ${data.orderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
     );
     try {
       const dataToFormat = await this.orderService.exportData(data, {
