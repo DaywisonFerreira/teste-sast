@@ -39,7 +39,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prepare": "husky install",
     "prepublishOnly": "pinst --disable",
-    "postpublish": "pinst --enable"
+    "postpublish": "pinst --enable",
+    "seed": "node dist/seeder",
+    "seed:refresh": "node dist/seeder --refresh"
   },
   "dependencies": {
     "@golevelup/nestjs-rabbitmq": "^1.19.0",
@@ -85,6 +87,7 @@
     "lodash": "^4.17.21",
     "mongoose": "^5.13.7",
     "multer": "^1.4.3",
+    "nestjs-seeder": "^0.2.0",
     "npm": "^8.3.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
