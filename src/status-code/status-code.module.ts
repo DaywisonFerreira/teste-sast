@@ -1,8 +1,5 @@
 import { MongooseModule } from '@nestjs/mongoose';
-import { Module, Scope } from '@nestjs/common';
-import { Env } from 'src/commons/environment/env';
-import { NestjsLogger } from 'src/commons/providers/log/nestjs-logger';
-import { InfraLogger as Logger } from '@infralabs/infra-logger';
+import { Module } from '@nestjs/common';
 import { StatusCodeService } from './status-code.service';
 import { StatusCodeController } from './status-code.controller';
 import {
@@ -20,14 +17,7 @@ import {
     ]),
   ],
   controllers: [StatusCodeController],
-  providers: [
-    {
-      provide: 'LogProvider',
-      useClass: Env.NODE_ENV === 'local' ? NestjsLogger : Logger,
-      scope: Scope.TRANSIENT,
-    },
-    StatusCodeService,
-  ],
+  providers: [StatusCodeService],
   exports: [
     MongooseModule.forFeature([
       {
