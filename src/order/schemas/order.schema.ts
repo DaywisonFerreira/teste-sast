@@ -96,6 +96,44 @@ export class Customer {
   fullName: string;
 }
 
+export class PickupStoreInfo {
+  additionalInfo: string;
+
+  dockId: string;
+
+  friendlyName: string;
+
+  isPickupStore: boolean;
+}
+
+export class LogisticInfo {
+  pickupStoreInfo: PickupStoreInfo;
+
+  shipsTo: Array<any>;
+
+  _id: string;
+
+  itemIndex: number;
+
+  logisticContract: string;
+
+  price: number;
+
+  listPrice: number;
+
+  sellingPrice: number;
+
+  deliveryCompany: string;
+
+  shippingEstimate: string;
+
+  shippingEstimateDate: Date;
+
+  deliveryChannel: string;
+
+  deliveryIds: Array<any>;
+}
+
 @Schema({ collection: 'orders', timestamps: true })
 export class OrderEntity extends Document {
   @Prop({ type: Types.ObjectId, required: false })
@@ -156,7 +194,7 @@ export class OrderEntity extends Document {
   billingData?: Array<any>;
 
   @Prop({ type: Array, required: false })
-  logisticInfo?: Array<any>;
+  logisticInfo?: Array<LogisticInfo>;
 
   @Prop({ type: String, required: false })
   status?: string;

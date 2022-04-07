@@ -150,4 +150,15 @@ export class OrderController {
       throw error;
     }
   }
+
+  @Get(':id/detail')
+  async getOrderDetail(@Param('id') id: string, @Req() req: any): Promise<any> {
+    req.logger.verbose(
+      `A request has been received to get the order details ${id}`,
+    );
+    const orderDetails = await this.orderService.getOrderDetails(id);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return orderDetails;
+  }
 }
