@@ -12,7 +12,7 @@ import { CarrierService } from '../carrier/carrier.service';
 export class InvoiceService {
   constructor(private readonly carrierService: CarrierService) {}
 
-  async sendFtp(data: CreateInvoiceDto, logger: LogProvider) {
+  async sendFtp(data: CreateInvoiceDto, accountId: string, logger: LogProvider) {
     const carrier = await this.carrierService.findByDocument(
       data.carrier.document,
     );
@@ -27,9 +27,15 @@ export class InvoiceService {
     }
 
     const { integration } = carrier;
-    const destPath = integration.attributes.find(
+    let destPath = integration.attributes.find(
       ({ key }) => key === 'destPath',
     );
+    const accountIdPath = integration.attributes.find(
+      ({ key }) => key === accountId,
+    );
+    if (accountIdPath) {
+      destPath = accountIdPath
+    }
     const secure = integration.attributes.find(({ key }) => key === 'secure');
     const port = integration.attributes.find(({ key }) => key === 'port');
     const password = integration.attributes.find(
