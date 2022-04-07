@@ -231,4 +231,59 @@ export class OrderService {
       throw new Error('Invalid range of dates');
     }
   }
+
+  async getOrderDetails(orderId: string): Promise<any> {
+    const order = await this.findOne(orderId);
+    const {
+      totals,
+      value,
+      orderSale,
+      order: orderERP,
+      orderCreatedAt,
+      estimateDeliveryDateDeliveryCompany,
+      logisticInfo,
+      invoice,
+      history,
+      internalOrderId,
+    } = order;
+
+    /**
+     * Total values
+     */
+    const values = {
+      totalValueItems: totals.find(total => total.id === 'Items').value,
+      totalDiscounts: totals.find(total => total.id === 'Discounts').value,
+      totalShipping: totals.find(total => total.id === 'Shipping').value,
+      value,
+    };
+
+    /**
+     * deliveryCompany + logisticContract
+     */
+    const shippingMethod = `${logisticInfo[0].deliveryCompany} ${logisticInfo[0].logisticContract}`;
+
+    /**
+     * If the order status is equal to invoiced, it will be returned to the
+     * logisticInfo carrier, if the status is dispatched or delivered, it
+     * will be returned to the carrier that is on the note.
+     */
+    const shippingCompany =
+      order.status === 'invoiced'
+        ? logisticInfo[0].deliveryCompany
+        : invoice.carrierName;
+
+    const data = {
+      values,
+      shippingMethod,
+      shippingCompany,
+      platformCode: orderSale,
+      codeERP: orderERP,
+      purchaseDate: orderCreatedAt,
+      estimateDeliveryDate: estimateDeliveryDateDeliveryCompany,
+      erpId: internalOrderId,
+      history,
+    };
+
+    return data;
+  }
 }

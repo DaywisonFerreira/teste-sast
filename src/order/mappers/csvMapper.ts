@@ -27,7 +27,6 @@ export class CsvMapper {
         paymentDate,
         dispatchDate,
         estimateDeliveryDateDeliveryCompany,
-        statusCode,
         partnerStatus,
         orderSale,
         order,
@@ -44,6 +43,34 @@ export class CsvMapper {
         lastOccurrenceMessage,
         quantityOccurrences,
       } = data;
+
+      const statusMapper = {
+        created: 'Pedido criado',
+        'operational-problem': 'Problema operacional',
+        'carrier-possession': 'Em posse da transportadora',
+        'first-delivery-failed': 'Insucesso na primeira tentativa de entrega',
+        'address-error': 'Erro no endereço',
+        'shippment-loss': 'Extravio',
+        'hub-transfer': 'Em transferência entre hubs',
+        'delivery-route': 'Em rota de entrega',
+        'shippment-returned': 'Devolvido',
+        'zip-code-not-serviced': 'CEP não atendido pela transportadora',
+        'customer-refused': 'Cliente recusou a carga',
+        'address-not-found': 'Endereço não encontrado',
+        'away-customer': 'Cliente ausente',
+        'shippment-stolen': 'Roubo',
+        'tax-stop': 'Parada no posto fiscal',
+        dispatched: 'Despachado',
+        'shippment-returning': 'Em devolução',
+        'delivered-success': 'EntregueTesteTestado',
+        'waiting-post-office-pickup':
+          'Aguardando retirada na agência dos Correios',
+        damage: 'Avaria',
+        'unknown-customer': 'Cliente desconhecido',
+        invoiced: 'Faturado',
+      };
+
+      const statusCode = statusMapper[data.statusCode.micro];
 
       return {
         'Nome do Destinatário': receiverName,
