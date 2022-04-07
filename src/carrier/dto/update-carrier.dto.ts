@@ -65,6 +65,10 @@ export class UpdateCarrierDto {
           key: 'destPath',
           value: '/teste',
         },
+        {
+          key: '61940ba2e689060011f69be1',
+          value: '/pathByAccount',
+        },
       ],
     },
     required: false,
