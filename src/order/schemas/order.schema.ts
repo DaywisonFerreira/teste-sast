@@ -11,6 +11,7 @@ export const PublicFieldsOrder = {
   partnerOrder: 1,
   status: 1,
   partnerStatus: 1,
+  statusCode: 1,
   history: 1,
   'billingData.invoiceValue': 1,
   'billingData.customerDocument': 1,
@@ -94,6 +95,12 @@ export class Customer {
   corporateName: string;
 
   fullName: string;
+}
+
+export class statusCode {
+  micro: string;
+
+  macro: string;
 }
 
 export class PickupStoreInfo {
@@ -244,6 +251,9 @@ export class OrderEntity extends Document {
   @Prop({ type: String, required: false })
   partnerStatusId?: string;
 
+  @Prop({ type: String, required: false })
+  partnerMacroStatusId?: string;
+
   // @deprecated
   @Prop({ type: Number, required: false })
   numberVolumes?: number;
@@ -265,6 +275,9 @@ export class OrderEntity extends Document {
 
   @Prop({ type: String, required: false })
   partnerStatus?: string;
+
+  @Prop({ type: Object, required: false })
+  statusCode?: statusCode;
 
   @Prop({ type: String, required: false })
   i18n?: string;
