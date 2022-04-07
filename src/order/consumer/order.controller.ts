@@ -59,7 +59,8 @@ export class ConsumerOrderController {
     try {
       if (
         order.logisticInfo &&
-        order.logisticInfo[0].deliveryChannel === 'delivery' &&
+        (order.logisticInfo[0].deliveryChannel === 'delivery' ||
+          order.logisticInfo[0].deliveryChannel === 'deliver') &&
         (order.status === 'dispatched' || order.status === 'invoiced')
       ) {
         const orderToSaves: Array<any> = OrderMapper.mapMessageToOrders(order);
@@ -106,7 +107,7 @@ export class ConsumerOrderController {
     );
 
     logger.log(
-      `${Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT} - Report request was received for storeId: ${data.storeId} - From ${data.rderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
+      `${Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT} - Report request was received for storeId: ${data.storeId} - From ${data.orderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
     );
     try {
       const dataToFormat = await this.orderService.exportData(data, {

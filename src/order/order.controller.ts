@@ -44,53 +44,58 @@ export class OrderController {
     @Headers('x-tenant-id') xTenantId: string,
     @Req() req: any,
   ): Promise<PaginateOrderDto> {
-    req.logger.verbose(
-      `A request was received to get all orders with the query: ${JSON.stringify(
-        filterPaginateDto,
-      )}`,
-    );
-    const {
-      page = 1,
-      perPage = 20,
-      orderBy,
-      orderDirection = 'desc',
-      search,
-      orderCreatedAtFrom,
-      orderCreatedAtTo,
-      orderUpdatedAtFrom,
-      orderUpdatedAtTo,
-      status,
-    } = filterPaginateDto;
+    try {
+      req.logger.verbose(
+        `A request was received to get all orders with the query: ${JSON.stringify(
+          filterPaginateDto,
+        )}`,
+      );
+      const {
+        page = 1,
+        perPage = 20,
+        orderBy,
+        orderDirection = 'desc',
+        search,
+        orderCreatedAtFrom,
+        orderCreatedAtTo,
+        orderUpdatedAtFrom,
+        orderUpdatedAtTo,
+        statusCode,
+      } = filterPaginateDto;
 
-    const pageNumber = Number(page);
-    const pageSize = Number(perPage);
-    const sortBy = orderBy || 'orderCreatedAt';
+      const pageNumber = Number(page);
+      const pageSize = Number(perPage);
+      const sortBy = orderBy || 'orderCreatedAt';
 
-    const [resultQuery, count] = await this.orderService.findAll({
-      page,
-      pageSize,
-      orderBy: sortBy,
-      orderDirection,
-      search,
-      storeId: xTenantId,
-      orderCreatedAtFrom,
-      orderCreatedAtTo,
-      orderUpdatedAtFrom,
-      orderUpdatedAtTo,
-      status,
-    });
+      const [resultQuery, count] = await this.orderService.findAll({
+        page,
+        pageSize,
+        orderBy: sortBy,
+        orderDirection,
+        search,
+        storeId: xTenantId,
+        orderCreatedAtFrom,
+        orderCreatedAtTo,
+        orderUpdatedAtFrom,
+        orderUpdatedAtTo,
+        statusCode,
+      });
 
-    const result = resultQuery.map(order => ({
-      ...order,
-      logisticInfo: [order.logisticInfo[0]],
-    }));
+      const result = resultQuery.map(order => ({
+        ...order,
+        logisticInfo: [order.logisticInfo?.length ? order.logisticInfo[0] : {}],
+      }));
 
-    return new PaginateOrderDto(
-      JSON.parse(JSON.stringify(result)),
-      count,
-      pageNumber,
-      pageSize,
-    );
+      return new PaginateOrderDto(
+        JSON.parse(JSON.stringify(result)),
+        count,
+        pageNumber,
+        pageSize,
+      );
+    } catch (error) {
+      req.logger.error(error);
+      throw error;
+    }
   }
 
   @Get(':id')

@@ -2,7 +2,6 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { differenceInDays, isBefore } from 'date-fns';
 import { LeanDocument, Model, Types } from 'mongoose';
-import { IFilterObject } from 'src/commons/interfaces/filter-object.interface';
 import { OrderMapper } from './mappers/orderMapper';
 import {
   OrderDocument,
@@ -28,19 +27,17 @@ export class OrderService {
     orderCreatedAtTo,
     orderUpdatedAtFrom,
     orderUpdatedAtTo,
-    status,
+    statusCode,
   }): Promise<[LeanDocument<OrderEntity[]>, number]> {
-    const filter: IFilterObject = {
-      status: { $in: ['dispatched', 'delivered', 'invoiced'] }, // Entregue // Avaria // Extravio // Roubo // Em devolução // Aguardando retirada na agência dos Correios
-    };
+    const filter: any = {};
 
     if (storeId) {
       filter.storeId = new Types.ObjectId(storeId);
     }
 
-    if (status) {
-      filter.status = {
-        $in: status.split(','),
+    if (statusCode) {
+      filter.statusCode.micro = {
+        $in: statusCode.split(','),
       };
     }
 
