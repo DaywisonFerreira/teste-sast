@@ -125,7 +125,6 @@ export class OrderService {
   ) {
     const conditions: any = {
       storeId: new Types.ObjectId(storeId),
-      status: { $in: ['dispatched', 'delivered', 'invoiced'] }, // Entregue // Avaria // Extravio // Roubo // Em devolução // Aguardando retirada na agência dos Correios
     };
 
     if (orderCreatedAtFrom && orderCreatedAtTo) {
