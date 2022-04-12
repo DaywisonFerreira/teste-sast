@@ -17,4 +17,10 @@ export class StatusCodeService {
     const statusCodes = await this.StatusCodeModel.find().lean();
     return statusCodes;
   }
+
+  async getStatusCodeByName(
+    statusCodeName: string,
+  ): Promise<LeanDocument<StatusCodeEntity>> {
+    return this.StatusCodeModel.findOne({ name: statusCodeName });
+  }
 }

@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { differenceInDays, isBefore } from 'date-fns';
 import { LeanDocument, Model, Types } from 'mongoose';
+import * as moment from 'moment';
 import { OrderMapper } from './mappers/orderMapper';
 import {
   OrderDocument,
@@ -244,7 +245,15 @@ export class OrderService {
       invoice,
       history,
       internalOrderId,
+      statusCode,
     } = order;
+
+    /**
+     * History array order by ASC
+     */
+    const historyOrderByASC = history.sort((a, b) => {
+      return moment(a.dispatchDate).diff(b.dispatchDate);
+    });
 
     /**
      * Total values
@@ -280,7 +289,8 @@ export class OrderService {
       purchaseDate: orderCreatedAt,
       estimateDeliveryDate: estimateDeliveryDateDeliveryCompany,
       erpId: internalOrderId,
-      history,
+      statusCode,
+      historyOrderByASC,
     };
 
     return data;
