@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
@@ -139,6 +140,28 @@ export class LogisticInfo {
   deliveryChannel: string;
 
   deliveryIds: Array<any>;
+}
+
+export class History {
+  dispatchDate: Date;
+
+  estimateDeliveryDateDeliveryCompany: Date;
+
+  partnerMessage: string;
+
+  microStatus: string;
+
+  lastOccurrenceMacro: string;
+
+  lastOccurrenceMicro: string;
+
+  lastOccurrenceMessage: string;
+
+  partnerStatus: string;
+
+  orderUpdatedAt: string;
+
+  i18n: string;
 }
 
 @Schema({ collection: 'orders', timestamps: true })
@@ -283,7 +306,7 @@ export class OrderEntity extends Document {
   i18n?: string;
 
   @Prop({ type: Array, default: [], required: false })
-  history?: Array<any>;
+  history?: Array<History>;
 
   @Prop({ type: String, required: false })
   originZipCode?: string; // campo só usado no relatorio
