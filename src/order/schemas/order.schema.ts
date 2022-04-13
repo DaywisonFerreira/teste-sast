@@ -98,7 +98,7 @@ export class Customer {
   fullName: string;
 }
 
-export class statusCode {
+export class StatusCode {
   micro: string;
 
   macro: string;
@@ -162,6 +162,8 @@ export class History {
   orderUpdatedAt: string;
 
   i18n: string;
+
+  statusCode: StatusCode;
 }
 
 @Schema({ collection: 'orders', timestamps: true })
@@ -300,7 +302,7 @@ export class OrderEntity extends Document {
   partnerStatus?: string;
 
   @Prop({ type: Object, required: false })
-  statusCode?: statusCode;
+  statusCode?: StatusCode;
 
   @Prop({ type: String, required: false })
   i18n?: string;

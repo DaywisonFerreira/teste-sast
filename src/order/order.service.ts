@@ -249,16 +249,18 @@ export class OrderService {
     } = order;
 
     /**
-     * Steppers
-     */
-    const steppers = history.map(hist => hist.partnerStatus);
-
-    /**
      * History array order by ASC
      */
     const historyOrderByASC = history.sort((a, b) => {
-      return moment(a.dispatchDate).diff(b.dispatchDate);
+      return moment(a.orderUpdatedAt).diff(b.orderUpdatedAt);
     });
+
+    /**
+     * Steppers
+     */
+    const steppers = historyOrderByASC
+      .map(hist => (hist?.statusCode?.macro ? hist.statusCode.macro : ''))
+      .filter(x => x !== '');
 
     /**
      * Total values
