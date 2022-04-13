@@ -249,6 +249,11 @@ export class OrderService {
     } = order;
 
     /**
+     * Steppers
+     */
+    const steppers = history.map(hist => hist.partnerStatus);
+
+    /**
      * History array order by ASC
      */
     const historyOrderByASC = history.sort((a, b) => {
@@ -290,6 +295,7 @@ export class OrderService {
       estimateDeliveryDate: estimateDeliveryDateDeliveryCompany,
       erpId: internalOrderId,
       statusCode,
+      steppers,
       historyOrderByASC,
     };
 
