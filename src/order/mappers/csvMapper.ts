@@ -155,7 +155,7 @@ export class CsvMapper {
         'Última Ocorrência (Mensagem)': lastOccurrenceMessage,
         'Quantidade de Ocorrências': quantityOccurrences,
         'Data_Hora Pagamento': paymentDate,
-        ...histories
+        ...histories,
       };
     });
   }
