@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { differenceInDays, isBefore } from 'date-fns';
 import { LeanDocument, Model, Types } from 'mongoose';
+import * as moment from 'moment';
 import { OrderMapper } from './mappers/orderMapper';
 import {
   OrderDocument,
@@ -109,7 +110,7 @@ export class OrderService {
 
   async findOne(orderId: string): Promise<LeanDocument<OrderEntity>> {
     const order = await this.OrderModel.findOne({
-      orderId,
+      orderId: new Types.ObjectId(orderId),
     }).lean();
 
     if (!order) {
@@ -244,7 +245,22 @@ export class OrderService {
       invoice,
       history,
       internalOrderId,
+      statusCode,
     } = order;
+
+    /**
+     * History array order by ASC
+     */
+    const historyOrderByASC = history.sort((a, b) => {
+      return moment(a.orderUpdatedAt).diff(b.orderUpdatedAt);
+    });
+
+    /**
+     * Steppers
+     */
+    const steppers = historyOrderByASC
+      .map(hist => (hist?.statusCode?.macro ? hist.statusCode.macro : ''))
+      .filter(x => x !== '');
 
     /**
      * Total values
@@ -280,7 +296,9 @@ export class OrderService {
       purchaseDate: orderCreatedAt,
       estimateDeliveryDate: estimateDeliveryDateDeliveryCompany,
       erpId: internalOrderId,
-      history,
+      statusCode,
+      steppers,
+      historyOrderByASC,
     };
 
     return data;

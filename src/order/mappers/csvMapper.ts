@@ -42,6 +42,7 @@ export class CsvMapper {
         lastOccurrenceMicro,
         lastOccurrenceMessage,
         quantityOccurrences,
+        history,
       } = data;
 
       const statusMapper = {
@@ -62,7 +63,7 @@ export class CsvMapper {
         'tax-stop': 'Parada no posto fiscal',
         dispatched: 'Despachado',
         'shippment-returning': 'Em devolução',
-        'delivered-success': 'EntregueTesteTestado',
+        'delivered-success': 'Entregue',
         'waiting-post-office-pickup':
           'Aguardando retirada na agência dos Correios',
         damage: 'Avaria',
@@ -71,6 +72,19 @@ export class CsvMapper {
       };
 
       const statusCode = statusMapper[data.statusCode.micro];
+
+      const histories = !history
+        ? []
+        : history
+            .map(historyStatus =>
+              historyStatus.statusCode
+                ? {
+                    status: [statusMapper[historyStatus.statusCode.micro]],
+                    time: historyStatus.orderUpdatedAt,
+                  }
+                : {},
+            )
+            .filter(historyStatus => Object.keys(historyStatus).length);
 
       return {
         'Nome do Destinatário': receiverName,
@@ -139,6 +153,9 @@ export class CsvMapper {
         'Última Ocorrência (Mensagem)': lastOccurrenceMessage,
         'Quantidade de Ocorrências': quantityOccurrences,
         'Data_Hora Pagamento': paymentDate,
+        Histórico: histories
+          .map(({ status, time }) => `status: ${status} time:${time}`)
+          .join(', '),
       };
     });
   }
