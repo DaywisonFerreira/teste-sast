@@ -4,7 +4,7 @@ import { IHubOrder } from '../interfaces/order.interface';
 import { OrderDocument } from '../schemas/order.schema';
 
 export class OrderMapper {
-  static mapPartnerToOrder(payload: CreateIntelipost): Partial<OrderDocument> {
+  static mapPartnerToOrder(payload: CreateIntelipost) {
     const status =
       typeof payload.history.shipment_order_volume_state === 'string'
         ? payload.history.shipment_order_volume_state
@@ -25,6 +25,7 @@ export class OrderMapper {
         number: payload.invoice.invoice_number,
         trackingUrl: payload.tracking_url,
         trackingNumber: payload.tracking_code,
+        carrierName: payload.invoice.carrierName,
       },
       dispatchDate: new Date(payload.history.created_iso),
       estimateDeliveryDateDeliveryCompany: payload?.estimated_delivery_date
