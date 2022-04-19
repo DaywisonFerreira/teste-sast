@@ -19,12 +19,12 @@ export const macroStatus = [
     name: 'delivered',
     parentId: null,
   },
-  {
-    name: 'delivery-failed',
-    parentId: null,
-  },
-  {
-    name: 'canceled',
-    parentId: null,
-  },
+  // {
+  //   name: 'delivery-failed',
+  //   parentId: null,
+  // },
+  // {
+  //   name: 'canceled',
+  //   parentId: null,
+  // },
 ];

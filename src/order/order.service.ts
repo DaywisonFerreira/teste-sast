@@ -110,7 +110,7 @@ export class OrderService {
 
   async findOne(orderId: string): Promise<LeanDocument<OrderEntity>> {
     const order = await this.OrderModel.findOne({
-      orderId: new Types.ObjectId(orderId),
+      orderId: { $in: [orderId, new Types.ObjectId(orderId)] },
     }).lean();
 
     if (!order) {
