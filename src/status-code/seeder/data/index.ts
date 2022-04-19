@@ -1,22 +1,14 @@
 export const macroStatus = [
   {
-    name: 'in-transit',
-    parentId: null,
-  },
-  {
-    name: 'delivery-failed',
-    parentId: null,
-  },
-  {
-    name: 'delivered',
-    parentId: null,
-  },
-  {
-    name: 'canceled',
-    parentId: null,
-  },
-  {
     name: 'order-created',
+    parentId: null,
+  },
+  {
+    name: 'order-dispatched',
+    parentId: null,
+  },
+  {
+    name: 'in-transit',
     parentId: null,
   },
   {
@@ -24,7 +16,15 @@ export const macroStatus = [
     parentId: null,
   },
   {
-    name: 'order-dispatched',
+    name: 'delivered',
     parentId: null,
   },
+  // {
+  //   name: 'delivery-failed',
+  //   parentId: null,
+  // },
+  // {
+  //   name: 'canceled',
+  //   parentId: null,
+  // },
 ];

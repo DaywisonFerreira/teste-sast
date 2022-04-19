@@ -71,16 +71,18 @@ export class CsvMapper {
         invoiced: 'Faturado',
       };
 
-      const statusCode = statusMapper[data.statusCode.micro];
+      const statusCode = data.statusCode?.micro
+        ? statusMapper[data.statusCode.micro]
+        : '';
 
       const histories = !history
         ? []
         : history
             .map(historyStatus =>
-              historyStatus.statusCode
+              historyStatus.statusCode?.micro
                 ? {
-                    status: [statusMapper[historyStatus.statusCode.micro]],
-                    time: historyStatus.orderUpdatedAt,
+                    [statusMapper[historyStatus.statusCode.micro]]:
+                      historyStatus.orderUpdatedAt,
                   }
                 : {},
             )
@@ -153,9 +155,7 @@ export class CsvMapper {
         'Última Ocorrência (Mensagem)': lastOccurrenceMessage,
         'Quantidade de Ocorrências': quantityOccurrences,
         'Data_Hora Pagamento': paymentDate,
-        Histórico: histories
-          .map(({ status, time }) => `status: ${status} time:${time}`)
-          .join(', '),
+        ...histories,
       };
     });
   }
