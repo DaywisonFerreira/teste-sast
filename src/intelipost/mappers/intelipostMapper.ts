@@ -17,6 +17,7 @@ export class IntelipostMapper {
     const carrier = await this.carrierService.findByDocument(
       data.carrier.document,
     );
+
     const shipmentOrderVolumeArray = data.packages.map((item, index) => {
       return {
         shipment_order_volume_number: index + 1,
@@ -70,10 +71,14 @@ export class IntelipostMapper {
       scheduled: false,
       shipment_order_type: 'NORMAL',
     };
-    return dataFormatted;
+    return { carrier, dataFormatted };
   }
 
-  mapResponseIntelipostToDeliveryHub(data: any) {
+  mapResponseIntelipostToDeliveryHub(
+    data: any,
+    carrierName: string,
+    shippingEstimateDate: any,
+  ) {
     const {
       shipment_order_volume_array: volumes,
       order_number,
@@ -82,7 +87,6 @@ export class IntelipostMapper {
       tracking_url,
     } = data;
     const result = [];
-
     volumes.forEach(volume => {
       const {
         shipment_order_volume_invoice,
@@ -99,10 +103,16 @@ export class IntelipostMapper {
             invoice_series: shipment_order_volume_invoice.invoice_series,
             invoice_number: shipment_order_volume_invoice.invoice_number,
             invoice_key: shipment_order_volume_invoice.invoice_key,
+            carrierName,
           },
           order_number,
           sales_order_number,
           external_order_numbers,
+          estimated_delivery_date: {
+            client: {
+              current_iso: new Date(shippingEstimateDate).toISOString(),
+            },
+          },
           tracking_code: tracking_code || '',
           volume_number: shipment_order_volume_number,
           tracking_url,
