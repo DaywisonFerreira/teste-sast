@@ -166,6 +166,10 @@ class InvoiceDto {
   @IsNotEmpty()
   @IsString()
   invoice_key: string;
+
+  @IsString()
+  @IsOptional()
+  carrierName?: string;
 }
 
 class LogisticProviderDto {
