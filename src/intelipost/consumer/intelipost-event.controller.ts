@@ -15,7 +15,7 @@ import { IntelipostMapper } from '../mappers/intelipostMapper';
 @Controller()
 export class OnEventIntelipostController {
   constructor(
-    private readonly storesService: InteliPostService,
+    private readonly intelipostService: InteliPostService,
     private readonly intelipostMapper: IntelipostMapper,
   ) {}
 
@@ -23,9 +23,9 @@ export class OnEventIntelipostController {
   async sendIntelipostData({ headers, data }: any) {
     const logger = new InfraLogger(headers, OnEventIntelipostController.name);
     try {
-      const intelipostData = await this.intelipostMapper.mapInvoiceToIntelipost(
-        data,
-      );
+      const { carrier, dataFormatted: intelipostData } =
+        await this.intelipostMapper.mapInvoiceToIntelipost(data);
+
       const apiKey = Env.INTELIPOST_SHIPMENT_ORDER_APIKEY;
       const platform = Env.INTELIPOST_SHIPMENT_ORDER_PLATFORM;
       const config: AxiosRequestConfig = {
@@ -47,10 +47,12 @@ export class OnEventIntelipostController {
         const newOrders =
           this.intelipostMapper.mapResponseIntelipostToDeliveryHub(
             response.data.content,
+            carrier.carrier,
+            intelipostData.estimated_delivery_date,
           );
 
         for await (const order of newOrders) {
-          await this.storesService.intelipost(order, logger);
+          await this.intelipostService.intelipost(order, logger);
           logger.log(
             `Order with invoiceKey ${order.invoice.invoice_key} was saved`,
           );
