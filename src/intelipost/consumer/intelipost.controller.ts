@@ -36,32 +36,16 @@ export class ConsumerIntelipostController {
       `${Env.KAFKA_TOPIC_INTELIPOST_CREATED} - Intelipost tracking received for orderSale ${data.sales_order_number} in the integration queue`,
     );
 
-    try {
-      const order = await this.storesService.intelipost(data, logger);
-
-      logger.log(`Order with invoiceKey ${order.invoice.key} was saved`);
-    } catch (error) {
-      logger.error(error);
-    } finally {
-      await this.removeFromQueue(
-        Env.KAFKA_TOPIC_INTELIPOST_CREATED,
-        partition,
-        offset,
-      );
-    }
-  }
-
-  private async removeFromQueue(
-    topic: string,
-    partition: number,
-    offset: number,
-  ) {
     await this.kafkaProducer.commitOffsets([
       {
-        topic,
+        topic: Env.KAFKA_TOPIC_INTELIPOST_CREATED,
         partition,
         offset: String(offset + 1),
       },
     ]);
+
+    const order = await this.storesService.intelipost(data, logger);
+
+    logger.log(`Order with invoiceKey ${order.invoice.key} was saved`);
   }
 }
