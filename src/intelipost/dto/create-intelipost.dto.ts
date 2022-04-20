@@ -167,7 +167,6 @@ class InvoiceDto {
   @IsString()
   invoice_key: string;
 
-  @IsNotEmpty()
   @IsString()
   carrierName: string;
 }
