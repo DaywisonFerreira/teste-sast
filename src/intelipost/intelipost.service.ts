@@ -18,7 +18,11 @@ export class InteliPostService {
     private readonly amqpConnection: AmqpConnection,
   ) {}
 
-  async intelipost(payload: CreateIntelipost, logger: InfraLogger) {
+  async intelipost(
+    payload: CreateIntelipost,
+    logger: InfraLogger,
+    headers: any,
+  ) {
     const order: Partial<OrderDocument> =
       OrderMapper.mapPartnerToOrder(payload);
 
@@ -31,7 +35,8 @@ export class InteliPostService {
       order.status = 'dispatched';
     }
 
-    await this.orderService.merge(
+    const orderMerged = await this.orderService.merge(
+      headers,
       {
         orderSale: order.orderSale,
         invoiceKeys: order.invoice.key,
@@ -39,11 +44,6 @@ export class InteliPostService {
       { ...order },
       'intelipost',
     );
-
-    const orderMerged = await this.OrderModel.findOne({
-      orderSale: order.orderSale,
-      'invoice.key': order.invoice.key,
-    });
 
     if (
       orderMerged.storeId &&

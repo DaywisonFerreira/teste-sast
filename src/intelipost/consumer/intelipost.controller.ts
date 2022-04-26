@@ -44,7 +44,7 @@ export class ConsumerIntelipostController {
       },
     ]);
 
-    const order = await this.storesService.intelipost(data, logger);
+    const order = await this.storesService.intelipost(data, logger, headers);
 
     logger.log(`Order with invoiceKey ${order.invoice.key} was saved`);
   }
