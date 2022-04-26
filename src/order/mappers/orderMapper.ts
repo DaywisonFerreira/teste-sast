@@ -3,6 +3,30 @@ import { CreateIntelipost } from 'src/intelipost/dto/create-intelipost.dto';
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderDocument } from '../schemas/order.schema';
 
+interface OrderAnalysis {
+  id?: string;
+  accountName?: string;
+  accountId?: string;
+  orderSale?: string;
+  orderUpdatedAt?: Date;
+  orderCreatedAt?: Date;
+  shippingEstimateDate?: Date;
+  statusCode?: {
+    micro: string;
+    macro: string;
+  };
+  invoice?: {
+    value: number;
+  };
+  customer?: {
+    firstName: string;
+    lastName: string;
+    document: string;
+    documentType: string;
+  };
+  deliveryDate?: Date;
+  trackingUrl?: string;
+}
 export class OrderMapper {
   static mapPartnerToOrder(payload: CreateIntelipost) {
     const status =
@@ -545,5 +569,76 @@ export class OrderMapper {
     return Number.parseFloat(
       value && value.$numberDecimal ? value.$numberDecimal : value,
     );
+  }
+
+  static mapMessageToOrderAnalysis(
+    payload: Partial<OrderDocument>,
+    account: any,
+  ): any {
+    const orderMapper: OrderAnalysis = {};
+    // i
+    // r
+    if (payload.id) {
+      orderMapper.id = payload.id;
+    }
+    // i
+    // r
+    if (payload.orderSale) {
+      orderMapper.orderSale = payload.orderSale;
+    }
+    // i
+    // r
+    if (payload.orderUpdatedAt) {
+      orderMapper.orderUpdatedAt = payload.orderUpdatedAt;
+    }
+    // r
+    if (payload.orderCreatedAt) {
+      orderMapper.orderCreatedAt = payload.orderCreatedAt;
+    }
+    // i
+    // r
+    if (payload.statusCode) {
+      orderMapper.statusCode = {
+        micro: payload.statusCode.micro,
+        macro: payload.statusCode.macro,
+      };
+    }
+    // r
+    if (payload.invoice.value) {
+      orderMapper.invoice = {
+        value: payload.invoice.value,
+      };
+    }
+
+    if (payload.deliveryDate) {
+      orderMapper.deliveryDate = payload.deliveryDate;
+    }
+    // r
+    if (account) {
+      orderMapper.accountName = account.name;
+      orderMapper.accountId = account.id;
+    }
+
+    // r
+    if (payload.customer) {
+      orderMapper.customer = {
+        firstName: payload.customer.firstName,
+        lastName: payload.customer.lastName,
+        document: payload.customer.document,
+        documentType: payload.customer.documentType,
+      };
+    }
+    // i
+    if (payload.estimateDeliveryDateDeliveryCompany) {
+      orderMapper.shippingEstimateDate =
+        payload.estimateDeliveryDateDeliveryCompany;
+    }
+    // i
+    // r
+    if (payload.invoice?.trackingUrl) {
+      orderMapper.trackingUrl = payload.invoice.trackingUrl;
+    }
+
+    return orderMapper;
   }
 }

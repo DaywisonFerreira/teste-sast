@@ -1,18 +1,28 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { differenceInDays, isBefore } from 'date-fns';
 import { LeanDocument, Model, Types } from 'mongoose';
 import * as moment from 'moment';
-import { OrderMapper } from './mappers/orderMapper';
+import { KafkaService } from '@infralabs/infra-nestjs-kafka';
+import {
+  AccountDocument,
+  AccountEntity,
+} from 'src/account/schemas/account.schema';
+import { Env } from 'src/commons/environment/env';
+import { MessageOrderNotified } from 'src/intelipost/factories';
 import {
   OrderDocument,
   OrderEntity,
   PublicFieldsOrder,
 } from './schemas/order.schema';
+import { OrderMapper } from './mappers/orderMapper';
 
 @Injectable()
 export class OrderService {
   constructor(
+    @Inject('KafkaService') private kafkaProducer: KafkaService,
+    @InjectModel(AccountEntity.name)
+    private accountModel: Model<AccountDocument>,
     @InjectModel(OrderEntity.name)
     private OrderModel: Model<OrderDocument>,
   ) {}
@@ -155,6 +165,32 @@ export class OrderService {
   }
 
   private async createOrder(data, origin) {
+    const orderFinded = await this.OrderModel.find({
+      orderSale: data.orderSale,
+    });
+
+    if (orderFinded.length === 0) {
+      return this.OrderModel.create({
+        ...data,
+        ...this.generateHistory(data, origin, true),
+      });
+    }
+    for (const order of orderFinded) {
+      await this.OrderModel.findOneAndUpdate(
+        {
+          orderSale: order.orderSale,
+          'invoice.key': order.invoice.key,
+        },
+        {
+          $push: {
+            invoiceKeys: data.invoice.key,
+          },
+        },
+      );
+    }
+
+    data.invoiceKeys.push(...orderFinded[0].invoiceKeys);
+
     return this.OrderModel.create({
       ...data,
       ...this.generateHistory(data, origin, true),
@@ -168,7 +204,7 @@ export class OrderService {
     options,
   ) {
     const { invoice, invoiceKeys, ...dataToSave } = data;
-    return this.OrderModel.updateMany(
+    await this.OrderModel.updateMany(
       configPK,
       {
         ...dataToSave,
@@ -180,6 +216,13 @@ export class OrderService {
       },
       options,
     );
+
+    const order = await this.OrderModel.find({
+      orderSale: data.orderSale,
+      'invoice.key': invoice.key,
+    });
+
+    return order[0];
   }
 
   private async updateOrder(configPK, data, currentOrder, origin, options) {
@@ -201,25 +244,52 @@ export class OrderService {
   }
 
   async merge(
+    headers: any,
     configPK: any,
     data: any = {},
     origin: string,
     options: any = { runValidators: true, useFindAndModify: false },
   ) {
     const orders = await this.OrderModel.find(configPK);
+    let orderToNotified;
 
     if (!orders.length) {
-      await this.createOrder(data, origin);
+      orderToNotified = await this.createOrder(data, origin);
     } else if (orders.length > 1) {
-      await this.updateOrdersWithMultipleInvoices(
+      orderToNotified = await this.updateOrdersWithMultipleInvoices(
         configPK,
         data,
         origin,
         options,
       );
     } else {
-      await this.updateOrder(configPK, data, orders[0], origin, options);
+      orderToNotified = await this.updateOrder(
+        configPK,
+        data,
+        orders[0],
+        origin,
+        options,
+      );
     }
+
+    let account;
+    if (orderToNotified.storeId) {
+      const accountId = headers['X-Tenant-Id'];
+      account = await this.accountModel.findOne({ id: accountId }).lean();
+    }
+
+    const orderToAnalysisNotified: Array<any> =
+      OrderMapper.mapMessageToOrderAnalysis(orderToNotified, account);
+
+    await this.kafkaProducer.send(
+      Env.KAFKA_TOPIC_ORDER_NOTIFIED,
+      MessageOrderNotified({
+        orderToAnalysisNotified,
+        headers,
+      }),
+    );
+
+    return orderToNotified;
   }
 
   private validateRangeOfDates(dateFrom: Date, dateTo: Date) {

@@ -4,6 +4,10 @@ import { Env } from 'src/commons/environment/env';
 import { NestjsLogger } from 'src/commons/providers/log/nestjs-logger';
 import { InfraLogger as Logger } from '@infralabs/infra-logger';
 
+import {
+  AccountEntity,
+  AccountSchema,
+} from 'src/account/schemas/account.schema';
 import { OrderService } from './order.service';
 import { OrderController } from './order.controller';
 import { OrderEntity, OrderSchema } from './schemas/order.schema';
@@ -15,6 +19,10 @@ import { ConsumerOrderController } from './consumer/order.controller';
       {
         name: OrderEntity.name,
         schema: OrderSchema,
+      },
+      {
+        name: AccountEntity.name,
+        schema: AccountSchema,
       },
     ]),
   ],

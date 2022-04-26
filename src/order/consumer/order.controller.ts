@@ -44,14 +44,13 @@ export class ConsumerOrderController {
     },
   })
   public async orderNotificationHandler(order: IHubOrder) {
-    const logger = new InfraLogger(
-      {
-        'X-Version': '1.0',
-        'X-Correlation-Id': uuidV4(),
-        'X-Tenant-Id': order.storeId,
-      },
-      ConsumerOrderController.name,
-    );
+    const headers = {
+      'X-Version': '1.0',
+      'X-Correlation-Id': uuidV4(),
+      'X-Tenant-Id': order.storeId,
+    };
+
+    const logger = new InfraLogger(headers, ConsumerOrderController.name);
 
     logger.verbose(
       `delivery_hub_order_notification_${Env.NODE_ENV}_q - iHub order received with orderSale ${order.externalOrderId} in the integration queue`,
@@ -67,6 +66,7 @@ export class ConsumerOrderController {
         await Promise.all(
           orderToSaves.map(async orderToSave =>
             this.orderService.merge(
+              headers,
               {
                 orderSale: orderToSave.orderSale,
                 'invoice.key': orderToSave.invoice.key,
