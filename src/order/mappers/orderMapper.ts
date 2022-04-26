@@ -608,7 +608,7 @@ export class OrderMapper {
     if (payload.deliveryDate) {
       orderMapper.deliveryDate = payload.deliveryDate;
     }
-   
+
     if (account) {
       orderMapper.accountName = account.name;
       orderMapper.accountId = account.id;
