@@ -576,34 +576,29 @@ export class OrderMapper {
     account: any,
   ): any {
     const orderMapper: OrderAnalysis = {};
-    // i
-    // r
     if (payload.id) {
       orderMapper.id = payload.id;
     }
-    // i
-    // r
+
     if (payload.orderSale) {
       orderMapper.orderSale = payload.orderSale;
     }
-    // i
-    // r
+
     if (payload.orderUpdatedAt) {
       orderMapper.orderUpdatedAt = payload.orderUpdatedAt;
     }
-    // r
+
     if (payload.orderCreatedAt) {
       orderMapper.orderCreatedAt = payload.orderCreatedAt;
     }
-    // i
-    // r
+
     if (payload.statusCode) {
       orderMapper.statusCode = {
         micro: payload.statusCode.micro,
         macro: payload.statusCode.macro,
       };
     }
-    // r
+
     if (payload.invoice.value) {
       orderMapper.invoice = {
         value: payload.invoice.value,
@@ -613,13 +608,12 @@ export class OrderMapper {
     if (payload.deliveryDate) {
       orderMapper.deliveryDate = payload.deliveryDate;
     }
-    // r
+   
     if (account) {
       orderMapper.accountName = account.name;
       orderMapper.accountId = account.id;
     }
 
-    // r
     if (payload.customer) {
       orderMapper.customer = {
         firstName: payload.customer.firstName,
@@ -628,13 +622,12 @@ export class OrderMapper {
         documentType: payload.customer.documentType,
       };
     }
-    // i
+
     if (payload.estimateDeliveryDateDeliveryCompany) {
       orderMapper.shippingEstimateDate =
         payload.estimateDeliveryDateDeliveryCompany;
     }
-    // i
-    // r
+
     if (payload.invoice?.trackingUrl) {
       orderMapper.trackingUrl = payload.invoice.trackingUrl;
     }
