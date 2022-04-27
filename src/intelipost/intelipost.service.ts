@@ -26,9 +26,9 @@ export class InteliPostService {
     const order: Partial<OrderDocument> =
       OrderMapper.mapPartnerToOrder(payload);
 
-    if (order.partnerStatus === 'delivered') {
-      // Entregue // Avaria // Extravio // Roubo // Em devolução // Aguardando retirada na agência dos Correios
-      order.status = order.partnerStatus;
+    if (order.statusCode.macro === 'delivered') {
+      order.status = order.statusCode.macro;
+      order.deliveryDate = order.orderUpdatedAt;
     }
 
     if (order.partnerStatus === 'shipped') {

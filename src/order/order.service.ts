@@ -248,7 +248,7 @@ export class OrderService {
     configPK: any,
     data: any = {},
     origin: string,
-    options: any = { runValidators: true, useFindAndModify: false },
+    options: any = { new: true, runValidators: true, useFindAndModify: false },
   ) {
     const orders = await this.OrderModel.find(configPK);
     let orderToNotified;
@@ -272,22 +272,22 @@ export class OrderService {
       );
     }
 
-    let account;
     if (orderToNotified.storeId) {
-      const accountId = headers['X-Tenant-Id'];
-      account = await this.accountModel.findOne({ id: accountId }).lean();
+      const account = await this.accountModel
+        .findOne({ id: orderToNotified.storeId })
+        .lean();
+
+      const orderToAnalysisNotified: Array<any> =
+        OrderMapper.mapMessageToOrderAnalysis(orderToNotified, account);
+
+      await this.kafkaProducer.send(
+        Env.KAFKA_TOPIC_ORDER_NOTIFIED,
+        MessageOrderNotified({
+          orderToAnalysisNotified,
+          headers,
+        }),
+      );
     }
-
-    const orderToAnalysisNotified: Array<any> =
-      OrderMapper.mapMessageToOrderAnalysis(orderToNotified, account);
-
-    await this.kafkaProducer.send(
-      Env.KAFKA_TOPIC_ORDER_NOTIFIED,
-      MessageOrderNotified({
-        orderToAnalysisNotified,
-        headers,
-      }),
-    );
 
     return orderToNotified;
   }
