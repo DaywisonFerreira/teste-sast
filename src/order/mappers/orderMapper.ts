@@ -32,8 +32,8 @@ export class OrderMapper {
     const status =
       typeof payload.history.shipment_order_volume_state === 'string'
         ? payload.history.shipment_order_volume_state
-            .toLowerCase()
-            .replace(/_/g, '-')
+          .toLowerCase()
+          .replace(/_/g, '-')
         : payload.history.shipment_order_volume_state;
 
     const statusCode = this.mapStatusCode(payload);
@@ -469,26 +469,26 @@ export class OrderMapper {
 
     const logisticInfo = Array.isArray(logisticInfoRaw)
       ? logisticInfoRaw.map(l => ({
-          ...l,
-          price: this.parseFloat(l.price),
-          listPrice: this.parseFloat(l.listPrice),
-          sellingPrice: this.parseFloat(l.sellingPrice),
-        }))
+        ...l,
+        price: this.parseFloat(l.price),
+        listPrice: this.parseFloat(l.listPrice),
+        sellingPrice: this.parseFloat(l.sellingPrice),
+      }))
       : [];
 
     const arrayOfBillingData = Array.isArray(packageAttachment.packages)
       ? packageAttachment.packages.map(p => ({
-          ...p,
-          invoiceValue: this.parseFloat(p.invoiceValue),
-          items: Array.isArray(p.items)
-            ? p.items.map(
-                ({ _id, ...i }: Partial<{ _id: string; price: any }>) => ({
-                  ...i,
-                  price: this.parseFloat(i.price),
-                }),
-              )
-            : [],
-        }))
+        ...p,
+        invoiceValue: this.parseFloat(p.invoiceValue),
+        items: Array.isArray(p.items)
+          ? p.items.map(
+            ({ _id, ...i }: Partial<{ _id: string; price: any }>) => ({
+              ...i,
+              price: this.parseFloat(i.price),
+            }),
+          )
+          : [],
+      }))
       : [];
 
     return arrayOfBillingData.map(billingData => ({
@@ -576,61 +576,34 @@ export class OrderMapper {
     account: any,
   ): any {
     const orderMapper: OrderAnalysis = {};
-    if (payload.id) {
-      orderMapper.id = payload.id;
-    }
 
-    if (payload.orderSale) {
-      orderMapper.orderSale = payload.orderSale;
-    }
+    orderMapper.id = payload.id;
+    orderMapper.orderSale = payload.orderSale;
+    orderMapper.orderUpdatedAt = payload.orderUpdatedAt;
+    orderMapper.orderCreatedAt = payload.orderCreatedAt;
 
-    if (payload.orderUpdatedAt) {
-      orderMapper.orderUpdatedAt = payload.orderUpdatedAt;
-    }
+    orderMapper.statusCode = {
+      micro: payload.statusCode.micro,
+      macro: payload.statusCode.macro,
+    };
 
-    if (payload.orderCreatedAt) {
-      orderMapper.orderCreatedAt = payload.orderCreatedAt;
-    }
+    orderMapper.invoice = {
+      value: payload.invoice.value,
+    };
 
-    if (payload.statusCode) {
-      orderMapper.statusCode = {
-        micro: payload.statusCode.micro,
-        macro: payload.statusCode.macro,
-      };
-    }
+    orderMapper.deliveryDate = payload.deliveryDate;
+    orderMapper.accountName = account.name;
+    orderMapper.accountId = account.id;
 
-    if (payload.invoice.value) {
-      orderMapper.invoice = {
-        value: payload.invoice.value,
-      };
-    }
+    orderMapper.customer = {
+      firstName: payload.customer.firstName,
+      lastName: payload.customer.lastName,
+      document: payload.customer.document,
+      documentType: payload.customer.documentType,
+    };
 
-    if (payload.deliveryDate) {
-      orderMapper.deliveryDate = payload.deliveryDate;
-    }
-
-    if (account) {
-      orderMapper.accountName = account.name;
-      orderMapper.accountId = account.id;
-    }
-
-    if (payload.customer) {
-      orderMapper.customer = {
-        firstName: payload.customer.firstName,
-        lastName: payload.customer.lastName,
-        document: payload.customer.document,
-        documentType: payload.customer.documentType,
-      };
-    }
-
-    if (payload.estimateDeliveryDateDeliveryCompany) {
-      orderMapper.shippingEstimateDate =
-        payload.estimateDeliveryDateDeliveryCompany;
-    }
-
-    if (payload.invoice?.trackingUrl) {
-      orderMapper.trackingUrl = payload.invoice.trackingUrl;
-    }
+    orderMapper.shippingEstimateDate = payload.estimateDeliveryDateDeliveryCompany;
+    orderMapper.trackingUrl = payload.invoice.trackingUrl;
 
     return orderMapper;
   }
