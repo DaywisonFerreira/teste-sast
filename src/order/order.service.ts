@@ -1,9 +1,17 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { appendFileSync } from 'graceful-fs';
 import { InjectModel } from '@nestjs/mongoose';
-import { differenceInDays, isBefore } from 'date-fns';
+import { differenceInDays, isBefore, lightFormat } from 'date-fns';
 import { LeanDocument, Model, Types } from 'mongoose';
 import * as moment from 'moment';
+
+import { existsSync, mkdirSync } from 'fs';
+import { utils } from 'xlsx';
+
+import { CsvMapper } from './mappers/csvMapper';
 import { OrderMapper } from './mappers/orderMapper';
+import { chunkArray } from '../commons/utils/array.utils';
+import { Env } from '../commons/environment/env';
 import {
   OrderDocument,
   OrderEntity,
@@ -122,7 +130,8 @@ export class OrderService {
 
   async exportData(
     { orderCreatedAtFrom, orderCreatedAtTo, storeId },
-    options: any,
+    userId,
+    logger: any,
   ) {
     const conditions: any = {
       storeId: new Types.ObjectId(storeId),
@@ -138,7 +147,76 @@ export class OrderService {
       };
     }
 
-    return this.OrderModel.find(conditions, {}, options);
+    const chunkSize = Env.CHUNK_SIZE_WRITE;
+    const countOrders = await this.OrderModel.countDocuments(conditions);
+
+    logger.log(`Creating an order report, with ${countOrders} documents`);
+
+    const file = this.createCsvLocally([], {
+      orderCreatedAtFrom,
+      orderCreatedAtTo,
+      userId,
+      storeId,
+    });
+
+    const pages = Math.ceil(countOrders / chunkSize);
+
+    // eslint-disable-next-line no-plusplus
+    for (let page = 0; page < pages; page++) {
+      // eslint-disable-next-line no-await-in-loop
+      const result = await this.OrderModel.find(conditions, {
+        receiverName: 1,
+        receiverEmail: 1,
+        deliveryCity: 1,
+        deliveryState: 1,
+        deliveryZipCode: 1,
+        orderUpdatedAt: 1,
+        deliveryDate: 1,
+        orderCreatedAt: 1,
+        paymentDate: 1,
+        dispatchDate: 1,
+        estimateDeliveryDateDeliveryCompany: 1,
+        status: 1,
+        partnerStatus: 1,
+        orderSale: 1,
+        order: 1,
+        receiverPhones: 1,
+        logisticInfo: 1,
+        billingData: 1,
+        partnerMessage: 1,
+        numberVolumes: 1,
+        originZipCode: 1,
+        square: 1,
+        physicalWeight: 1,
+        lastOccurrenceMacro: 1,
+        lastOccurrenceMicro: 1,
+        lastOccurrenceMessage: 1,
+        quantityOccurrences: 1,
+      })
+        .limit(chunkSize)
+        .skip(chunkSize * page)
+        .lean();
+
+      logger.log(
+        `Order report in progress: ${page + 1}/${pages}, with ${
+          result.length
+        } records`,
+      );
+
+      const paginatedResult = chunkArray(result, chunkSize / 10);
+
+      // eslint-disable-next-line no-await-in-loop
+      for await (const result of paginatedResult) {
+        const dataFormatted = CsvMapper.mapOrderToCsv(result);
+
+        this.createCsvLocally(
+          dataFormatted,
+          { orderCreatedAtFrom, orderCreatedAtTo, userId, storeId },
+          file.fileName,
+        );
+      }
+    }
+    return file;
   }
 
   private generateHistory(data, origin, isCreate) {
@@ -302,5 +380,43 @@ export class OrderService {
     };
 
     return data;
+  }
+
+  private createCsvLocally(data: unknown[], filter: any, file?: string) {
+    const directory_path =
+      process.env.NODE_ENV !== 'local'
+        ? `${process.cwd()}/dist/tmp`
+        : `${process.cwd()}/src/tmp`;
+
+    if (!existsSync(directory_path)) {
+      mkdirSync(directory_path);
+    }
+
+    const worksheet = utils.json_to_sheet(data);
+    const csv = utils.sheet_to_csv(worksheet);
+
+    const from = lightFormat(
+      new Date(`${filter.orderCreatedAtFrom}T00:00:00`),
+      'ddMMyyyy',
+    );
+    const to = lightFormat(
+      new Date(`${filter.orderCreatedAtTo}T23:59:59`),
+      'ddMMyyyy',
+    );
+
+    const fileName =
+      file ||
+      `Status_Entregas_${from}-${to}-${filter.storeId.substr(
+        filter.storeId.length - 3,
+      )}${filter.userId.substr(filter.userId.length - 3)}.csv`;
+
+    appendFileSync(`${directory_path}/${fileName}`, csv ? `${csv},` : '', {
+      flag: 'a+',
+    });
+
+    return {
+      path: `${directory_path}/${fileName}`,
+      fileName,
+    };
   }
 }
