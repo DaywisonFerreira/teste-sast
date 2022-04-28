@@ -226,6 +226,13 @@ export class OrderService {
   }
 
   private async updateOrder(configPK, data, currentOrder, origin, options) {
+    let historyExists = false;
+    if (Array.isArray(currentOrder.history)) {
+      historyExists = !!(currentOrder.history.find(({ statusCode }) =>
+        statusCode?.micro === data.statusCode.micro
+      ));
+    }
+
     return this.OrderModel.findOneAndUpdate(
       configPK,
       {
@@ -237,7 +244,7 @@ export class OrderService {
         invoiceKeys: [
           ...new Set([...data.invoiceKeys, ...currentOrder.invoiceKeys]),
         ],
-        ...this.generateHistory(data, origin, false),
+        ...(historyExists ? {} : this.generateHistory(data, origin, false)),
       },
       options,
     );
