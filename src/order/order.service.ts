@@ -228,9 +228,9 @@ export class OrderService {
   private async updateOrder(configPK, data, currentOrder, origin, options) {
     let historyExists = false;
     if (Array.isArray(currentOrder.history)) {
-      historyExists = !!(currentOrder.history.find(({ statusCode }) =>
-        statusCode?.micro === data.statusCode.micro
-      ));
+      historyExists = !!currentOrder.history.find(
+        ({ statusCode }) => statusCode?.micro === data.statusCode.micro,
+      );
     }
 
     return this.OrderModel.findOneAndUpdate(
