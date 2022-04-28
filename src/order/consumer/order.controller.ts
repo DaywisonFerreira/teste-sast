@@ -7,14 +7,11 @@ import {
 } from '@infralabs/infra-nestjs-kafka';
 import { Controller, Inject } from '@nestjs/common';
 import { InfraLogger } from '@infralabs/infra-logger';
-import { lightFormat } from 'date-fns';
-import { utils, writeFile } from 'xlsx';
-import { existsSync, mkdirSync, promises } from 'fs';
+import { existsSync, promises } from 'fs';
 import { createBlobService } from 'azure-storage';
 import { v4 as uuidV4 } from 'uuid';
 import { NotificationTypes } from 'src/commons/enums/notification.enum';
 import { Env } from '../../commons/environment/env';
-import { CsvMapper } from '../mappers/csvMapper';
 import { OrderService } from '../order.service';
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderMapper } from '../mappers/orderMapper';
@@ -96,7 +93,7 @@ export class ConsumerOrderController {
     headers,
     offset,
   }: KafkaResponse<string>) {
-    let file;
+    let file: any;
     const { data, user } = JSON.parse(value);
     const logger = new InfraLogger(headers, ConsumerOrderController.name);
 
@@ -107,16 +104,10 @@ export class ConsumerOrderController {
     );
 
     logger.log(
-      `${Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT} - Report request was received for storeId: ${data.storeId} - From ${data.rderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
+      `${Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT} - Report request by user ${user.id} was received for storeId: ${data.storeId} - From ${data.orderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
     );
     try {
-      const dataToFormat = await this.orderService.exportData(data, {
-        lean: true,
-      });
-
-      const dataFormatted = CsvMapper.mapOrderToCsv(dataToFormat);
-
-      file = this.createCsvLocally(dataFormatted, data);
+      file = await this.orderService.exportData(data, user.id, logger);
       const urlFile = await this.uploadFile(file);
 
       await this.kafkaProducer.send(Env.KAFKA_TOPIC_NOTIFY_MESSAGE_WEBSOCKET, {
@@ -140,40 +131,6 @@ export class ConsumerOrderController {
         await this.deleteFileLocally(file.path);
       }
     }
-  }
-
-  private createCsvLocally(data: unknown[], filter: any) {
-    const directory_path =
-      process.env.NODE_ENV !== 'local'
-        ? `${process.cwd()}/dist/tmp`
-        : `${process.cwd()}/src/tmp`;
-
-    if (!existsSync(directory_path)) {
-      mkdirSync(directory_path);
-    }
-
-    const workbook = utils.book_new();
-    const worksheet = utils.json_to_sheet(data);
-
-    utils.book_append_sheet(workbook, worksheet);
-
-    const from = lightFormat(
-      new Date(`${filter.orderCreatedAtFrom}T00:00:00`),
-      'ddMMyyyy',
-    );
-    const to = lightFormat(
-      new Date(`${filter.orderCreatedAtTo}T23:59:59`),
-      'ddMMyyyy',
-    );
-
-    const fileName = `Status_Entregas_${from}-${to}.csv`;
-
-    writeFile(workbook, `${directory_path}/${fileName}`);
-
-    return {
-      path: `${directory_path}/${fileName}`,
-      fileName,
-    };
   }
 
   private async deleteFileLocally(path: string) {
