@@ -18,20 +18,25 @@ export class InteliPostService {
     private readonly amqpConnection: AmqpConnection,
   ) {}
 
-  async intelipost(payload: CreateIntelipost, logger: InfraLogger) {
+  async intelipost(
+    payload: CreateIntelipost,
+    logger: InfraLogger,
+    headers: any,
+  ) {
     const order: Partial<OrderDocument> =
       OrderMapper.mapPartnerToOrder(payload);
 
-    if (order.partnerStatus === 'delivered') {
-      // Entregue // Avaria // Extravio // Roubo // Em devolução // Aguardando retirada na agência dos Correios
-      order.status = order.partnerStatus;
+    if (order.statusCode.macro === 'delivered') {
+      order.status = order.statusCode.macro;
+      order.deliveryDate = order.orderUpdatedAt;
     }
 
     if (order.partnerStatus === 'shipped') {
       order.status = 'dispatched';
     }
 
-    await this.orderService.merge(
+    const orderMerged = await this.orderService.merge(
+      headers,
       {
         orderSale: order.orderSale,
         invoiceKeys: order.invoice.key,
@@ -39,11 +44,6 @@ export class InteliPostService {
       { ...order },
       'intelipost',
     );
-
-    const orderMerged = await this.OrderModel.findOne({
-      orderSale: order.orderSale,
-      'invoice.key': order.invoice.key,
-    });
 
     if (
       orderMerged.storeId &&

@@ -2,6 +2,10 @@ import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { InfraLogger as Logger } from '@infralabs/infra-logger';
 import { Module, Scope } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import {
+  AccountEntity,
+  AccountSchema,
+} from 'src/account/schemas/account.schema';
 
 import { Env } from '../commons/environment/env';
 import { NestjsLogger } from '../commons/providers/log/nestjs-logger';
@@ -26,6 +30,10 @@ import { OrderEntity, OrderSchema } from '../order/schemas/order.schema';
       {
         name: OrderEntity.name,
         schema: OrderSchema,
+      },
+      {
+        name: AccountEntity.name,
+        schema: AccountSchema,
       },
     ]),
   ],

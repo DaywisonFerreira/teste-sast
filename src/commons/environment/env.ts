@@ -113,4 +113,7 @@ export abstract class Env {
 
   public static readonly KAFKA_TOPIC_NOTIFY_MESSAGE_WEBSOCKET: string =
     process.env.KAFKA_TOPIC_NOTIFY_MESSAGE_WEBSOCKET;
+
+  public static readonly KAFKA_TOPIC_ORDER_NOTIFIED: string =
+    process.env.KAFKA_TOPIC_ORDER_NOTIFIED;
 }

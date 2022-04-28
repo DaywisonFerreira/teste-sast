@@ -52,7 +52,7 @@ export class OnEventIntelipostController {
           );
 
         for await (const order of newOrders) {
-          await this.intelipostService.intelipost(order, logger);
+          await this.intelipostService.intelipost(order, logger, headers);
           logger.log(
             `Order with invoiceKey ${order.invoice.invoice_key} was saved`,
           );

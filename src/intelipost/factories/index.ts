@@ -17,3 +17,21 @@ export const MessageIntelipostCreated = content => {
     }),
   };
 };
+
+// KAFKA_TOPIC_ORDER_NOTIFIED
+export const MessageOrderNotified = content => {
+  const { orderToAnalysisNotified, headers } = content;
+  return {
+    headers: {
+      'X-Correlation-Id':
+        headers['X-Correlation-Id'] || headers['x-correlation-id'] || uuidV4(),
+      'X-Version': '1.0',
+    },
+    key: uuidV4(),
+    value: JSON.stringify({
+      data: {
+        ...orderToAnalysisNotified,
+      },
+    }),
+  };
+};
