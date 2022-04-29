@@ -16,7 +16,7 @@ export class UpdateStructureOrder {
     private OrderModel: Model<OrderDocument>,
   ) {}
 
-  async onModuleInit() {
+  async updateStructureOrders() {
     const orders = await this.OrderModel.find();
     const jsonSchema = jjv();
     jsonSchema.addSchema('order', newOrderSchema);
@@ -59,10 +59,10 @@ export class UpdateStructureOrder {
             const billingData = order.billingData[0];
             missingData.invoice = {
               serie: billingData.invoiceSerialNumber ?? '',
-              value: billingData.invoiceValue ?? '',
+              value: billingData.invoiceValue ?? 0,
               number: billingData.invoiceNumber ?? '',
               key: billingData.invoiceKey ?? '',
-              issuanceDate: billingData.issuanceDate ?? '',
+              issuanceDate: billingData.issuanceDate ?? new Date(),
               carrierName: billingData.carrierName ?? '',
               trackingNumber: billingData.trackingNumber ?? '',
               trackingUrl: billingData.trackingUrl ?? '',

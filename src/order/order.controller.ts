@@ -27,6 +27,7 @@ import {
   HeadersExportOrdersDto,
 } from './dto/export-order.dto';
 import { GetOrderDto } from './dto/get-order.dto';
+import { UpdateStructureOrder } from './scripts/update-order-structure-json.service';
 
 @Controller('orders')
 @ApiTags('Orders')
@@ -35,6 +36,7 @@ export class OrderController {
   constructor(
     private readonly orderService: OrderService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
+    private readonly updateStructure: UpdateStructureOrder,
   ) {}
 
   @Get()
@@ -149,6 +151,17 @@ export class OrderController {
       });
     } catch (error) {
       logger.error(error);
+      throw error;
+    }
+  }
+
+  @Get('update-orders-structure')
+  async updateOrderStructure(@Req() req: any): Promise<void> {
+    try {
+      req.logger.verbose(`Request was received to change order structure`);
+      await this.updateStructure.updateStructureOrders();
+    } catch (error) {
+      req.logger.error(error);
       throw error;
     }
   }
