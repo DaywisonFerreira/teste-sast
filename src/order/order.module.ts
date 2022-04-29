@@ -8,6 +8,7 @@ import { OrderService } from './order.service';
 import { OrderController } from './order.controller';
 import { OrderEntity, OrderSchema } from './schemas/order.schema';
 import { ConsumerOrderController } from './consumer/order.controller';
+import { UpdateStructureOrder } from './scripts/update-order-structure-json.service';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ConsumerOrderController } from './consumer/order.controller';
       useClass: Env.NODE_ENV === 'local' ? NestjsLogger : Logger,
       scope: Scope.TRANSIENT,
     },
+    UpdateStructureOrder,
     OrderService,
   ],
   exports: [
