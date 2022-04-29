@@ -23,15 +23,15 @@ export class InteliPostService {
       OrderMapper.mapPartnerToOrder(payload);
 
     if (order.partnerStatus === 'delivered') {
-      // Entregue // Avaria // Extravio // Roubo // Em devolução // Aguardando retirada na agência dos Correios
       order.status = order.partnerStatus;
+      order.deliveryDate = order.orderUpdatedAt;
     }
 
     if (order.partnerStatus === 'shipped') {
       order.status = 'dispatched';
     }
 
-    await this.orderService.merge(
+    const orderMerged = await this.orderService.merge(
       {
         orderSale: order.orderSale,
         invoiceKeys: order.invoice.key,
@@ -39,11 +39,6 @@ export class InteliPostService {
       { ...order },
       'intelipost',
     );
-
-    const orderMerged = await this.OrderModel.findOne({
-      orderSale: order.orderSale,
-      'invoice.key': order.invoice.key,
-    });
 
     if (
       orderMerged.storeId &&
