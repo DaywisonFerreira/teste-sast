@@ -4,10 +4,10 @@ import { Model } from 'mongoose';
 import { InfraLogger } from '@infralabs/infra-logger';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 
+import { OrderService } from 'src/order/order.service';
 import { OrderMapper } from '../order/mappers/orderMapper';
 import { OrderDocument, OrderEntity } from '../order/schemas/order.schema';
 import { CreateIntelipost } from './dto/create-intelipost.dto';
-import { OrderService } from '../order/order.service';
 
 @Injectable()
 export class InteliPostService {

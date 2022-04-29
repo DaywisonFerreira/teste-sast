@@ -33,6 +33,11 @@ export abstract class Env {
   public static readonly APPLICATION_VERSION: string =
     process.env.APPLICATION_VERSION;
 
+  public static readonly CHUNK_SIZE_WRITE: number = parseInt(
+    process.env.CHUNK_SIZE_WRITE,
+    10,
+  );
+
   public static readonly AZURE_BS_CONTAINER_NAME: string =
     process.env.AZURE_BS_CONTAINER_NAME;
 
