@@ -59,10 +59,7 @@ export class OnEventIntelipostController {
         }
       }
     } catch (error) {
-      logger.log({
-        error: error.message,
-        message: error?.response?.data?.messages,
-      });
+      logger.error(error);
     }
   }
 }
