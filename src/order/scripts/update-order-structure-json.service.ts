@@ -5,9 +5,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as jjv from 'jjv';
 import { chunkArray } from 'src/commons/utils/array.utils';
+import { throws } from 'assert';
 import { OrderDocument, OrderEntity } from '../schemas/order.schema';
 import { newOrderSchema } from './schemas';
-import { throws } from 'assert';
 
 @Injectable()
 export class UpdateStructureOrder {
@@ -46,15 +46,19 @@ export class UpdateStructureOrder {
         await Promise.all(
           orders.map(async order => {
             if (await this.validateOrder(order, jsonSchema)) {
-              result.success++
+              result.success++;
             } else {
-              result.errors++
+              result.errors++;
             }
           }),
         );
       }
       this.logger.log(
-        `Finish ${orders.length} records, part ${index + 1}/${pages} with totals: ${result.success} updated ${result.errors} already updated`,
+        `Finish ${orders.length} records, part ${
+          index + 1
+        }/${pages} with totals: ${result.success} updated ${
+          result.errors
+        } already updated`,
       );
     }
   }
@@ -68,10 +72,9 @@ export class UpdateStructureOrder {
     if (!errors) {
       // this.logger.log('Order has been validated.');
       return false;
-    } else {
-      // this.logger.log(`Order ${order.orderSale} updated`);
-      return await this.checkAndUpdateOrder(order, errors);
     }
+    // this.logger.log(`Order ${order.orderSale} updated`);
+    return await this.checkAndUpdateOrder(order, errors);
   }
 
   private async checkAndUpdateOrder(
@@ -150,9 +153,13 @@ export class UpdateStructureOrder {
 
     if (!this.isEmpty(missingData)) {
       try {
-        await this.OrderModel.findOneAndUpdate({ _id: order._id }, missingData, {
-          useFindAndModify: false,
-        });
+        await this.OrderModel.findOneAndUpdate(
+          { _id: order._id },
+          missingData,
+          {
+            useFindAndModify: false,
+          },
+        );
         return true;
       } catch (error) {
         this.logger.error(error);
