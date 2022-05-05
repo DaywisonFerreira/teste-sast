@@ -161,13 +161,10 @@ export class OrderService {
 
     logger.log(`Creating an order report, with ${countOrders} documents`);
 
-    const file = this.createCsvLocally([], {
-      orderCreatedAtFrom,
-      orderCreatedAtTo,
-      userId,
-      storeId,
-    });
-
+    let file = {
+      path: '',
+      fileName: '',
+    };
     const pages = Math.ceil(countOrders / chunkSize);
 
     // eslint-disable-next-line no-plusplus
@@ -218,9 +215,14 @@ export class OrderService {
       for await (const result of paginatedResult) {
         const dataFormatted = CsvMapper.mapOrderToCsv(result);
 
-        this.createCsvLocally(
+        file = this.createCsvLocally(
           dataFormatted,
-          { orderCreatedAtFrom, orderCreatedAtTo, userId, storeId },
+          {
+            orderCreatedAtFrom,
+            orderCreatedAtTo,
+            userId,
+            storeId,
+          },
           file.fileName,
         );
       }
@@ -451,6 +453,7 @@ export class OrderService {
   }
 
   private createCsvLocally(data: unknown[], filter: any, file?: string) {
+    let csv: string;
     const directory_path =
       process.env.NODE_ENV !== 'local'
         ? `${process.cwd()}/dist/tmp`
@@ -460,8 +463,11 @@ export class OrderService {
       mkdirSync(directory_path);
     }
 
-    const worksheet = utils.json_to_sheet(data);
-    const csv = utils.sheet_to_csv(worksheet);
+    if (data) {
+      const skipHeader = !!file;
+      const worksheet = utils.json_to_sheet(data, { skipHeader });
+      csv = utils.sheet_to_csv(worksheet);
+    }
 
     const from = lightFormat(
       new Date(`${filter.orderCreatedAtFrom}T00:00:00`),
@@ -478,7 +484,7 @@ export class OrderService {
         filter.storeId.length - 3,
       )}${filter.userId.substr(filter.userId.length - 3)}.csv`;
 
-    appendFileSync(`${directory_path}/${fileName}`, csv ? `${csv},` : '', {
+    appendFileSync(`${directory_path}/${fileName}`, csv || '', {
       flag: 'a+',
     });
 
