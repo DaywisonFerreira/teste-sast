@@ -7,6 +7,7 @@ import * as jjv from 'jjv';
 import { chunkArray } from 'src/commons/utils/array.utils';
 import { OrderDocument, OrderEntity } from '../schemas/order.schema';
 import { newOrderSchema } from './schemas';
+import { throws } from 'assert';
 
 @Injectable()
 export class UpdateStructureOrder {
@@ -27,6 +28,8 @@ export class UpdateStructureOrder {
     const jsonSchema = jjv();
     jsonSchema.addSchema('order', newOrderSchema);
 
+    const result = { success: 0, errors: 0 };
+
     for (let index = 0; index < pages; index++) {
       // eslint-disable-next-line no-await-in-loop
       const orders = await this.OrderModel.find()
@@ -37,15 +40,21 @@ export class UpdateStructureOrder {
         `Updating ${orders.length} records, part ${index + 1}/${pages}`,
       );
 
-      const chunkOrders = chunkArray(orders, size);
+      const chunkOrders = chunkArray(orders, size / 10);
       // eslint-disable-next-line no-await-in-loop
       for await (const orders of chunkOrders) {
         await Promise.all(
-          orders.map(order => this.validateOrder(order, jsonSchema)),
+          orders.map(async order => {
+            if (await this.validateOrder(order, jsonSchema)) {
+              result.success++
+            } else {
+              result.errors++
+            }
+          }),
         );
       }
       this.logger.log(
-        `Finish ${orders.length} records, part ${index + 1}/${pages}`,
+        `Finish ${orders.length} records, part ${index + 1}/${pages} with totals: ${result.success} updated ${result.errors} already updated`,
       );
     }
   }
@@ -53,20 +62,22 @@ export class UpdateStructureOrder {
   private async validateOrder(
     order: OrderEntity,
     jsonSchema: jjv.Env,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const errors = jsonSchema.validate('order', order.toJSON());
 
     if (!errors) {
-      this.logger.log('Order has been validated.');
+      // this.logger.log('Order has been validated.');
+      return false;
     } else {
-      await this.checkAndUpdateOrder(order, errors);
+      // this.logger.log(`Order ${order.orderSale} updated`);
+      return await this.checkAndUpdateOrder(order, errors);
     }
   }
 
   private async checkAndUpdateOrder(
     order: OrderEntity,
     errors: jjv.Errors,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const { validation } = errors;
     const missingData: Partial<OrderEntity> = {};
 
@@ -138,10 +149,16 @@ export class UpdateStructureOrder {
     });
 
     if (!this.isEmpty(missingData)) {
-      await this.OrderModel.findOneAndUpdate({ _id: order._id }, missingData, {
-        useFindAndModify: false,
-      });
+      try {
+        await this.OrderModel.findOneAndUpdate({ _id: order._id }, missingData, {
+          useFindAndModify: false,
+        });
+        return true;
+      } catch (error) {
+        this.logger.error(error);
+      }
     }
+    return false;
   }
 
   private isEmpty(obj: any) {
