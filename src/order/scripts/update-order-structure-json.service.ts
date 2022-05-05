@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable no-plusplus */
 /* eslint-disable default-case */
 import { Injectable, Logger } from '@nestjs/common';
@@ -5,7 +6,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as jjv from 'jjv';
 import { chunkArray } from 'src/commons/utils/array.utils';
-import { throws } from 'assert';
 import { OrderDocument, OrderEntity } from '../schemas/order.schema';
 import { newOrderSchema } from './schemas';
 
@@ -24,9 +24,10 @@ export class UpdateStructureOrder {
     const size = 2000;
     const pages = Math.ceil(count / size);
 
-    this.logger.log(`TOTAL: ${count}`);
     const jsonSchema = jjv();
     jsonSchema.addSchema('order', newOrderSchema);
+
+    this.logger.log(`TOTAL: ${count}`);
 
     const result = { success: 0, errors: 0 };
 
@@ -45,7 +46,11 @@ export class UpdateStructureOrder {
       for await (const orders of chunkOrders) {
         await Promise.all(
           orders.map(async order => {
-            if (await this.validateOrder(order, jsonSchema)) {
+            const validation = await this.validateOrder(
+              order.toJSON(),
+              jsonSchema,
+            );
+            if (validation) {
               result.success++;
             } else {
               result.errors++;
@@ -67,13 +72,16 @@ export class UpdateStructureOrder {
     order: OrderEntity,
     jsonSchema: jjv.Env,
   ): Promise<boolean> {
-    const errors = jsonSchema.validate('order', order.toJSON());
+    const errors = jsonSchema.validate('order', order, {
+      checkRequired: true,
+    });
 
     if (!errors) {
       // this.logger.log('Order has been validated.');
       return false;
     }
     // this.logger.log(`Order ${order.orderSale} updated`);
+    // eslint-disable-next-line no-return-await
     return await this.checkAndUpdateOrder(order, errors);
   }
 
@@ -84,6 +92,9 @@ export class UpdateStructureOrder {
     const { validation } = errors;
     const missingData: Partial<OrderEntity> = {};
 
+    console.log(order._id);
+    console.log(JSON.stringify(validation));
+    // {_id: ObjectId('61280d069d3193001144023d')}
     Object.keys(validation).forEach(error => {
       switch (error) {
         case 'invoice':
@@ -103,21 +114,45 @@ export class UpdateStructureOrder {
                   sku: item.sku,
                   quantity: item.quantity,
                   price: item.price,
-                  isSubsidized: item.isSubsidized,
+                  isSubsidized: item.isSubsidized ?? false,
                 };
               }),
+            };
+          } else {
+            missingData.invoice = {
+              serie: '',
+              value: 0,
+              number: '',
+              key: '',
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              issuanceDate: '',
+              carrierName: '',
+              trackingNumber: '',
+              trackingUrl: '',
+              items: [
+                {
+                  sku: '',
+                  quantity: 0,
+                  price: 0,
+                  isSubsidized: false,
+                },
+              ],
             };
           }
           break;
         case 'customer': {
           let document = '';
           if (order.billingData && order.billingData.length > 0) {
-            document = order.billingData[0].customerDocument;
+            document = order.billingData[0].customerDocument || '';
           }
           missingData.customer = {
             phones: order.receiverPhones
-              ? order.receiverPhones.map(phone => phone)
-              : [],
+              ? order.receiverPhones.map(phone => ({
+                  phone: `${phone.phone}`,
+                  type: phone.type,
+                }))
+              : [{ phone: '', type: '' }],
             email: order.receiverEmail ?? '',
             isCorporate: false,
             firstName: order.receiverName
@@ -125,10 +160,12 @@ export class UpdateStructureOrder {
               : '',
             lastName: order.receiverName
               ? order.receiverName.split(' ')[1]
+                ? order.receiverName.split(' ')[1]
+                : ''
               : '',
             document,
             documentType: 'cpf',
-            corporateName: null,
+            corporateName: '',
             fullName: order.receiverName ?? '',
           };
           break;
@@ -163,9 +200,11 @@ export class UpdateStructureOrder {
         return true;
       } catch (error) {
         this.logger.error(error);
+        return false;
       }
+    } else {
+      return false;
     }
-    return false;
   }
 
   private isEmpty(obj: any) {
