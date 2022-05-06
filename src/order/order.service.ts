@@ -354,7 +354,7 @@ export class OrderService {
       const account = await this.accountModel
         .findOne({ id: orderToNotified.storeId })
         .lean();
-      
+
       if (!account) {
         throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
       }
