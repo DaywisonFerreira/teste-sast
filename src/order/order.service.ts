@@ -355,6 +355,10 @@ export class OrderService {
         .findOne({ id: orderToNotified.storeId })
         .lean();
 
+      if (!account) {
+        throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
+      }
+
       const orderToAnalysisNotified: Array<any> =
         OrderMapper.mapMessageToOrderAnalysis(orderToNotified, account);
 
