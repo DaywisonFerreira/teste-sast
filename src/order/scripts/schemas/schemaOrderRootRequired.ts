@@ -119,6 +119,17 @@ export const newOrderSchema = {
         },
       },
     },
+    statusCode: {
+      type: 'object',
+      properties: {
+        micro: {
+          type: 'string',
+        },
+        macro: {
+          type: 'string',
+        },
+      },
+    },
   },
   required: ['invoice', 'customer', 'delivery', 'statusCode'],
 };

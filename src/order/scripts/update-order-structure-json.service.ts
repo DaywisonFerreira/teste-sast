@@ -19,7 +19,7 @@ export class UpdateStructureOrder {
   ) {}
 
   async updateStructureOrders() {
-    const count = await this.OrderModel.countDocuments();
+    const count = await this.OrderModel.countDocuments({ statusCode: null });
 
     const size = 2000;
     const pages = Math.ceil(count / size);
@@ -33,7 +33,7 @@ export class UpdateStructureOrder {
 
     for (let index = 0; index < pages; index++) {
       // eslint-disable-next-line no-await-in-loop
-      const orders = await this.OrderModel.find()
+      const orders = await this.OrderModel.find({ statusCode: null })
         .limit(size)
         .skip(index * size);
 
@@ -77,12 +77,9 @@ export class UpdateStructureOrder {
     });
 
     if (!errors) {
-      // this.logger.log('Order has been validated.');
       return false;
     }
-    // this.logger.log(`Order ${order.orderSale} updated`);
-    // eslint-disable-next-line no-return-await
-    return await this.checkAndUpdateOrder(order, errors);
+    return this.checkAndUpdateOrder(order, errors);
   }
 
   private async checkAndUpdateOrder(
@@ -92,9 +89,6 @@ export class UpdateStructureOrder {
     const { validation } = errors;
     const missingData: Partial<OrderEntity> = {};
 
-    console.log(order._id);
-    console.log(JSON.stringify(validation));
-    // {_id: ObjectId('61280d069d3193001144023d')}
     Object.keys(validation).forEach(error => {
       switch (error) {
         case 'invoice':
@@ -176,7 +170,7 @@ export class UpdateStructureOrder {
             city: order.deliveryCity ?? '',
             state: order.deliveryState ?? '',
             zipCode: order.deliveryZipCode ?? '',
-            country: 'Brasil',
+            country: 'BRA',
           };
           break;
         case 'statusCode':
