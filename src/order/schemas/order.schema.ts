@@ -329,7 +329,7 @@ export class OrderEntity extends Document {
   @Prop({ type: String, required: false })
   i18n?: string;
 
-  @Prop({ type: Array, default: [], required: false })
+  @Prop({ type: Array, required: false })
   history?: Array<History>;
 
   @Prop({ type: String, required: false })

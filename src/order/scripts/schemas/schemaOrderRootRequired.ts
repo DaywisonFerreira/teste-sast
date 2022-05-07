@@ -130,6 +130,57 @@ export const newOrderSchema = {
         },
       },
     },
+    history: {
+      type: 'array',
+      history: {
+        type: 'object',
+        properties: {
+          volumeNumber: { type: 'number' },
+          dispatchDate: { type: 'string' },
+          estimateDeliveryDateDeliveryCompany: {
+            type: 'string',
+          },
+          partnerMessage: {
+            type: 'string',
+          },
+          microStatus: {
+            type: 'string',
+          },
+          lastOccurrenceMacro: {
+            type: 'string',
+          },
+          lastOccurrenceMicro: {
+            type: 'string',
+          },
+          lastOccurrenceMessage: {
+            type: 'string',
+          },
+          partnerStatusId: {
+            type: 'string',
+          },
+          partnerStatus: {
+            type: 'string',
+          },
+          statusCode: {
+            type: 'object',
+            properties: {
+              micro: {
+                type: 'string',
+              },
+              macro: {
+                type: 'string',
+              },
+            },
+          },
+          orderUpdatedAt: {
+            type: 'string',
+          },
+          i18n: {
+            type: 'string',
+          },
+        },
+      },
+    },
   },
-  required: ['invoice', 'customer', 'delivery', 'statusCode'],
+  required: ['invoice', 'customer', 'delivery', 'statusCode', 'history'],
 };
