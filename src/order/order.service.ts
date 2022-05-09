@@ -230,17 +230,25 @@ export class OrderService {
     return file;
   }
 
-  private generateHistory(data, origin, isCreate) {
-    let updateHistory = {};
+  private generateHistory(data, origin, isCreate, oldOrder = { history: [] }) {
+    let historyExists = false;
+    if (oldOrder && Array.isArray(oldOrder.history)) {
+      historyExists = !!oldOrder.history.find(
+        ({ statusCode }) => statusCode?.micro === data.statusCode.micro,
+      );
+    }
+
     if (origin === 'intelipost') {
       const history = OrderMapper.mapPartnerHistoryToOrderHistory(data);
-      updateHistory = isCreate
-        ? {
-            history: [history],
-          }
-        : { $push: { history } };
+
+      if (isCreate) {
+        return { history: [history] };
+      }
+      if (!historyExists) {
+        return { $push: { history } };
+      }
     }
-    return updateHistory;
+    return {};
   }
 
   private async createOrder(data, origin) {
@@ -279,10 +287,12 @@ export class OrderService {
   private async updateOrdersWithMultipleInvoices(
     configPK,
     data,
+    oldOrder,
     origin,
     options,
   ) {
     const { invoice, invoiceKeys, ...dataToSave } = data;
+
     await this.OrderModel.updateMany(
       configPK,
       {
@@ -291,6 +301,7 @@ export class OrderService {
           { ...dataToSave, invoice, invoiceKeys },
           origin,
           false,
+          oldOrder,
         ),
       },
       options,
@@ -304,19 +315,19 @@ export class OrderService {
     return order[0];
   }
 
-  private async updateOrder(configPK, data, currentOrder, origin, options) {
+  private async updateOrder(configPK, data, oldOrder, origin, options) {
     return this.OrderModel.findOneAndUpdate(
       configPK,
       {
         ...data,
         invoice: {
           ...data.invoice,
-          ...currentOrder.invoice,
+          ...oldOrder.invoice,
         },
         invoiceKeys: [
-          ...new Set([...data.invoiceKeys, ...currentOrder.invoiceKeys]),
+          ...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys]),
         ],
-        ...this.generateHistory(data, origin, false),
+        ...this.generateHistory(data, origin, false, oldOrder),
       },
       options,
     );
@@ -337,6 +348,7 @@ export class OrderService {
       orderToNotified = await this.updateOrdersWithMultipleInvoices(
         configPK,
         data,
+        orders[0],
         origin,
         options,
       );
