@@ -10,7 +10,7 @@ import * as jjv from 'jjv';
 import { chunkArray } from 'src/commons/utils/array.utils';
 import { isBefore } from 'date-fns';
 import { OrderDocument, OrderEntity } from '../schemas/order.schema';
-import { newOrderSchema } from './schemas';
+import { newOrderSchema } from './schemas/schemaOrderRootRequired';
 
 @Injectable()
 export class UpdateStructureOrder {
@@ -23,7 +23,9 @@ export class UpdateStructureOrder {
 
   async updateStructureOrders() {
     // const count = await this.OrderModel.countDocuments({ statusCode: null });
-    const count = await this.OrderModel.countDocuments();
+    const count = await this.OrderModel.countDocuments({
+      'history.statusCode': null,
+    });
 
     const size = 2000;
     const pages = Math.ceil(count / size);
@@ -38,7 +40,7 @@ export class UpdateStructureOrder {
     for (let index = 0; index < pages; index++) {
       // const orders = await this.OrderModel.find({ statusCode: null })
       // eslint-disable-next-line no-await-in-loop
-      const orders = await this.OrderModel.find()
+      const orders = await this.OrderModel.find({ 'history.statusCode': null })
         .limit(size)
         .skip(index * size);
 
@@ -185,7 +187,7 @@ export class UpdateStructureOrder {
             missingData.history = order.history.map(item => ({
               ...item,
               statusCode: this.getStatusCode(
-                order?.lastOccurrenceMicro,
+                item?.lastOccurrenceMicro,
                 order?.status,
               ),
             }));
@@ -215,6 +217,30 @@ export class UpdateStructureOrder {
               },
             ];
           }
+          break;
+        case 'totals':
+          if (order?.totals && order?.totals.length > 0) {
+            missingData.totals = order.totals;
+          } else {
+            missingData.totals = [
+              {
+                id: 'Items',
+                name: 'Total dos Itens',
+                value: 0,
+              },
+              {
+                id: 'Discounts',
+                name: 'Total dos Descontos',
+                value: 0,
+              },
+              {
+                id: 'Shipping',
+                name: 'Total do Frete',
+                value: 0,
+              },
+            ];
+          }
+          break;
       }
     });
 
@@ -230,7 +256,7 @@ export class UpdateStructureOrder {
         return true;
       } catch (error) {
         this.logger.error(error);
-        if (error.message.startsWith('E11000')) {
+        if (error.message.includes('E11000')) {
           const resultToMerge = await this.OrderModel.find({
             orderSale: order.orderSale,
           });

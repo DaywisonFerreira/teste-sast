@@ -132,7 +132,7 @@ export const newOrderSchema = {
     },
     history: {
       type: 'array',
-      history: {
+      items: {
         type: 'object',
         properties: {
           volumeNumber: { type: 'number' },
@@ -171,6 +171,7 @@ export const newOrderSchema = {
                 type: 'string',
               },
             },
+            required: ['micro', 'macro'],
           },
           orderUpdatedAt: {
             type: 'string',
@@ -179,8 +180,27 @@ export const newOrderSchema = {
             type: 'string',
           },
         },
+        required: ['statusCode'],
+      },
+    },
+    totals: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          value: { type: 'number' },
+        },
       },
     },
   },
-  required: ['invoice', 'customer', 'delivery', 'statusCode', 'history'],
+  required: [
+    'invoice',
+    'customer',
+    'delivery',
+    'statusCode',
+    'history',
+    'totals',
+  ],
 };
