@@ -123,7 +123,7 @@ export const newOrderSchema = {
       type: 'object',
       properties: {
         micro: {
-          type: 'number',
+          type: 'string',
         },
         macro: {
           type: 'string',
