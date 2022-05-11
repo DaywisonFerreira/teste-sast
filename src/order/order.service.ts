@@ -192,6 +192,7 @@ export class OrderService {
         partnerMessage: 1,
         numberVolumes: 1,
         originZipCode: 1,
+        statusCode: 1,
         square: 1,
         physicalWeight: 1,
         lastOccurrenceMacro: 1,

@@ -76,7 +76,7 @@ export class IntelipostMapper {
 
   mapResponseIntelipostToDeliveryHub(
     data: any,
-    carrierName: string,
+    carrier: any,
     shippingEstimateDate: any,
   ) {
     const {
@@ -103,7 +103,8 @@ export class IntelipostMapper {
             invoice_series: shipment_order_volume_invoice.invoice_series,
             invoice_number: shipment_order_volume_invoice.invoice_number,
             invoice_key: shipment_order_volume_invoice.invoice_key,
-            carrierName,
+            carrierName: carrier.carrier,
+            carrierDocument: carrier.document,
           },
           order_number,
           sales_order_number,

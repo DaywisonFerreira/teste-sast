@@ -170,6 +170,9 @@ class InvoiceDto {
   @IsString()
   @IsOptional()
   carrierName?: string;
+
+  @IsOptional()
+  carrierDocument?: any;
 }
 
 class LogisticProviderDto {
