@@ -51,7 +51,7 @@ export class Invoice {
 
   carrierName?: string;
 
-  document?: any;
+  carrierDocument?: any;
 
   trackingNumber?: string;
 

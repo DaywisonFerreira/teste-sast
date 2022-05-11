@@ -104,7 +104,7 @@ export class IntelipostMapper {
             invoice_number: shipment_order_volume_invoice.invoice_number,
             invoice_key: shipment_order_volume_invoice.invoice_key,
             carrierName: carrier.carrier,
-            document: carrier.document,
+            carrierDocument: carrier.document,
           },
           order_number,
           sales_order_number,

@@ -50,7 +50,7 @@ export class OrderMapper {
         trackingUrl: payload.tracking_url,
         trackingNumber: payload.tracking_code,
         carrierName: payload.invoice.carrierName,
-        document: payload.invoice.document,
+        carrierDocument: payload.invoice.carrierDocument,
       },
       dispatchDate: new Date(payload.history.created_iso),
       estimateDeliveryDateDeliveryCompany: payload?.estimated_delivery_date
