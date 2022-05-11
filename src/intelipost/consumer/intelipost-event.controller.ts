@@ -47,7 +47,7 @@ export class OnEventIntelipostController {
         const newOrders =
           this.intelipostMapper.mapResponseIntelipostToDeliveryHub(
             response.data.content,
-            carrier.carrier,
+            carrier,
             intelipostData.estimated_delivery_date,
           );
 
