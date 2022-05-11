@@ -24,7 +24,7 @@ export class UpdateStructureOrder {
   async updateStructureOrders() {
     // const count = await this.OrderModel.countDocuments({ statusCode: null });
     const count = await this.OrderModel.countDocuments({
-      'history.statusCode': null,
+      'statusCode.macro': '',
     });
 
     const size = 2000;
@@ -40,7 +40,7 @@ export class UpdateStructureOrder {
     for (let index = 0; index < pages; index++) {
       // const orders = await this.OrderModel.find({ statusCode: null })
       // eslint-disable-next-line no-await-in-loop
-      const orders = await this.OrderModel.find({ 'history.statusCode': null })
+      const orders = await this.OrderModel.find({ 'statusCode.macro': '' })
         .limit(size)
         .skip(index * size);
 
@@ -297,6 +297,10 @@ export class UpdateStructureOrder {
       return { micro: 'dispatched', macro: 'order-dispatched' };
     }
 
+    if (stat === 'invoiced' && !status) {
+      return { micro: 'invoiced', macro: 'order-created' };
+    }
+
     const addressError: statusCodeMapper = {
       source: [
         'ENDERECO INCORRETO',
@@ -341,6 +345,7 @@ export class UpdateStructureOrder {
       source: [
         'VOLUME CONFERIDO',
         'Correção informação evento',
+        'Objeto recebido na unidade de distribuição',
         'PROCESSAMENTO NA FILIAL',
         'CUSTODIA',
         'Evento Intelipost de PI',
@@ -432,6 +437,7 @@ export class UpdateStructureOrder {
     const customerRefused: statusCodeMapper = {
       source: [
         'CANCELADO PELO DESTINATARIO',
+        'CLIENTE ALEGA FALTA DE MERCADORIA',
         'RECUSADO POR TERCEIROS',
         'RECUSA - FALTA DE COMPRA',
         'RECUSADA - AVARIA DA MERCADORIA / EMBALAGEM',
@@ -458,8 +464,10 @@ export class UpdateStructureOrder {
       source: [
         'ENTREGUE NO DESTINO',
         'ENTREGUE NO DESTINO',
+        'ENTREGUE NO DESTINO 3',
         'ENTREGUE',
         'ENTREGUE FORA DO DESTINO',
+        'Objeto entregue na Caixa de Correios Inteligente',
         'ENTREGUE',
         'DELIVERED EMB',
       ],
@@ -642,6 +650,7 @@ export class UpdateStructureOrder {
     const shippmentReturning: statusCodeMapper = {
       source: [
         'Entrega suspensa/bloqueada',
+        'MERCADORIA EM DEVOLUCAO EM OUTRA OPERACAO',
         'DEVOLUÇÃO AUTORIZADA',
         'EM DEVOLUÇÃO',
         'DEVOLUCAO - EM TRANSITO',
