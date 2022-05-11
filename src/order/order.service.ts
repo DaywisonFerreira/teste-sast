@@ -155,12 +155,10 @@ export class OrderService {
 
     logger.log(`Creating an order report, with ${countOrders} documents`);
 
-    const file = this.createCsvLocally([], {
-      orderCreatedAtFrom,
-      orderCreatedAtTo,
-      userId,
-      storeId,
-    });
+    let file = {
+      path: '',
+      fileName: '',
+    };
 
     const pages = Math.ceil(countOrders / chunkSize);
 
@@ -212,9 +210,14 @@ export class OrderService {
       for await (const result of paginatedResult) {
         const dataFormatted = CsvMapper.mapOrderToCsv(result);
 
-        this.createCsvLocally(
+        file = this.createCsvLocally(
           dataFormatted,
-          { orderCreatedAtFrom, orderCreatedAtTo, userId, storeId },
+          {
+            orderCreatedAtFrom,
+            orderCreatedAtTo,
+            userId,
+            storeId,
+          },
           file.fileName,
         );
       }
@@ -222,17 +225,24 @@ export class OrderService {
     return file;
   }
 
-  private generateHistory(data, origin, isCreate) {
-    let updateHistory = {};
+  private generateHistory(data, origin, isCreate, oldOrder = { history: [] }) {
+    let historyExists = false;
+    if (oldOrder && Array.isArray(oldOrder.history)) {
+      historyExists = !!oldOrder.history.find(
+        ({ partnerStatus }) => partnerStatus === data.partnerStatus,
+      );
+    }
+
     if (origin === 'intelipost') {
       const history = OrderMapper.mapPartnerHistoryToOrderHistory(data);
-      updateHistory = isCreate
-        ? {
-            history: [history],
-          }
-        : { $push: { history } };
+      if (isCreate) {
+        return { history: [history] };
+      }
+      if (!historyExists) {
+        return { $push: { history } };
+      }
     }
-    return updateHistory;
+    return {};
   }
 
   private async createOrder(data, origin) {
@@ -271,10 +281,12 @@ export class OrderService {
   private async updateOrdersWithMultipleInvoices(
     configPK,
     data,
+    oldOrder,
     origin,
     options,
   ) {
     const { invoice, invoiceKeys, ...dataToSave } = data;
+
     await this.OrderModel.updateMany(
       configPK,
       {
@@ -283,6 +295,7 @@ export class OrderService {
           { ...dataToSave, invoice, invoiceKeys },
           origin,
           false,
+          oldOrder,
         ),
       },
       options,
@@ -296,19 +309,19 @@ export class OrderService {
     return order[0];
   }
 
-  private async updateOrder(configPK, data, currentOrder, origin, options) {
+  private async updateOrder(configPK, data, oldOrder, origin, options) {
     return this.OrderModel.findOneAndUpdate(
       configPK,
       {
         ...data,
         invoice: {
           ...data.invoice,
-          ...currentOrder.invoice,
+          ...oldOrder.invoice,
         },
         invoiceKeys: [
-          ...new Set([...data.invoiceKeys, ...currentOrder.invoiceKeys]),
+          ...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys]),
         ],
-        ...this.generateHistory(data, origin, false),
+        ...this.generateHistory(data, origin, false, oldOrder),
       },
       options,
     );
@@ -328,6 +341,7 @@ export class OrderService {
       orderToNotified = await this.updateOrdersWithMultipleInvoices(
         configPK,
         data,
+        orders[0],
         origin,
         options,
       );
@@ -354,6 +368,7 @@ export class OrderService {
   }
 
   private createCsvLocally(data: unknown[], filter: any, file?: string) {
+    let csv: string;
     const directory_path =
       process.env.NODE_ENV !== 'local'
         ? `${process.cwd()}/dist/tmp`
@@ -363,8 +378,11 @@ export class OrderService {
       mkdirSync(directory_path);
     }
 
-    const worksheet = utils.json_to_sheet(data);
-    const csv = utils.sheet_to_csv(worksheet);
+    if (data) {
+      const skipHeader = !!file;
+      const worksheet = utils.json_to_sheet(data, { skipHeader });
+      csv = utils.sheet_to_csv(worksheet);
+    }
 
     const from = lightFormat(
       new Date(`${filter.orderCreatedAtFrom}T00:00:00`),
@@ -381,7 +399,7 @@ export class OrderService {
         filter.storeId.length - 3,
       )}${filter.userId.substr(filter.userId.length - 3)}.csv`;
 
-    appendFileSync(`${directory_path}/${fileName}`, csv ? `${csv},` : '', {
+    appendFileSync(`${directory_path}/${fileName}`, csv || '', {
       flag: 'a+',
     });
 
