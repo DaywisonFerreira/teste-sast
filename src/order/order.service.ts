@@ -289,7 +289,6 @@ export class OrderService {
   private async updateOrdersWithMultipleInvoices(
     configPK,
     data,
-    oldOrder,
     origin,
     options,
   ) {
@@ -303,7 +302,6 @@ export class OrderService {
           { ...dataToSave, invoice, invoiceKeys },
           origin,
           false,
-          oldOrder,
         ),
       },
       options,
@@ -329,7 +327,7 @@ export class OrderService {
         invoiceKeys: [
           ...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys]),
         ],
-        ...this.generateHistory(data, origin, false, oldOrder),
+        ...this.generateHistory(data, origin, false),
       },
       options,
     );
@@ -350,7 +348,6 @@ export class OrderService {
       orderToNotified = await this.updateOrdersWithMultipleInvoices(
         configPK,
         data,
-        orders[0],
         origin,
         options,
       );
