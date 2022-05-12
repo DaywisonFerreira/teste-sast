@@ -225,24 +225,18 @@ export class OrderService {
     return file;
   }
 
-  private generateHistory(data, origin, isCreate, oldOrder = { history: [] }) {
-    let historyExists = false;
-    if (oldOrder && Array.isArray(oldOrder.history)) {
-      historyExists = !!oldOrder.history.find(
-        ({ partnerStatus }) => partnerStatus === data.partnerStatus,
-      );
-    }
+  private generateHistory(data, origin, isCreate) {
+    let updateHistory = {};
 
     if (origin === 'intelipost') {
       const history = OrderMapper.mapPartnerHistoryToOrderHistory(data);
-      if (isCreate) {
-        return { history: [history] };
-      }
-      if (!historyExists) {
-        return { $push: { history } };
-      }
+      updateHistory = isCreate
+        ? {
+            history: [history],
+          }
+        : { $push: { history } };
     }
-    return {};
+    return updateHistory;
   }
 
   private async createOrder(data, origin) {
@@ -281,7 +275,6 @@ export class OrderService {
   private async updateOrdersWithMultipleInvoices(
     configPK,
     data,
-    oldOrder,
     origin,
     options,
   ) {
@@ -295,7 +288,6 @@ export class OrderService {
           { ...dataToSave, invoice, invoiceKeys },
           origin,
           false,
-          oldOrder,
         ),
       },
       options,
@@ -321,7 +313,7 @@ export class OrderService {
         invoiceKeys: [
           ...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys]),
         ],
-        ...this.generateHistory(data, origin, false, oldOrder),
+        ...this.generateHistory(data, origin, false),
       },
       options,
     );
@@ -341,7 +333,6 @@ export class OrderService {
       orderToNotified = await this.updateOrdersWithMultipleInvoices(
         configPK,
         data,
-        orders[0],
         origin,
         options,
       );
