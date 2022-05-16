@@ -83,6 +83,12 @@ export class OrderController {
 
       const result = resultQuery.map(order => ({
         ...order,
+        customer: {
+          ...order.customer,
+          fullName: order.customer.fullName
+            ? order.customer.fullName
+            : `${order.customer.firstName} ${order.customer.lastName}`,
+        },
         logisticInfo: [order.logisticInfo?.length ? order.logisticInfo[0] : {}],
       }));
 

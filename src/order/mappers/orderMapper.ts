@@ -562,7 +562,8 @@ export class OrderMapper {
         document: customer.document,
         documentType: customer.documentType,
         corporateName: customer.corporateName,
-        fullName: customer.fullName,
+        fullName:
+          customer.fullName || `${customer.firstName} ${customer.lastName}`,
       },
     }));
   }

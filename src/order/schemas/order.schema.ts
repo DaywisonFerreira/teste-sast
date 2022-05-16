@@ -5,7 +5,9 @@ import { Document, Types } from 'mongoose';
 export const PublicFieldsOrder = {
   orderId: 1,
   orderCreatedAt: 1,
-  receiverName: 1,
+  'customer.fullName': 1,
+  'customer.firstName': 1,
+  'customer.lastName': 1,
   orderUpdatedAt: 1,
   orderSale: 1,
   order: 1,
