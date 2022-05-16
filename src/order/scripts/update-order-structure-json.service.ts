@@ -1008,4 +1008,41 @@ export class UpdateStructureOrder {
       toDelete: rest.filter(item => item._id !== toSave._id),
     };
   }
+
+  async getDuplicateOrders() {
+    const duplicateValues = await this.OrderModel.aggregate([
+      {
+        $group: {
+          _id: { orderSale: '$orderSale' },
+          values: { $addToSet: '$_id' },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $match: {
+          count: { $gt: 1 },
+        },
+      },
+    ]);
+
+    this.logger.log(
+      `Found ${duplicateValues.length} orders with duplicate copies`,
+    );
+
+    for await (const order of duplicateValues) {
+      this.logger.log(`Handle with orderSale: ${order._id.orderSale} copies`);
+      const orders = await this.OrderModel.find({ _id: { $in: order.values } });
+      const result = this.handleDuplicateKeys(orders);
+
+      await this.OrderModel.deleteMany({ _id: { $in: result.toDelete } });
+
+      await this.OrderModel.findOneAndUpdate(
+        { _id: result.toSave._id },
+        result.toSave,
+        {
+          useFindAndModify: false,
+        },
+      );
+    }
+  }
 }

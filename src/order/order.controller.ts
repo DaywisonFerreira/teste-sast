@@ -160,7 +160,7 @@ export class OrderController {
   async updateOrderStructure(@Req() req: any): Promise<void> {
     try {
       req.logger.verbose(`Request was received to change order structure`);
-      await this.updateStructure.updateStructureOrders();
+      await this.updateStructure.getDuplicateOrders();
     } catch (error) {
       req.logger.error(error);
       throw error;
