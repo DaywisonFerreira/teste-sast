@@ -64,7 +64,8 @@ export class OrderService {
         { order: { $regex: `${search}.*`, $options: 'i' } },
         { orderSale: { $regex: `${search}.*`, $options: 'i' } },
         { partnerOrder: { $regex: `${search}.*`, $options: 'i' } },
-        { receiverName: { $regex: `${search}.*`, $options: 'i' } },
+        { 'customer.firstName': { $regex: `${search}.*`, $options: 'i' } },
+        { 'customer.fullName': { $regex: `${search}.*`, $options: 'i' } },
         {
           'billingData.customerDocument': {
             $regex: `${search}.*`,
