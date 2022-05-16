@@ -22,10 +22,11 @@ export class UpdateStructureOrder {
   ) {}
 
   async updateStructureOrders() {
-    // const count = await this.OrderModel.countDocuments({ statusCode: null });
-    const count = await this.OrderModel.countDocuments({
-      'statusCode.macro': '',
-    });
+    const ordersToMigrateFilter = {
+      // 'statusCode.macro': '',
+      statusCode: null,
+    };
+    const count = await this.OrderModel.countDocuments(ordersToMigrateFilter);
 
     const size = 2000;
     const pages = Math.ceil(count / size);
@@ -38,9 +39,8 @@ export class UpdateStructureOrder {
     const result = { success: 0, errors: 0 };
 
     for (let index = 0; index < pages; index++) {
-      // const orders = await this.OrderModel.find({ statusCode: null })
       // eslint-disable-next-line no-await-in-loop
-      const orders = await this.OrderModel.find({ 'statusCode.macro': '' })
+      const orders = await this.OrderModel.find(ordersToMigrateFilter)
         .limit(size)
         .skip(index * size);
 
