@@ -339,7 +339,6 @@ export class OrderEntity extends Document {
   square?: string; // campo só usado no relatorio
 
   @Prop({ type: Number, required: false })
-
   physicalWeight?: number; // campo só usado no relatorio
 
   @Prop({ type: Number, required: false })
