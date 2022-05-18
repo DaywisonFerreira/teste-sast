@@ -3,6 +3,8 @@ import { Test } from '@nestjs/testing';
 import { OrderController } from '../order.controller';
 import { OrderService } from '../order.service';
 import { OrderEntity } from '../schemas/order.schema';
+import { UpdateDuplicatedOrders } from '../scripts/update-duplicated-orders.service';
+import { UpdateStructureOrder } from '../scripts/update-order-structure-json.service';
 
 describe('OrderController', () => {
   let controller: OrderController;
@@ -16,8 +18,9 @@ describe('OrderController', () => {
           useValue: {},
         },
         { provide: OrderService, useValue: {} },
-        { provide: 'LogProvider', useValue: {} },
         { provide: 'KafkaService', useValue: {} },
+        { provide: UpdateStructureOrder, useValue: {} },
+        { provide: UpdateDuplicatedOrders, useValue: {} },
       ],
     }).compile();
 

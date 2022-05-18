@@ -15,10 +15,6 @@ describe('OrderService', () => {
           provide: getModelToken(OrderEntity.name),
           useValue: {},
         },
-        {
-          provide: 'LogProvider',
-          useValue: {},
-        },
       ],
     }).compile();
 

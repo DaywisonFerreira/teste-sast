@@ -21,10 +21,6 @@ describe('IntelipostController', () => {
         },
         { provide: AmqpConnection, useValue: {} },
         {
-          provide: 'LogProvider',
-          useValue: {},
-        },
-        {
           provide: 'KafkaService',
           useValue: {},
         },

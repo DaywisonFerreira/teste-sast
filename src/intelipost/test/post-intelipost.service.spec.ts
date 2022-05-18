@@ -21,10 +21,6 @@ describe('InteliPostService', () => {
           provide: AmqpConnection,
           useValue: {},
         },
-        {
-          provide: 'LogProvider',
-          useValue: {},
-        },
       ],
     }).compile();
 

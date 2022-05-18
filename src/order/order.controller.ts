@@ -28,6 +28,7 @@ import {
 } from './dto/export-order.dto';
 import { GetOrderDto } from './dto/get-order.dto';
 import { UpdateStructureOrder } from './scripts/update-order-structure-json.service';
+import { UpdateDuplicatedOrders } from './scripts/update-duplicated-orders.service';
 
 @Controller('orders')
 @ApiTags('Orders')
@@ -37,6 +38,7 @@ export class OrderController {
     private readonly orderService: OrderService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     private readonly updateStructure: UpdateStructureOrder,
+    private readonly updateDuplicated: UpdateDuplicatedOrders,
   ) {}
 
   @Get()
@@ -160,7 +162,19 @@ export class OrderController {
   async updateOrderStructure(@Req() req: any): Promise<void> {
     try {
       req.logger.verbose(`Request was received to change order structure`);
-      await this.updateStructure.getDuplicateOrders();
+      await this.updateStructure.updateStructureOrders();
+    } catch (error) {
+      req.logger.error(error);
+      throw error;
+    }
+  }
+
+  // @TODO: retirar antes de subir
+  @Get('update-duplicated-orders')
+  async updateDuplicatedOrders(@Req() req: any): Promise<void> {
+    try {
+      req.logger.verbose(`Request was received to update duplicated orders`);
+      await this.updateDuplicated.updateDuplicateOrders();
     } catch (error) {
       req.logger.error(error);
       throw error;
