@@ -170,6 +170,28 @@ export class History {
   statusCode: StatusCode;
 }
 
+export class BillingData {
+  invoiceSerialNumber: string;
+
+  invoiceValue: number;
+
+  invoiceNumber: string;
+
+  invoiceKey: string;
+
+  issuanceDate: Date;
+
+  carrierName: string;
+
+  trackingNumber: string;
+
+  trackingUrl: string;
+
+  customerDocument: string;
+
+  items: Array<Item>;
+}
+
 @Schema({ collection: 'orders', timestamps: true })
 export class OrderEntity extends Document {
   @Prop({ type: Types.ObjectId, required: false })
@@ -227,7 +249,7 @@ export class OrderEntity extends Document {
   partnerOrder?: string;
 
   @Prop({ type: Array, required: false })
-  billingData?: Array<any>;
+  billingData?: Array<BillingData>;
 
   @Prop({ type: Array, required: false })
   logisticInfo?: Array<LogisticInfo>;
@@ -311,7 +333,7 @@ export class OrderEntity extends Document {
   @Prop({ type: String, required: false })
   i18n?: string;
 
-  @Prop({ type: Array, default: [], required: false })
+  @Prop({ type: Array, required: false })
   history?: Array<History>;
 
   @Prop({ type: String, required: false })

@@ -1,11 +1,8 @@
-import { Module, Scope } from '@nestjs/common';
-import { InfraLogger as Logger } from '@infralabs/infra-logger';
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { AccountService } from 'src/account/account.service';
 import { NestjsEventEmitter } from '../commons/providers/event/nestjs-event-emitter';
-import { Env } from '../commons/environment/env';
-import { NestjsLogger } from '../commons/providers/log/nestjs-logger';
 
 import {
   CarrierEntity,
@@ -30,11 +27,6 @@ import { CarrierService } from '../carrier/carrier.service';
   ],
   controllers: [ConsumerInvoiceController],
   providers: [
-    {
-      provide: 'LogProvider',
-      useClass: Env.NODE_ENV === 'local' ? NestjsLogger : Logger,
-      scope: Scope.TRANSIENT,
-    },
     NestjsEventEmitter,
     InvoiceService,
     CarrierService,

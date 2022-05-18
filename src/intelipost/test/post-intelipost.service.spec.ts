@@ -27,10 +27,6 @@ describe('InteliPostService', () => {
           useValue: {},
         },
         {
-          provide: 'LogProvider',
-          useValue: {},
-        },
-        {
           provide: 'KafkaService',
           useValue: {},
         },
