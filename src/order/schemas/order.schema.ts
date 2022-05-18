@@ -104,6 +104,25 @@ export class StatusCode {
   macro: string;
 }
 
+export class additionalInfo {
+  key1: string;
+
+  key2: string;
+}
+export class Attachments {
+  fileName: string;
+
+  mimeType: string;
+
+  type: string;
+
+  additionalInfo: additionalInfo;
+
+  url: string;
+
+  createdAt: string;
+}
+
 export class PickupStoreInfo {
   additionalInfo: string;
 
@@ -310,13 +329,17 @@ export class OrderEntity extends Document {
   @Prop({ type: Array, default: [], required: false })
   history?: Array<History>;
 
+  @Prop({ type: Array, required: false })
+  attachments?: Array<Attachments>;
+
   @Prop({ type: String, required: false })
-  originZipCode?: string; // campo só usado no relatorio
+  originZipCode?: string; // campo só usado no relatorio"
 
   @Prop({ type: String, required: false })
   square?: string; // campo só usado no relatorio
 
-  @Prop({ type: Number, required: false })
+  @Prop({ type: Number, required: false }) z;
+
   physicalWeight?: number; // campo só usado no relatorio
 
   @Prop({ type: Number, required: false })

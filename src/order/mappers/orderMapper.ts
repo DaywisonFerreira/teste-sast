@@ -1,7 +1,11 @@
 import { Types } from 'mongoose';
 import { CreateIntelipost } from 'src/intelipost/dto/create-intelipost.dto';
+import { createBlobService } from 'azure-storage';
+import axios from 'axios';
+import { createWriteStream } from 'fs';
 import { IHubOrder } from '../interfaces/order.interface';
-import { OrderDocument } from '../schemas/order.schema';
+import { Attachments, OrderDocument } from '../schemas/order.schema';
+import { Env } from '../../commons/environment/env';
 
 interface OrderAnalysis {
   id?: string;
@@ -28,7 +32,9 @@ interface OrderAnalysis {
   trackingUrl?: string;
 }
 export class OrderMapper {
-  static mapPartnerToOrder(payload: CreateIntelipost) {
+  static async mapPartnerToOrder(
+    payload: CreateIntelipost,
+  ): Promise<Partial<OrderDocument>> {
     const status =
       typeof payload.history.shipment_order_volume_state === 'string'
         ? payload.history.shipment_order_volume_state
@@ -37,6 +43,8 @@ export class OrderMapper {
         : payload.history.shipment_order_volume_state;
 
     const statusCode = this.mapStatusCode(payload);
+
+    const attachments = await this.mapAttachments(payload);
 
     return {
       orderSale: payload.sales_order_number,
@@ -70,7 +78,82 @@ export class OrderMapper {
       partnerStatus: status,
       i18n: payload.history.shipment_volume_micro_state.i18n_name,
       statusCode,
+      attachments,
     };
+  }
+
+  static mapAttachments(payload: any): Promise<Attachments[]> {
+    const { attachments } = payload.history;
+
+    return Promise.all(
+      attachments
+        .filter(({ type }) => type === 'POD')
+        .map(async attachment => {
+          const fileName = `pod-${payload.invoice.invoice_key}${attachment.file_name}`;
+
+          const downloadedUrl = await OrderMapper.downloadFromCloud(
+            attachment.url,
+            fileName,
+          );
+
+          const uploadedUrl = await OrderMapper.uploadToCloud(
+            fileName,
+            downloadedUrl,
+          );
+
+          return {
+            fileName,
+            mimeType: attachment.mime_type,
+            type: attachment.type,
+            additionalInfo: attachment.additionalInfo,
+            url: uploadedUrl,
+            createdAt: attachment.created_iso,
+          };
+        }),
+    );
+  }
+
+  static downloadFromCloud(url: string, fileName: string): Promise<string> {
+    const pathDestination =
+      Env.NODE_ENV !== 'local'
+        ? `${process.cwd()}/dist/tmp`
+        : `${process.cwd()}/src/tmp`;
+
+    return axios({
+      method: 'GET',
+      url,
+      responseType: 'stream',
+    }).then(
+      (response: any) =>
+        new Promise((resolve, reject) => {
+          const writer = response.data.pipe(
+            createWriteStream(`${pathDestination}/${fileName}`),
+          );
+          writer.on('error', error => reject(error));
+          writer.on('finish', () => resolve(`${pathDestination}/${fileName}`));
+        }),
+    );
+  }
+
+  static uploadToCloud(fileName: string, path: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const blobSvc = createBlobService(Env.AZURE_BS_ACCESS_KEY);
+      blobSvc.createBlockBlobFromLocalFile(
+        String(Env.AZURE_BS_CONTAINER_NAME),
+        fileName,
+        path,
+        error => {
+          if (error) {
+            reject(error);
+          }
+          resolve(
+            `${String(Env.AZURE_BS_STORAGE_URL)}/${String(
+              Env.AZURE_BS_CONTAINER_NAME,
+            )}/${fileName}`,
+          );
+        },
+      );
+    });
   }
 
   static mapStatusCode(payload: any) {
