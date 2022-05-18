@@ -23,8 +23,7 @@ export class InteliPostService {
     logger: InfraLogger,
     headers: any,
   ) {
-    const order: Partial<OrderDocument> =
-      OrderMapper.mapPartnerToOrder(payload);
+    const order = await OrderMapper.mapPartnerToOrder(payload);
 
     if (order.statusCode.macro === 'delivered') {
       order.status = order.statusCode.macro;
