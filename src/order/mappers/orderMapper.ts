@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 import { CreateIntelipost } from 'src/intelipost/dto/create-intelipost.dto';
 import { createBlobService } from 'azure-storage';
 import axios from 'axios';
-import { createWriteStream } from 'fs';
+import { promises, createWriteStream } from 'fs';
 import { IHubOrder } from '../interfaces/order.interface';
 import { Attachments, OrderDocument } from '../schemas/order.schema';
 import { Env } from '../../commons/environment/env';
@@ -101,6 +101,8 @@ export class OrderMapper {
             downloadedUrl,
           );
 
+          OrderMapper.deleteFileLocally(downloadedUrl);
+
           return {
             fileName,
             mimeType: attachment.mime_type,
@@ -154,6 +156,10 @@ export class OrderMapper {
         },
       );
     });
+  }
+
+  static deleteFileLocally(path: string) {
+    promises.unlink(path);
   }
 
   static mapStatusCode(payload: any) {
