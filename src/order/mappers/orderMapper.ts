@@ -19,8 +19,8 @@ interface OrderAnalysis {
     value: number;
   };
   carrier?: {
-    carrierName?: string;
-    carrierDocument?: string;
+    name?: string;
+    document?: string;
   };
   customer?: {
     firstName: string;
@@ -598,8 +598,8 @@ export class OrderMapper {
     };
 
     orderMapper.carrier = {
-      carrierName: payload.invoice.carrierName,
-      carrierDocument: payload.invoice?.carrierDocument,
+      name: payload.invoice.carrierName,
+      document: payload.invoice?.carrierDocument,
     };
 
     orderMapper.deliveryDate = payload.deliveryDate;

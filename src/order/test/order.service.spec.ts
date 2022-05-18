@@ -20,10 +20,6 @@ describe('OrderService', () => {
           provide: getModelToken(AccountEntity.name),
           useValue: {},
         },
-        {
-          provide: 'LogProvider',
-          useValue: {},
-        },
         { provide: 'KafkaService', useValue: {} },
       ],
     }).compile();

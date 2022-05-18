@@ -402,7 +402,7 @@ export class OrderService {
   async getOrderDetails(orderId: string): Promise<any> {
     const order = await this.findOne(orderId);
     const {
-      totals,
+      totals = [],
       value,
       orderSale,
       order: orderERP,
@@ -410,7 +410,7 @@ export class OrderService {
       estimateDeliveryDateDeliveryCompany,
       logisticInfo,
       invoice,
-      history,
+      history = [],
       internalOrderId,
       statusCode,
     } = order;
@@ -418,9 +418,12 @@ export class OrderService {
     /**
      * History array order by ASC
      */
-    const historyOrderByASC = history.sort((a, b) => {
-      return moment(a.orderUpdatedAt).diff(b.orderUpdatedAt);
-    });
+    let historyOrderByASC = [];
+    if (history.length > 0) {
+      historyOrderByASC = history.sort((a, b) => {
+        return moment(a.orderUpdatedAt).diff(b.orderUpdatedAt);
+      });
+    }
 
     /**
      * Steppers
@@ -432,12 +435,15 @@ export class OrderService {
     /**
      * Total values
      */
-    const values = {
-      totalValueItems: totals.find(total => total.id === 'Items').value,
-      totalDiscounts: totals.find(total => total.id === 'Discounts').value,
-      totalShipping: totals.find(total => total.id === 'Shipping').value,
-      value,
-    };
+    let values = {};
+    if (totals.length > 0) {
+      values = {
+        totalValueItems: totals.find(total => total.id === 'Items').value,
+        totalDiscounts: totals.find(total => total.id === 'Discounts').value,
+        totalShipping: totals.find(total => total.id === 'Shipping').value,
+        value,
+      };
+    }
 
     /**
      * deliveryCompany + logisticContract
