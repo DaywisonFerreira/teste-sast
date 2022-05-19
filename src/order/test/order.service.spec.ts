@@ -1,5 +1,6 @@
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
+import { AccountEntity } from 'src/account/schemas/account.schema';
 import { OrderService } from '../order.service';
 import { OrderEntity } from '../schemas/order.schema';
 
@@ -16,9 +17,10 @@ describe('OrderService', () => {
           useValue: {},
         },
         {
-          provide: 'LogProvider',
+          provide: getModelToken(AccountEntity.name),
           useValue: {},
         },
+        { provide: 'KafkaService', useValue: {} },
       ],
     }).compile();
 

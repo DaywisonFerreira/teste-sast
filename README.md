@@ -1,4 +1,4 @@
-## ifc.logistiic.api.core - Comunicação filas "fanout"
+## ifc.freight.api.orders
 
 Detalhamento de comunicação com filas do tipo "fanout":
 
@@ -59,7 +59,7 @@ export class MessageService {
 
 ```
 
-## ifc.logistiic.api.core - Uso Keycloak
+## ifc.freight.api.orders - Uso Keycloak
 
 Fazendo login no keycloak:
 

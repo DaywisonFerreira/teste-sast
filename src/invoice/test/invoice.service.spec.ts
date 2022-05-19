@@ -21,10 +21,6 @@ describe('InvoiceService', () => {
           provide: getModelToken(TrackingCodeEntity.name),
           useValue: {},
         },
-        {
-          provide: 'LogProvider',
-          useValue: {},
-        },
       ],
     }).compile();
 

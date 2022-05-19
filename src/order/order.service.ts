@@ -1,26 +1,35 @@
-/* eslint-disable no-await-in-loop */
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { appendFileSync } from 'graceful-fs';
 import { InjectModel } from '@nestjs/mongoose';
 import { differenceInDays, isBefore, lightFormat } from 'date-fns';
 import { LeanDocument, Model, Types } from 'mongoose';
+import * as moment from 'moment';
+import { KafkaService } from '@infralabs/infra-nestjs-kafka';
+import {
+  AccountDocument,
+  AccountEntity,
+} from 'src/account/schemas/account.schema';
+import { Env } from 'src/commons/environment/env';
+import { MessageOrderNotified } from 'src/intelipost/factories';
+
 import { existsSync, mkdirSync } from 'fs';
 import { utils } from 'xlsx';
 
 import { CsvMapper } from './mappers/csvMapper';
-import { OrderMapper } from './mappers/orderMapper';
 import { chunkArray } from '../commons/utils/array.utils';
-import { Env } from '../commons/environment/env';
-import { IFilterObject } from '../commons/interfaces/filter-object.interface';
 import {
   OrderDocument,
   OrderEntity,
   PublicFieldsOrder,
 } from './schemas/order.schema';
+import { OrderMapper } from './mappers/orderMapper';
 
 @Injectable()
 export class OrderService {
   constructor(
+    @Inject('KafkaService') private kafkaProducer: KafkaService,
+    @InjectModel(AccountEntity.name)
+    private accountModel: Model<AccountDocument>,
     @InjectModel(OrderEntity.name)
     private OrderModel: Model<OrderDocument>,
   ) {}
@@ -36,19 +45,17 @@ export class OrderService {
     orderCreatedAtTo,
     orderUpdatedAtFrom,
     orderUpdatedAtTo,
-    status,
+    statusCode,
   }): Promise<[LeanDocument<OrderEntity[]>, number]> {
-    const filter: IFilterObject = {
-      status: { $in: ['dispatched', 'delivered', 'invoiced'] }, // Entregue // Avaria // Extravio // Roubo // Em devolução // Aguardando retirada na agência dos Correios
-    };
+    const filter: any = {};
 
     if (storeId) {
       filter.storeId = new Types.ObjectId(storeId);
     }
 
-    if (status) {
-      filter.status = {
-        $in: status.split(','),
+    if (statusCode) {
+      filter.statusCode.micro = {
+        $in: statusCode.split(','),
       };
     }
 
@@ -57,7 +64,8 @@ export class OrderService {
         { order: { $regex: `${search}.*`, $options: 'i' } },
         { orderSale: { $regex: `${search}.*`, $options: 'i' } },
         { partnerOrder: { $regex: `${search}.*`, $options: 'i' } },
-        { receiverName: { $regex: `${search}.*`, $options: 'i' } },
+        { 'customer.firstName': { $regex: `${search}.*`, $options: 'i' } },
+        { 'customer.fullName': { $regex: `${search}.*`, $options: 'i' } },
         {
           'billingData.customerDocument': {
             $regex: `${search}.*`,
@@ -120,7 +128,7 @@ export class OrderService {
 
   async findOne(orderId: string): Promise<LeanDocument<OrderEntity>> {
     const order = await this.OrderModel.findOne({
-      orderId,
+      orderId: { $in: [orderId, new Types.ObjectId(orderId)] },
     }).lean();
 
     if (!order) {
@@ -137,7 +145,6 @@ export class OrderService {
   ) {
     const conditions: any = {
       storeId: new Types.ObjectId(storeId),
-      status: { $in: ['dispatched', 'delivered', 'invoiced'] }, // Entregue // Avaria // Extravio // Roubo // Em devolução // Aguardando retirada na agência dos Correios
     };
 
     if (orderCreatedAtFrom && orderCreatedAtTo) {
@@ -187,6 +194,7 @@ export class OrderService {
         partnerMessage: 1,
         numberVolumes: 1,
         originZipCode: 1,
+        statusCode: 1,
         square: 1,
         physicalWeight: 1,
         lastOccurrenceMacro: 1,
@@ -225,18 +233,25 @@ export class OrderService {
     return file;
   }
 
-  private generateHistory(data, origin, isCreate) {
-    let updateHistory = {};
+  private generateHistory(data, origin, isCreate, oldOrder = { history: [] }) {
+    let historyExists = false;
+    if (oldOrder && Array.isArray(oldOrder.history)) {
+      historyExists = !!oldOrder.history.find(
+        ({ statusCode }) => statusCode?.micro === data.statusCode.micro,
+      );
+    }
 
     if (origin === 'intelipost') {
       const history = OrderMapper.mapPartnerHistoryToOrderHistory(data);
-      updateHistory = isCreate
-        ? {
-            history: [history],
-          }
-        : { $push: { history } };
+
+      if (isCreate) {
+        return { history: [history] };
+      }
+      if (!historyExists) {
+        return { $push: { history } };
+      }
     }
-    return updateHistory;
+    return {};
   }
 
   private async createOrder(data, origin) {
@@ -275,6 +290,7 @@ export class OrderService {
   private async updateOrdersWithMultipleInvoices(
     configPK,
     data,
+    oldOrder,
     origin,
     options,
   ) {
@@ -288,6 +304,7 @@ export class OrderService {
           { ...dataToSave, invoice, invoiceKeys },
           origin,
           false,
+          oldOrder,
         ),
       },
       options,
@@ -313,17 +330,18 @@ export class OrderService {
         invoiceKeys: [
           ...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys]),
         ],
-        ...this.generateHistory(data, origin, false),
+        ...this.generateHistory(data, origin, false, oldOrder),
       },
       options,
     );
   }
 
   async merge(
+    headers: any,
     configPK: any,
     data: any = {},
     origin: string,
-    options: any = { runValidators: true, useFindAndModify: false },
+    options: any = { new: true, runValidators: true, useFindAndModify: false },
   ) {
     let orderToNotified: any;
     const orders = await this.OrderModel.find(configPK);
@@ -333,6 +351,7 @@ export class OrderService {
       orderToNotified = await this.updateOrdersWithMultipleInvoices(
         configPK,
         data,
+        orders[0],
         origin,
         options,
       );
@@ -345,6 +364,28 @@ export class OrderService {
         options,
       );
     }
+
+    if (orderToNotified.storeId) {
+      const account = await this.accountModel
+        .findOne({ id: orderToNotified.storeId })
+        .lean();
+
+      if (!account) {
+        throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
+      }
+
+      const orderToAnalysisNotified: Array<any> =
+        OrderMapper.mapMessageToOrderAnalysis(orderToNotified, account);
+
+      await this.kafkaProducer.send(
+        Env.KAFKA_TOPIC_ORDER_NOTIFIED,
+        MessageOrderNotified({
+          orderToAnalysisNotified,
+          headers,
+        }),
+      );
+    }
+
     return orderToNotified;
   }
 
@@ -356,6 +397,128 @@ export class OrderService {
     if (isBefore(dateTo, dateFrom)) {
       throw new Error('Invalid range of dates');
     }
+  }
+
+  async getOrderDetails(orderId: string): Promise<any> {
+    const order = await this.findOne(orderId);
+    const {
+      totals = [],
+      value,
+      orderSale,
+      order: orderERP,
+      orderCreatedAt,
+      estimateDeliveryDateDeliveryCompany,
+      logisticInfo,
+      invoice,
+      history = [],
+      internalOrderId,
+      statusCode,
+    } = order;
+
+    /**
+     * History array order by ASC
+     */
+    let historyOrderByASC = [];
+    if (history.length > 0) {
+      historyOrderByASC = history.sort((a, b) => {
+        return moment(a.orderUpdatedAt).diff(b.orderUpdatedAt);
+      });
+    }
+
+    // TODO: TERMINAR!!!
+    const sequenceStatus = [
+      'order-created',
+      'order-dispatched',
+      'in-transit',
+      'out-for-delivery',
+    ];
+    const finishersStatus = ['delivered', 'delivery-failed', 'canceled'];
+
+    /**
+     * Steppers
+     */
+    let steppers = history
+      .map(hist => (hist?.statusCode?.macro ? hist.statusCode.macro : ''))
+      .filter(x => x !== '');
+
+    steppers.sort((a, b) => {
+      if (sequenceStatus.indexOf(a) < sequenceStatus.indexOf(b)) {
+        return 0;
+      }
+      if (sequenceStatus.indexOf(a) > sequenceStatus.indexOf(b)) {
+        return 1;
+      }
+      return 0;
+    });
+
+    if (steppers.length < 5) {
+      if (
+        finishersStatus.reduce(
+          (acc, status) => acc || steppers.includes(status),
+          false,
+        )
+      ) {
+        steppers = sequenceStatus.reduce((result, status) => {
+          const onceFinisherStatusAlreadyExists = finishersStatus.reduce(
+            (acc, status) => acc || result.includes(status),
+            false,
+          );
+          if (
+            steppers.includes(status) ||
+            (finishersStatus.includes(status) &&
+              !onceFinisherStatusAlreadyExists)
+          ) {
+            return [...result, status];
+          }
+          if (onceFinisherStatusAlreadyExists) return result;
+          return [...result, status];
+        }, []);
+      }
+    }
+
+    /**
+     * Total values
+     */
+    let values = {};
+    if (totals.length > 0) {
+      values = {
+        totalValueItems: totals.find(total => total.id === 'Items').value,
+        totalDiscounts: totals.find(total => total.id === 'Discounts').value,
+        totalShipping: totals.find(total => total.id === 'Shipping').value,
+        value,
+      };
+    }
+
+    /**
+     * deliveryCompany + logisticContract
+     */
+    const shippingMethod = `${logisticInfo[0].deliveryCompany} ${logisticInfo[0].logisticContract}`;
+
+    /**
+     * If the order status is equal to invoiced, it will be returned to the
+     * logisticInfo carrier, if the status is dispatched or delivered, it
+     * will be returned to the carrier that is on the note.
+     */
+    const shippingCompany =
+      order.status === 'invoiced'
+        ? logisticInfo[0].deliveryCompany
+        : invoice.carrierName;
+
+    const data = {
+      values,
+      shippingMethod,
+      shippingCompany,
+      platformCode: orderSale,
+      codeERP: orderERP,
+      purchaseDate: orderCreatedAt,
+      estimateDeliveryDate: estimateDeliveryDateDeliveryCompany,
+      erpId: internalOrderId,
+      statusCode,
+      steppers,
+      historyOrderByASC,
+    };
+
+    return data;
   }
 
   private createCsvLocally(data: unknown[], filter: any, file?: string) {

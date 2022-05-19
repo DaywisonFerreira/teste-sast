@@ -16,7 +16,6 @@ describe('OrderController', () => {
           useValue: {},
         },
         { provide: OrderService, useValue: {} },
-        { provide: 'LogProvider', useValue: {} },
         { provide: 'KafkaService', useValue: {} },
       ],
     }).compile();

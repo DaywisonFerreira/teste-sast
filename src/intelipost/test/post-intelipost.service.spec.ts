@@ -1,6 +1,7 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
+import { AccountEntity } from 'src/account/schemas/account.schema';
 import { OrderService } from 'src/order/order.service';
 import { OrderEntity } from 'src/order/schemas/order.schema';
 import { InteliPostService } from '../intelipost.service';
@@ -18,11 +19,15 @@ describe('InteliPostService', () => {
           useValue: {},
         },
         {
+          provide: getModelToken(AccountEntity.name),
+          useValue: {},
+        },
+        {
           provide: AmqpConnection,
           useValue: {},
         },
         {
-          provide: 'LogProvider',
+          provide: 'KafkaService',
           useValue: {},
         },
       ],

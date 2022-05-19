@@ -27,7 +27,6 @@ export class CsvMapper {
         paymentDate,
         dispatchDate,
         estimateDeliveryDateDeliveryCompany,
-        status,
         partnerStatus,
         orderSale,
         order,
@@ -43,7 +42,51 @@ export class CsvMapper {
         lastOccurrenceMicro,
         lastOccurrenceMessage,
         quantityOccurrences,
+        history,
       } = data;
+
+      const statusMapper = {
+        created: 'Pedido criado',
+        'operational-problem': 'Problema operacional',
+        'carrier-possession': 'Em posse da transportadora',
+        'first-delivery-failed': 'Insucesso na primeira tentativa de entrega',
+        'address-error': 'Erro no endereço',
+        'shippment-loss': 'Extravio',
+        'hub-transfer': 'Em transferência entre hubs',
+        'delivery-route': 'Em rota de entrega',
+        'shippment-returned': 'Devolvido',
+        'zip-code-not-serviced': 'CEP não atendido pela transportadora',
+        'customer-refused': 'Cliente recusou a carga',
+        'address-not-found': 'Endereço não encontrado',
+        'away-customer': 'Cliente ausente',
+        'shippment-stolen': 'Roubo',
+        'tax-stop': 'Parada no posto fiscal',
+        dispatched: 'Despachado',
+        'shippment-returning': 'Em devolução',
+        'delivered-success': 'Entregue',
+        'waiting-post-office-pickup':
+          'Aguardando retirada na agência dos Correios',
+        damage: 'Avaria',
+        'unknown-customer': 'Cliente desconhecido',
+        invoiced: 'Faturado',
+      };
+
+      const statusCode = data.statusCode?.micro
+        ? statusMapper[data.statusCode.micro]
+        : '';
+
+      const histories = !history
+        ? []
+        : history
+            .map(historyStatus =>
+              historyStatus.statusCode?.micro
+                ? {
+                    [statusMapper[historyStatus.statusCode.micro]]:
+                      historyStatus.orderUpdatedAt,
+                  }
+                : {},
+            )
+            .filter(historyStatus => Object.keys(historyStatus).length);
 
       return {
         'Nome do Destinatário': receiverName,
@@ -71,7 +114,7 @@ export class CsvMapper {
           .join(', '),
         Transportadora: logisticInfo && logisticInfo[0].deliveryCompany,
         'Data Despacho': dispatchDate,
-        'Status Transportador': status,
+        'Status Transportador': statusCode,
         'Data do último status': orderUpdatedAt,
         'Data Entrega': deliveryDate,
         'Previsão Entrega Cliente':
@@ -112,6 +155,7 @@ export class CsvMapper {
         'Última Ocorrência (Mensagem)': lastOccurrenceMessage,
         'Quantidade de Ocorrências': quantityOccurrences,
         'Data_Hora Pagamento': paymentDate,
+        ...histories,
       };
     });
   }

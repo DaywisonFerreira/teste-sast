@@ -32,10 +32,6 @@ describe('ConsumerInvoiceController', () => {
           useValue: {},
         },
         {
-          provide: 'LogProvider',
-          useValue: {},
-        },
-        {
           provide: NestjsEventEmitter,
           useValue: {},
         },

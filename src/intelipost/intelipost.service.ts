@@ -4,10 +4,10 @@ import { Model } from 'mongoose';
 import { InfraLogger } from '@infralabs/infra-logger';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 
+import { OrderService } from 'src/order/order.service';
 import { OrderMapper } from '../order/mappers/orderMapper';
 import { OrderDocument, OrderEntity } from '../order/schemas/order.schema';
 import { CreateIntelipost } from './dto/create-intelipost.dto';
-import { OrderService } from '../order/order.service';
 
 @Injectable()
 export class InteliPostService {
@@ -18,12 +18,16 @@ export class InteliPostService {
     private readonly amqpConnection: AmqpConnection,
   ) {}
 
-  async intelipost(payload: CreateIntelipost, logger: InfraLogger) {
+  async intelipost(
+    payload: CreateIntelipost,
+    logger: InfraLogger,
+    headers: any,
+  ) {
     const order: Partial<OrderDocument> =
       OrderMapper.mapPartnerToOrder(payload);
 
-    if (order.partnerStatus === 'delivered') {
-      order.status = order.partnerStatus;
+    if (order.statusCode.macro === 'delivered') {
+      order.status = order.statusCode.macro;
       order.deliveryDate = order.orderUpdatedAt;
     }
 
@@ -32,6 +36,7 @@ export class InteliPostService {
     }
 
     const orderMerged = await this.orderService.merge(
+      headers,
       {
         orderSale: order.orderSale,
         invoiceKeys: order.invoice.key,

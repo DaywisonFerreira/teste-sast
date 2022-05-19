@@ -1,13 +1,17 @@
 import { MongooseModule } from '@nestjs/mongoose';
-import { Module, Scope } from '@nestjs/common';
-import { Env } from 'src/commons/environment/env';
-import { NestjsLogger } from 'src/commons/providers/log/nestjs-logger';
-import { InfraLogger as Logger } from '@infralabs/infra-logger';
+import { Module } from '@nestjs/common';
 
+import {
+  AccountEntity,
+  AccountSchema,
+} from 'src/account/schemas/account.schema';
 import { OrderService } from './order.service';
 import { OrderController } from './order.controller';
 import { OrderEntity, OrderSchema } from './schemas/order.schema';
 import { ConsumerOrderController } from './consumer/order.controller';
+import { UpdateStructureOrder } from './scripts/update-order-structure-json.service';
+import { UpdateDuplicatedOrders } from './scripts/update-duplicated-orders.service';
+import { HandleStatusCode } from './scripts/handle-status-code.service';
 
 @Module({
   imports: [
@@ -16,16 +20,18 @@ import { ConsumerOrderController } from './consumer/order.controller';
         name: OrderEntity.name,
         schema: OrderSchema,
       },
+      {
+        name: AccountEntity.name,
+        schema: AccountSchema,
+      },
     ]),
   ],
   controllers: [OrderController, ConsumerOrderController],
   providers: [
-    {
-      provide: 'LogProvider',
-      useClass: Env.NODE_ENV === 'local' ? NestjsLogger : Logger,
-      scope: Scope.TRANSIENT,
-    },
     OrderService,
+    UpdateStructureOrder,
+    UpdateDuplicatedOrders,
+    HandleStatusCode,
   ],
   exports: [
     MongooseModule.forFeature([

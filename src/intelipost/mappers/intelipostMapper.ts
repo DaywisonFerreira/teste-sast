@@ -17,6 +17,7 @@ export class IntelipostMapper {
     const carrier = await this.carrierService.findByDocument(
       data.carrier.document,
     );
+
     const shipmentOrderVolumeArray = data.packages.map((item, index) => {
       return {
         shipment_order_volume_number: index + 1,
@@ -75,7 +76,7 @@ export class IntelipostMapper {
 
   mapResponseIntelipostToDeliveryHub(
     data: any,
-    carrierName: string,
+    carrier: any,
     shippingEstimateDate: any,
   ) {
     const {
@@ -86,7 +87,6 @@ export class IntelipostMapper {
       tracking_url,
     } = data;
     const result = [];
-
     volumes.forEach(volume => {
       const {
         shipment_order_volume_invoice,
@@ -103,7 +103,8 @@ export class IntelipostMapper {
             invoice_series: shipment_order_volume_invoice.invoice_series,
             invoice_number: shipment_order_volume_invoice.invoice_number,
             invoice_key: shipment_order_volume_invoice.invoice_key,
-            carrierName,
+            carrierName: carrier.carrier,
+            carrierDocument: carrier.document,
           },
           order_number,
           sales_order_number,

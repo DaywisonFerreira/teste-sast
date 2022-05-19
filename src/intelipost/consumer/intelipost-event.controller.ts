@@ -47,12 +47,12 @@ export class OnEventIntelipostController {
         const newOrders =
           this.intelipostMapper.mapResponseIntelipostToDeliveryHub(
             response.data.content,
-            carrier.carrier,
+            carrier,
             intelipostData.estimated_delivery_date,
           );
 
         for await (const order of newOrders) {
-          await this.intelipostService.intelipost(order, logger);
+          await this.intelipostService.intelipost(order, logger, headers);
           logger.log(
             `Order with invoiceKey ${order.invoice.invoice_key} was saved`,
           );
