@@ -448,7 +448,7 @@ export class OrderService {
       if (sequenceStatus.indexOf(a) > sequenceStatus.indexOf(b)) {
         return 1;
       }
-      return 0
+      return 0;
     });
 
     if (steppers.length < 5) {
