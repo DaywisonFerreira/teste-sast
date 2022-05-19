@@ -12,11 +12,7 @@ export class StatusCodeController {
   @ApiOkResponse({ type: [GetStatusCodeDto] })
   async getStatusCode(@Req() req: any): Promise<Array<GetStatusCodeDto>> {
     try {
-      req.logger.verbose(`Request was received to get all statusCodes`);
-      const statusCodes = await this.statusCodeService.getList();
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      return statusCodes;
+      return this.statusCodeService.getList();
     } catch (error) {
       req.logger.error(error);
       throw error;

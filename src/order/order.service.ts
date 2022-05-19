@@ -425,12 +425,56 @@ export class OrderService {
       });
     }
 
+    // TODO: TERMINAR!!!
+    const sequenceStatus = [
+      'order-created',
+      'order-dispatched',
+      'in-transit',
+      'out-for-delivery',
+    ];
+    const finishersStatus = ['delivered', 'delivery-failed', 'canceled'];
+
     /**
      * Steppers
      */
-    const steppers = historyOrderByASC
+    let steppers = history
       .map(hist => (hist?.statusCode?.macro ? hist.statusCode.macro : ''))
       .filter(x => x !== '');
+
+    steppers.sort((a, b) => {
+      if (sequenceStatus.indexOf(a) < sequenceStatus.indexOf(b)) {
+        return 0;
+      }
+      if (sequenceStatus.indexOf(a) > sequenceStatus.indexOf(b)) {
+        return 1;
+      }
+      return 0
+    });
+
+    if (steppers.length < 5) {
+      if (
+        finishersStatus.reduce(
+          (acc, status) => acc || steppers.includes(status),
+          false,
+        )
+      ) {
+        steppers = sequenceStatus.reduce((result, status) => {
+          const onceFinisherStatusAlreadyExists = finishersStatus.reduce(
+            (acc, status) => acc || result.includes(status),
+            false,
+          );
+          if (
+            steppers.includes(status) ||
+            (finishersStatus.includes(status) &&
+              !onceFinisherStatusAlreadyExists)
+          ) {
+            return [...result, status];
+          }
+          if (onceFinisherStatusAlreadyExists) return result;
+          return [...result, status];
+        }, []);
+      }
+    }
 
     /**
      * Total values

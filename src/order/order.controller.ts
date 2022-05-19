@@ -45,11 +45,6 @@ export class OrderController {
     @Req() req: any,
   ): Promise<PaginateOrderDto> {
     try {
-      req.logger.verbose(
-        `A request was received to get all orders with the query: ${JSON.stringify(
-          filterPaginateDto,
-        )}`,
-      );
       const {
         page = 1,
         perPage = 20,
@@ -111,7 +106,6 @@ export class OrderController {
     @Req() req: any,
   ): Promise<GetOrderDto> {
     try {
-      req.logger.verbose(`Request was received to get order ${id}`);
       return this.orderService.getOrderDetails(id);
     } catch (error) {
       req.logger.error(error);

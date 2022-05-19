@@ -16,6 +16,7 @@ export const PublicFieldsOrder = {
   statusCode: 1,
   history: 1,
   'invoice.number': 1,
+  'invoice.trackingUrl': 1,
   'billingData.invoiceValue': 1,
   'billingData.customerDocument': 1,
   'billingData.trackingUrl': 1,
@@ -354,6 +355,7 @@ export const OrderSchema = SchemaFactory.createForClass(OrderEntity);
 
 OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index({ orderSale: 1, invoiceKeys: 1 }, { unique: false })
+  .index({ orderId: 1 }, { unique: false })
   .index(
     { storeId: 1, status: 1, order: 1, orderSale: 1, partnerOrder: 1 },
     { unique: false },
