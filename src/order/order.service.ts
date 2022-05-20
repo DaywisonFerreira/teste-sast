@@ -366,12 +366,12 @@ export class OrderService {
     }
 
     if (orderToNotified.storeId) {
-      const account = await this.accountModel
+      let account: Partial<AccountEntity> = await this.accountModel
         .findOne({ id: orderToNotified.storeId })
         .lean();
 
       if (!account) {
-        throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
+        account = { id: orderToNotified.storeId };
       }
 
       const orderToAnalysisNotified: Array<any> =
