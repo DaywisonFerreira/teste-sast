@@ -55,7 +55,7 @@ export class OrderService {
 
     if (statusCode) {
       filter.statusCode.micro = {
-        $in: statusCode.split(','),
+        $in: statusCode,
       };
     }
 
