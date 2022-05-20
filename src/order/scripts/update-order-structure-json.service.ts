@@ -22,6 +22,8 @@ export class UpdateStructureOrder {
     const ordersToMigrateFilter = {
       // 'statusCode.macro': '',
       statusCode: null,
+      // 'invoice.key': null,
+      // 'invoice.key': ''
     };
     const count = await this.OrderModel.countDocuments(ordersToMigrateFilter);
 
