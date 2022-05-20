@@ -19,7 +19,7 @@ export class UpdateDuplicatedOrders {
     const duplicateValues = await this.OrderModel.aggregate([
       {
         $group: {
-          _id: { orderSale: '$orderSale', "invoiceKey": '$invoice.key' },
+          _id: { orderSale: '$orderSale', invoiceKey: '$invoice.key' },
           values: { $addToSet: '$_id' },
           count: { $sum: 1 },
         },
@@ -50,9 +50,7 @@ export class UpdateDuplicatedOrders {
         },
       );
     }
-    this.logger.log(
-      `Finish process with ${duplicateValues.length}`,
-    );
+    this.logger.log(`Finish process with ${duplicateValues.length}`);
   }
 
   handleDuplicateKeys(duplicateValues: Partial<OrderEntity>[]) {
