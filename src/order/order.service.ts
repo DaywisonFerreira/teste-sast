@@ -411,6 +411,7 @@ export class OrderService {
       history,
       internalOrderId,
       statusCode,
+      attachments,
     } = order;
 
     /**
@@ -464,6 +465,7 @@ export class OrderService {
       statusCode,
       steppers,
       historyOrderByASC,
+      attachments,
     };
 
     return data;
