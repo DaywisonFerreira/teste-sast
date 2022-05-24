@@ -118,10 +118,10 @@ export class OrderService {
     const sortBy = { [orderBy]: orderDirection === 'asc' ? 1 : -1 };
     const count = await this.OrderModel.countDocuments(filter);
     const result = await this.OrderModel.find(filter, PublicFieldsOrder)
-    .limit(pageSize)
-    .skip(pageSize * (page - 1))
-    .sort(sortBy)
-    .lean();
+      .limit(pageSize)
+      .skip(pageSize * (page - 1))
+      .sort(sortBy)
+      .lean();
 
     return [result, count];
   }
