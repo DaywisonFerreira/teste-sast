@@ -14,8 +14,9 @@ export class StatusCodeService {
   ) {}
 
   async getList(): Promise<LeanDocument<StatusCodeEntity[]>> {
-    const statusCodes = await this.StatusCodeModel.find().lean();
-    return statusCodes;
+    return this.StatusCodeModel.find({}, { name: 1, order: 1, parentId: 1 })
+      .sort({ order: 1 })
+      .lean();
   }
 
   async getStatusCodeByName(

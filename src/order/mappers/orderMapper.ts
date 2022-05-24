@@ -692,8 +692,8 @@ export class OrderMapper {
     };
 
     orderMapper.deliveryDate = payload.deliveryDate;
-    orderMapper.accountName = account.name;
-    orderMapper.accountId = account.id;
+    orderMapper.accountName = account?.name || '';
+    orderMapper.accountId = account?.id || '';
 
     orderMapper.customer = {
       firstName: payload.customer.firstName,

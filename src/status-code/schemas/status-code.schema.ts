@@ -12,6 +12,9 @@ export class StatusCodeEntity extends Document {
 
   @Prop({ type: String, required: true, unique: true })
   name: string;
+
+  @Prop({ type: Number, required: true })
+  order: string;
 }
 
 export type StatusCodeDocument = StatusCodeEntity & Document;
