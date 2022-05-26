@@ -432,8 +432,10 @@ export class OrderMapper {
           statusId =>
             `${payload.history.shipment_volume_micro_state.id}` === statusId,
         )
-      )
+      ) {
         statusCode.micro = status;
+      }
+
       return statusCode;
     });
 
@@ -454,8 +456,9 @@ export class OrderMapper {
             `${payload.history.shipment_volume_micro_state.shipment_order_volume_state_id}` ===
             macroStatusId,
         )
-      )
+      ) {
         statusCode.macro = statusMacro;
+      }
       return statusCode;
     });
 

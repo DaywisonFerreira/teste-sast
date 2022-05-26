@@ -18,7 +18,7 @@ import { InteliPostService } from '../intelipost.service';
 @Controller()
 export class ConsumerIntelipostController {
   constructor(
-    private readonly storesService: InteliPostService,
+    private readonly inteliPostService: InteliPostService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
   ) {}
 
@@ -44,8 +44,6 @@ export class ConsumerIntelipostController {
       },
     ]);
 
-    const order = await this.storesService.intelipost(data, logger, headers);
-
-    logger.log(`Order with invoiceKey ${order.invoice.key} was saved`);
+    await this.inteliPostService.intelipost(data, logger, headers);
   }
 }
