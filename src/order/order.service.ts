@@ -233,7 +233,44 @@ export class OrderService {
     return file;
   }
 
+  private getStatusScale(status: string) {
+    switch (status) {
+      case 'order-created':
+        return 0;
+      case 'order-dispatched':
+        return 2;
+      case 'in-transit':
+        return 3;
+      case 'out-of-delivery':
+        return 4;
+      case 'delivered':
+        return 5;
+      case 'delivery-failed':
+        return 5;
+      case 'canceled':
+        return 5;
+      default:
+        return 1;
+    }
+  }
+
   private generateHistory(data, origin, isCreate, logger, oldOrder?: any) {
+    const sortHistory = (HistoryOne, HistoryTwo) => {
+      if (
+        this.getStatusScale(HistoryOne?.statusCode?.macro) >
+        this.getStatusScale(HistoryTwo?.statusCode?.macro)
+      ) {
+        return 1;
+      }
+      if (
+        this.getStatusScale(HistoryOne?.statusCode?.macro) <
+        this.getStatusScale(HistoryTwo?.statusCode?.macro)
+      ) {
+        return -1;
+      }
+      return 0;
+    };
+
     let historyExists = false;
     if (oldOrder && Array.isArray(oldOrder.history)) {
       historyExists = !!oldOrder.history.find(
@@ -243,7 +280,7 @@ export class OrderService {
 
     if (historyExists) {
       logger.log(
-        `generateHistory - Order: ${oldOrder.orderSale} received a duplicate status by Intelipost and will be ignore (statusMicro: ${data.statusCode.micro}, statusMacro: ${data.statusCode.macro})`,
+        `generateHistory - Order: ${oldOrder.orderSale} received a duplicate status (statusMicro: ${data.statusCode.micro}, statusMacro: ${data.statusCode.macro}) by Intelipost and will be ignore`,
       );
       return { ignore: true, history: {} };
     }
@@ -256,23 +293,10 @@ export class OrderService {
       }
       if (!historyExists) {
         const historyToSort = [...oldOrder.history, history];
-        return { ignore: false, history: historyToSort.sort(this.sortHistory) };
+        return { ignore: false, history: historyToSort.sort(sortHistory) };
       }
     }
     return { ignore: true, history: {} };
-  }
-
-  private sortHistory(HistoryOne, HistoryTwo) {
-    const historyA = this.getStatusScale(HistoryOne.statusCode.macro);
-    const historyB = this.getStatusScale(HistoryTwo.statusCode.macro);
-
-    if (historyA > historyB) {
-      return 1;
-    }
-    if (historyA < historyB) {
-      return -1;
-    }
-    return 0;
   }
 
   private async createOrder(data, origin, logger) {
@@ -280,7 +304,7 @@ export class OrderService {
       orderSale: data.orderSale,
     });
 
-    if (orderFinded.length === 0) {
+    if (!orderFinded.length) {
       const { history } = this.generateHistory(data, origin, true, logger);
       const order = await this.OrderModel.create({
         ...data,
@@ -391,6 +415,8 @@ export class OrderService {
       oldOrder,
     );
 
+    // repensar em como ignorar um historico novo, porém tbm não enviar para o IHUB
+
     const newContent = {
       ...(shouldUpdateSourceOfOrder ? data : {}),
       invoice: {
@@ -476,27 +502,6 @@ export class OrderService {
 
     if (isBefore(dateTo, dateFrom)) {
       throw new Error('Invalid range of dates');
-    }
-  }
-
-  private getStatusScale(status: string) {
-    switch (status) {
-      case 'order-created':
-        return 0;
-      case 'order-dispatched':
-        return 2;
-      case 'in-transit':
-        return 3;
-      case 'out-for-delivery':
-        return 4;
-      case 'delivered':
-        return 5;
-      case 'delivery-failed':
-        return 5;
-      case 'canceled':
-        return 5;
-      default:
-        return 1;
     }
   }
 
