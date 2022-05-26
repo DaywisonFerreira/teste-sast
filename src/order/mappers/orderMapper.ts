@@ -588,6 +588,11 @@ export class OrderMapper {
         }))
       : [];
 
+    const statusCode = {
+      micro: status,
+      macro: status === 'invoiced' ? 'order-created' : 'order-dispatched',
+    };
+
     return arrayOfBillingData.map(billingData => ({
       orderId,
       storeCode,
@@ -608,10 +613,7 @@ export class OrderMapper {
       billingData: arrayOfBillingData, // @deprecated
       logisticInfo,
       status,
-      statusCode: {
-        micro: status,
-        macro: status,
-      },
+      statusCode,
       totalShippingPrice: logisticInfo.length
         ? logisticInfo.reduce((t, { sellingPrice }) => t + sellingPrice, 0)
         : 0,

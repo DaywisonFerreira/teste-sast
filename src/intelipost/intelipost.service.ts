@@ -42,9 +42,7 @@ export class InteliPostService {
       );
 
       if (success) {
-        logger.log(
-          `Order with invoiceKey ${orderMerged.invoice.key} was saved`,
-        );
+        logger.log(`Order with OrderSale ${orderMerged.orderSale} was saved`);
       }
 
       if (

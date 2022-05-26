@@ -279,7 +279,7 @@ export class OrderService {
     }
 
     if (historyExists) {
-      logger.log(
+      logger.warn(
         `generateHistory - Order: ${oldOrder.orderSale} received a duplicate status (statusMicro: ${data.statusCode.micro}, statusMacro: ${data.statusCode.macro}) by Intelipost and will be ignore`,
       );
       return { ignore: true, history: {} };
@@ -396,7 +396,7 @@ export class OrderService {
       this.getStatusScale(oldOrder.statusCode.macro);
 
     if (OrderAlreadyFinished) {
-      logger.log(
+      logger.warn(
         `updateOrder - Order: ${oldOrder.orderSale} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
       );
 
@@ -537,7 +537,7 @@ export class OrderService {
       'order-created',
       'order-dispatched',
       'in-transit',
-      'out-for-delivery',
+      'out-of-delivery',
     ];
     const finishersStatus = ['delivered', 'delivery-failed', 'canceled'];
 
