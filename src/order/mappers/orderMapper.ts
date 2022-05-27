@@ -432,8 +432,10 @@ export class OrderMapper {
           statusId =>
             `${payload.history.shipment_volume_micro_state.id}` === statusId,
         )
-      )
+      ) {
         statusCode.micro = status;
+      }
+
       return statusCode;
     });
 
@@ -454,8 +456,9 @@ export class OrderMapper {
             `${payload.history.shipment_volume_micro_state.shipment_order_volume_state_id}` ===
             macroStatusId,
         )
-      )
+      ) {
         statusCode.macro = statusMacro;
+      }
       return statusCode;
     });
 
@@ -585,6 +588,11 @@ export class OrderMapper {
         }))
       : [];
 
+    const statusCode = {
+      micro: status,
+      macro: status === 'invoiced' ? 'order-created' : 'order-dispatched',
+    };
+
     return arrayOfBillingData.map(billingData => ({
       orderId,
       storeCode,
@@ -605,10 +613,7 @@ export class OrderMapper {
       billingData: arrayOfBillingData, // @deprecated
       logisticInfo,
       status,
-      statusCode: {
-        micro: status,
-        macro: status,
-      },
+      statusCode,
       totalShippingPrice: logisticInfo.length
         ? logisticInfo.reduce((t, { sellingPrice }) => t + sellingPrice, 0)
         : 0,

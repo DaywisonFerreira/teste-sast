@@ -198,7 +198,7 @@ export class HandleStatusCode {
     const deliveryRoute: statusCodeMapper = {
       source: ['RETIRADO', 'EM ROTA DE ENTREGA', 'SAIU PARA ENTREGA'],
       micro: 'delivery-route',
-      macro: 'out-for-delivery',
+      macro: 'out-of-delivery',
     };
 
     const dispatched: statusCodeMapper = {

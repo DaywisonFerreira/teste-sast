@@ -233,7 +233,44 @@ export class OrderService {
     return file;
   }
 
-  private generateHistory(data, origin, isCreate, oldOrder = { history: [] }) {
+  private getStatusScale(status: string) {
+    switch (status) {
+      case 'order-created':
+        return 0;
+      case 'order-dispatched':
+        return 2;
+      case 'in-transit':
+        return 3;
+      case 'out-of-delivery':
+        return 4;
+      case 'delivered':
+        return 5;
+      case 'delivery-failed':
+        return 5;
+      case 'canceled':
+        return 5;
+      default:
+        return 1;
+    }
+  }
+
+  private generateHistory(data, origin, isCreate, logger, oldOrder?: any) {
+    const sortHistory = (HistoryOne, HistoryTwo) => {
+      if (
+        this.getStatusScale(HistoryOne?.statusCode?.macro) >
+        this.getStatusScale(HistoryTwo?.statusCode?.macro)
+      ) {
+        return 1;
+      }
+      if (
+        this.getStatusScale(HistoryOne?.statusCode?.macro) <
+        this.getStatusScale(HistoryTwo?.statusCode?.macro)
+      ) {
+        return -1;
+      }
+      return 0;
+    };
+
     let historyExists = false;
     if (oldOrder && Array.isArray(oldOrder.history)) {
       historyExists = !!oldOrder.history.find(
@@ -241,30 +278,41 @@ export class OrderService {
       );
     }
 
+    if (historyExists) {
+      logger.warn(
+        `generateHistory - Order: ${oldOrder.orderSale} received a duplicate status (statusMicro: ${data.statusCode.micro}, statusMacro: ${data.statusCode.macro}) by Intelipost and will be ignore`,
+      );
+      return { ignore: true, history: {} };
+    }
+
     if (origin === 'intelipost') {
       const history = OrderMapper.mapPartnerHistoryToOrderHistory(data);
 
       if (isCreate) {
-        return { history: [history] };
+        return { ignore: false, history: [history] };
       }
       if (!historyExists) {
-        return { $push: { history } };
+        const historyToSort = [...oldOrder.history, history];
+        return { ignore: false, history: historyToSort.sort(sortHistory) };
       }
     }
-    return {};
+    return { ignore: true, history: {} };
   }
 
-  private async createOrder(data, origin) {
+  private async createOrder(data, origin, logger) {
     const orderFinded = await this.OrderModel.find({
       orderSale: data.orderSale,
     });
 
-    if (orderFinded.length === 0) {
-      return this.OrderModel.create({
+    if (!orderFinded.length) {
+      const { history } = this.generateHistory(data, origin, true, logger);
+      const order = await this.OrderModel.create({
         ...data,
-        ...this.generateHistory(data, origin, true),
+        history,
       });
+      return { success: true, order };
     }
+
     for (const order of orderFinded) {
       await this.OrderModel.findOneAndUpdate(
         {
@@ -281,10 +329,13 @@ export class OrderService {
 
     data.invoiceKeys.push(...orderFinded[0].invoiceKeys);
 
-    return this.OrderModel.create({
+    const { history } = this.generateHistory(data, origin, true, logger);
+
+    const order = await this.OrderModel.create({
       ...data,
-      ...this.generateHistory(data, origin, true),
+      history,
     });
+    return { success: true, order };
   }
 
   private async updateOrdersWithMultipleInvoices(
@@ -293,47 +344,95 @@ export class OrderService {
     oldOrder,
     origin,
     options,
+    logger,
   ) {
-    const { invoice, invoiceKeys, ...dataToSave } = data;
+    const OrderAlreadyFinished =
+      this.getStatusScale(data.statusCode.macro) ===
+      this.getStatusScale(oldOrder.statusCode.macro);
 
-    await this.OrderModel.updateMany(
-      configPK,
-      {
-        ...dataToSave,
-        ...this.generateHistory(
-          { ...dataToSave, invoice, invoiceKeys },
-          origin,
-          false,
-          oldOrder,
-        ),
-      },
-      options,
+    if (OrderAlreadyFinished) {
+      logger.log(
+        `updateOrdersWithMultipleInvoices - Order: ${oldOrder.orderSale} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
+      );
+
+      return { success: false, order: oldOrder };
+    }
+
+    const { ignore, history } = this.generateHistory(
+      data,
+      origin,
+      false,
+      logger,
+      oldOrder,
     );
+
+    const shouldUpdateSourceOfOrder =
+      this.getStatusScale(data.statusCode.macro) >
+      this.getStatusScale(oldOrder.statusCode.macro);
+
+    const newContent = {
+      invoice: {
+        ...data.invoice,
+        ...oldOrder.invoice,
+      },
+      invoiceKeys: [...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys])],
+      ...(shouldUpdateSourceOfOrder ? data : {}),
+      ...(ignore ? {} : { history }),
+    };
+
+    await this.OrderModel.updateMany(configPK, newContent, options);
 
     const order = await this.OrderModel.find({
       orderSale: data.orderSale,
-      'invoice.key': invoice.key,
+      'invoice.key': data.invoice.key,
     });
 
-    return order[0];
+    return { success: true, order: order[0] };
   }
 
-  private async updateOrder(configPK, data, oldOrder, origin, options) {
-    return this.OrderModel.findOneAndUpdate(
-      configPK,
-      {
-        ...data,
-        invoice: {
-          ...data.invoice,
-          ...oldOrder.invoice,
-        },
-        invoiceKeys: [
-          ...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys]),
-        ],
-        ...this.generateHistory(data, origin, false, oldOrder),
+  private async updateOrder(configPK, data, oldOrder, origin, options, logger) {
+    const OrderAlreadyFinished =
+      this.getStatusScale(data.statusCode.macro) ===
+      this.getStatusScale(oldOrder.statusCode.macro);
+
+    if (OrderAlreadyFinished) {
+      logger.warn(
+        `updateOrder - Order: ${oldOrder.orderSale} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
+      );
+
+      return { success: false, order: oldOrder };
+    }
+
+    const shouldUpdateSourceOfOrder =
+      this.getStatusScale(data.statusCode.macro) >
+      this.getStatusScale(oldOrder.statusCode.macro);
+
+    const { ignore, history } = this.generateHistory(
+      data,
+      origin,
+      false,
+      logger,
+      oldOrder,
+    );
+
+    // repensar em como ignorar um historico novo, porém tbm não enviar para o IHUB
+
+    const newContent = {
+      ...(shouldUpdateSourceOfOrder ? data : {}),
+      invoice: {
+        ...data.invoice,
+        ...oldOrder.invoice,
       },
+      invoiceKeys: [...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys])],
+      ...(ignore ? {} : { history }),
+    };
+    const order = await this.OrderModel.findOneAndUpdate(
+      configPK,
+      newContent,
       options,
     );
+
+    return { success: true, order };
   }
 
   async merge(
@@ -341,41 +440,48 @@ export class OrderService {
     configPK: any,
     data: any = {},
     origin: string,
-    options: any = { new: true, runValidators: true, useFindAndModify: false },
+    logger: any,
   ) {
-    let orderToNotified: any;
+    const options: any = {
+      new: true,
+      runValidators: true,
+      useFindAndModify: false,
+    };
+    let operationStatus: { success: boolean; order: any };
     const orders = await this.OrderModel.find(configPK);
     if (!orders.length) {
-      orderToNotified = await this.createOrder(data, origin);
+      operationStatus = await this.createOrder(data, origin, logger);
     } else if (orders.length > 1) {
-      orderToNotified = await this.updateOrdersWithMultipleInvoices(
+      operationStatus = await this.updateOrdersWithMultipleInvoices(
         configPK,
         data,
         orders[0],
         origin,
         options,
+        logger,
       );
     } else {
-      orderToNotified = await this.updateOrder(
+      operationStatus = await this.updateOrder(
         configPK,
         data,
         orders[0],
         origin,
         options,
+        logger,
       );
     }
 
-    if (orderToNotified.storeId) {
+    if (operationStatus.success && operationStatus.order.storeId) {
       let account: Partial<AccountEntity> = await this.accountModel
-        .findOne({ id: orderToNotified.storeId })
+        .findOne({ id: operationStatus.order.storeId })
         .lean();
 
       if (!account) {
-        account = { id: orderToNotified.storeId };
+        account = { id: operationStatus.order.storeId };
       }
 
       const orderToAnalysisNotified: Array<any> =
-        OrderMapper.mapMessageToOrderAnalysis(orderToNotified, account);
+        OrderMapper.mapMessageToOrderAnalysis(operationStatus.order, account);
 
       await this.kafkaProducer.send(
         Env.KAFKA_TOPIC_ORDER_NOTIFIED,
@@ -386,7 +492,7 @@ export class OrderService {
       );
     }
 
-    return orderToNotified;
+    return operationStatus;
   }
 
   private validateRangeOfDates(dateFrom: Date, dateTo: Date) {
@@ -431,7 +537,7 @@ export class OrderService {
       'order-created',
       'order-dispatched',
       'in-transit',
-      'out-for-delivery',
+      'out-of-delivery',
     ];
     const finishersStatus = ['delivered', 'delivery-failed', 'canceled'];
 

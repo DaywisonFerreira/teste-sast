@@ -70,6 +70,7 @@ export class ConsumerOrderController {
               },
               { ...orderToSave },
               'ihub',
+              logger,
             ),
           ),
         );
