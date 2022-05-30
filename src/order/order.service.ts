@@ -415,8 +415,6 @@ export class OrderService {
       oldOrder,
     );
 
-    // repensar em como ignorar um historico novo, porém tbm não enviar para o IHUB
-
     const newContent = {
       ...(shouldUpdateSourceOfOrder ? data : {}),
       invoice: {

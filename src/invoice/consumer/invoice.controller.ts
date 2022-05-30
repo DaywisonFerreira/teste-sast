@@ -37,8 +37,9 @@ export class ConsumerInvoiceController {
 
       const account = await this.accountService.findOne(accountId);
 
-      if (account.integrateIntelipost)
+      if (account.integrateIntelipost) {
         this.eventEmitter.emit('intelipost.sent', { headers, data });
+      }
     } catch (error) {
       logger.error(error);
     } finally {
