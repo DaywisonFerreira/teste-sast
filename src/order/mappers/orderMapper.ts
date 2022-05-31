@@ -639,6 +639,7 @@ export class OrderMapper {
         trackingUrl: billingData.trackingUrl,
         items: billingData.items,
         customerDocument: billingData.customerDocument,
+        deliveryMethod: logisticInfo[0]?.logisticContract
       },
       delivery: {
         receiverName: deliveryAddress.receiverName,
