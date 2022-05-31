@@ -48,7 +48,7 @@ export class OrderMapper {
 
     const statusCode = this.mapStatusCode(payload);
 
-   // const attachments = await this.mapAttachments(payload);
+    // const attachments = await this.mapAttachments(payload);
 
     return {
       orderSale: payload.sales_order_number,
@@ -83,7 +83,7 @@ export class OrderMapper {
       partnerStatus: status,
       i18n: payload.history.shipment_volume_micro_state.i18n_name,
       statusCode,
-    //  attachments,
+      //  attachments,
     };
   }
 
@@ -98,22 +98,21 @@ export class OrderMapper {
   // }
 
   static async mapAttachment(attachment, invoiceKey) {
-
-    if(attachment.type === "POD"){
+    if (attachment.type === 'POD') {
       const fileName = `pod-${invoiceKey}${attachment.file_name}`;
-  
+
       const downloadedUrl = await OrderMapper.downloadFromCloud(
         attachment.url,
         fileName,
       );
-  
+
       const uploadedUrl = await OrderMapper.uploadToCloud(
         fileName,
         downloadedUrl,
       );
-  
+
       OrderMapper.deleteFileLocally(downloadedUrl);
-  
+
       return {
         fileName,
         mimeType: attachment.mime_type,
@@ -122,10 +121,10 @@ export class OrderMapper {
         url: uploadedUrl,
         createdAt: attachment.created_iso,
       };
-
     }
-    return {}
+    return {};
   }
+
   static downloadFromCloud(url: string, fileName: string): Promise<string> {
     const pathDestination =
       Env.NODE_ENV !== 'local'
