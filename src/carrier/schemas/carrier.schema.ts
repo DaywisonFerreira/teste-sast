@@ -43,6 +43,10 @@ export class CarrierEntity extends Document {
   @Prop({ type: DeliveryMethods, required: false })
   externalDeliveryMethods: DeliveryMethods[];
 
+  // TODO: deprecated
+  @Prop({ type: String, required: false, default: '' })
+  externalDeliveryMethodId: string;
+
   @Prop({ type: Boolean, default: true })
   active: boolean;
 
