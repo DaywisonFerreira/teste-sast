@@ -105,6 +105,8 @@ export class OnEventIntelipostController {
                   }
                 })
                 .catch(error => logger.error(error));
+            } else {
+              logger.error(error);
             }
           } else {
             logger.error(error);

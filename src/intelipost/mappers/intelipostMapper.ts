@@ -19,8 +19,6 @@ export class IntelipostMapper {
       data.carrier.document,
     );
 
-    const carrier = await this.carrierService.findByDocument('24217653000195');
-
     const shipmentOrderVolumeArray = data.packages.map((item, index) => {
       return {
         shipment_order_volume_number: index + 1,
