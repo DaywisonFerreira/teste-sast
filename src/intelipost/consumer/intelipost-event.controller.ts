@@ -30,72 +30,88 @@ export class OnEventIntelipostController {
         platform,
       },
     };
-    try {
-      const { carrier, dataFormatted: intelipostData } =
-        await this.intelipostMapper.mapInvoiceToIntelipost(data, false);
+    const { carrier, dataFormatted: intelipostData } =
+      await this.intelipostMapper.mapInvoiceToIntelipost(data, false);
 
-      const response = await axios.post(
-        Env.INTELIPOST_SHIPMENT_ORDER_ENDPOINT,
-        intelipostData,
-        config,
-      );
-      if (response.status === 200) {
-        logger.log(
-          `Order created successfully on Intelipost with trackingUrl: ${response?.data?.content?.tracking_url}`,
-        );
-
-        const newOrders =
-          this.intelipostMapper.mapResponseIntelipostToDeliveryHub(
-            response.data.content,
-            carrier,
-            intelipostData.estimated_delivery_date,
-          );
-
-        for await (const order of newOrders) {
-          await this.intelipostService.intelipost(order, logger, headers);
+    await axios
+      .post(Env.INTELIPOST_SHIPMENT_ORDER_ENDPOINT, intelipostData, config)
+      .then(async response => {
+        if (response.status === 200) {
           logger.log(
-            `Order with invoiceKey ${order.invoice.invoice_key} was saved`,
-          );
-        }
-      }
-    } catch (error) {
-      logger.error(error);
-
-      if (error.message.includes('status code 400')) {
-        logger.log('Received a status code 400, retrying other request');
-        try {
-          const { carrier, dataFormatted: intelipostData } =
-            await this.intelipostMapper.mapInvoiceToIntelipost(data, true);
-
-          const retryResponse = await axios.post(
-            Env.INTELIPOST_SHIPMENT_ORDER_ENDPOINT,
-            intelipostData,
-            config,
+            `Order created successfully on Intelipost with trackingUrl: ${response?.data?.content?.tracking_url}`,
           );
 
-          if (retryResponse.status === 200) {
-            logger.log(
-              `Order created successfully on Intelipost with trackingUrl: ${retryResponse?.data?.content?.tracking_url}`,
+          const newOrders =
+            this.intelipostMapper.mapResponseIntelipostToDeliveryHub(
+              response.data.content,
+              carrier,
+              intelipostData.estimated_delivery_date,
             );
 
-            const newOrders =
-              this.intelipostMapper.mapResponseIntelipostToDeliveryHub(
-                retryResponse.data.content,
-                carrier,
-                intelipostData.estimated_delivery_date,
-              );
-
-            for await (const order of newOrders) {
-              await this.intelipostService.intelipost(order, logger, headers);
-              logger.log(
-                `Order with invoiceKey ${order.invoice.invoice_key} was saved`,
-              );
-            }
+          for await (const order of newOrders) {
+            await this.intelipostService.intelipost(order, logger, headers);
+            logger.log(
+              `Order with invoiceKey ${order.invoice.invoice_key} was saved`,
+            );
           }
-        } catch (error) {
+        }
+      })
+      .catch(async error => {
+        if (
+          error.response.data.status === 'ERROR' &&
+          error.response.status === 400
+        ) {
+          if (
+            error?.response?.data?.messages &&
+            Array.isArray(error?.response?.data?.messages)
+          ) {
+            const message = error?.response?.data?.messages.find(
+              msg =>
+                msg.key === 'shipmentOrder.save.already.existing.order.number',
+            );
+            if (message) {
+              const { carrier, dataFormatted: intelipostData } =
+                await this.intelipostMapper.mapInvoiceToIntelipost(data, true);
+
+              await axios
+                .post(
+                  Env.INTELIPOST_SHIPMENT_ORDER_ENDPOINT,
+                  intelipostData,
+                  config,
+                )
+                .then(async retryResponse => {
+                  if (retryResponse.status === 200) {
+                    logger.log(
+                      `Order created successfully on Intelipost with trackingUrl: ${retryResponse?.data?.content?.tracking_url}`,
+                    );
+
+                    const newOrders =
+                      this.intelipostMapper.mapResponseIntelipostToDeliveryHub(
+                        retryResponse.data.content,
+                        carrier,
+                        intelipostData.estimated_delivery_date,
+                      );
+
+                    for await (const order of newOrders) {
+                      await this.intelipostService.intelipost(
+                        order,
+                        logger,
+                        headers,
+                      );
+                      logger.log(
+                        `Order with invoiceKey ${order.invoice.invoice_key} was saved`,
+                      );
+                    }
+                  }
+                })
+                .catch(error => logger.error(error));
+            }
+          } else {
+            logger.error(error);
+          }
+        } else {
           logger.error(error);
         }
-      }
-    }
+      });
   }
 }
