@@ -13,6 +13,11 @@ class Integration {
 
   attributes: Attributes[];
 }
+class DeliveryMethods {
+  deliveryModeName: string;
+
+  externalDeliveryMethodId: string;
+}
 export class GetCarrierDto {
   @ApiProperty({
     description: 'Identifier',
@@ -59,10 +64,14 @@ export class GetCarrierDto {
 
   @ApiPropertyOptional({
     description: 'Carrier externalDeliveryMethodId',
-    type: String,
-    example: '368',
+    type: DeliveryMethods,
+    example: [
+      { deliveryModeName: 'LS SAMEDAY', externalDeliveryMethodId: '15111' },
+      { deliveryModeName: 'LS NEXTDAY', externalDeliveryMethodId: '740' },
+      { deliveryModeName: 'NORMAL', externalDeliveryMethodId: '1' },
+    ],
   })
-  externalDeliveryMethodId: string;
+  externalDeliveryMethods: DeliveryMethods[];
 
   @ApiProperty({
     description: 'Active Carrier',
