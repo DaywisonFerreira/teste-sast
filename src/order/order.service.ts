@@ -21,6 +21,7 @@ import {
   OrderDocument,
   OrderEntity,
   PublicFieldsOrder,
+  Attachments,
 } from './schemas/order.schema';
 import { OrderMapper } from './mappers/orderMapper';
 
@@ -254,6 +255,38 @@ export class OrderService {
     }
   }
 
+  private async generateAttachments(data,  isCreate, logger, oldOrder?: any): Promise<Attachments[]>{
+   
+      const { invoice } = data;
+      const attachments = []
+  
+      return Promise.all(
+        data.attachments
+          .map((attachment: { file_name: any; }) => {          
+            const fileName = `pod-${invoice.key}${attachment.file_name}`;
+
+            if(isCreate === false){
+              const ExistingAttachments = oldOrder?.attachments || []
+
+              ExistingAttachments.map((ExistingAttachment: { fileName: string; }) => {
+                if( fileName === ExistingAttachment.fileName){
+                  // data.attachments = ExistingAttachment
+
+                    logger.warn(
+                      `generateAttachment - Invoice key: ${invoice.key} received a duplicate file (${attachments.file_name}) by Intelipost and will be ignore`,
+                    );             
+                }else {
+                  attachments.push(ExistingAttachment)
+                }
+              })              
+            }           
+            const attachmentToSave = OrderMapper.mapAttachment(attachment, invoice.key)
+            
+            return attachmentToSave
+          }),
+      ); 
+  }
+
   private generateHistory(data, origin, isCreate, logger, oldOrder?: any) {
     const sortHistory = (HistoryOne, HistoryTwo) => {
       if (
@@ -306,9 +339,12 @@ export class OrderService {
 
     if (!orderFinded.length) {
       const { history } = this.generateHistory(data, origin, true, logger);
+      const  attachments  = this.generateAttachments(data, true, logger)
+      console.log(attachments)
       const order = await this.OrderModel.create({
         ...data,
         history,
+        attachments,
       });
       return { success: true, order };
     }
@@ -350,7 +386,9 @@ export class OrderService {
       this.getStatusScale(data.statusCode.macro) ===
       this.getStatusScale(oldOrder.statusCode.macro);
 
-    if (OrderAlreadyFinished) {
+
+
+    if (OrderAlreadyFinished === false) {
       logger.log(
         `updateOrdersWithMultipleInvoices - Order: ${oldOrder.orderSale} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
       );
@@ -365,6 +403,16 @@ export class OrderService {
       logger,
       oldOrder,
     );
+    console.log("history",history)
+
+    const  attachments = await this.generateAttachments(
+      data,
+      false,
+      logger,
+      oldOrder,
+    )
+
+    console.log("attachments", attachments)
 
     const shouldUpdateSourceOfOrder =
       this.getStatusScale(data.statusCode.macro) >
@@ -378,6 +426,8 @@ export class OrderService {
       invoiceKeys: [...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys])],
       ...(shouldUpdateSourceOfOrder ? data : {}),
       ...(ignore ? {} : { history }),
+      attachments,
+
     };
 
     await this.OrderModel.updateMany(configPK, newContent, options);
@@ -449,6 +499,7 @@ export class OrderService {
     };
     let operationStatus: { success: boolean; order: any };
     const orders = await this.OrderModel.find(configPK);
+    console.log(orders.length)
     if (!orders.length) {
       operationStatus = await this.createOrder(data, origin, logger);
     } else if (orders.length > 1) {

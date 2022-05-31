@@ -36,7 +36,7 @@ export class InteliPostService {
           orderSale: order.orderSale,
           invoiceKeys: order.invoice.key,
         },
-        { ...order },
+        { ...order, attachments: payload.history.attachments },
         'intelipost',
         logger,
       );

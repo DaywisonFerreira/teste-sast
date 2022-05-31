@@ -48,7 +48,7 @@ export class OrderMapper {
 
     const statusCode = this.mapStatusCode(payload);
 
-    const attachments = await this.mapAttachments(payload);
+   // const attachments = await this.mapAttachments(payload);
 
     return {
       orderSale: payload.sales_order_number,
@@ -83,43 +83,49 @@ export class OrderMapper {
       partnerStatus: status,
       i18n: payload.history.shipment_volume_micro_state.i18n_name,
       statusCode,
-      attachments,
+    //  attachments,
     };
   }
 
-  static mapAttachments(payload: any): Promise<Attachments[]> {
-    const { attachments } = payload.history;
+  // static mapAttachments(payload: any): Promise<Attachments[]> {
+  //   const { attachments } = payload.history;
 
-    return Promise.all(
-      attachments
-        .filter(({ type }) => type === 'POD')
-        .map(async attachment => {
-          const fileName = `pod-${payload.invoice.invoice_key}${attachment.file_name}`;
+  //   return Promise.all(
+  //     attachments
+  //       .filter(({ type }) => type === 'POD')
+  //       .map(),
+  //   );
+  // }
 
-          const downloadedUrl = await OrderMapper.downloadFromCloud(
-            attachment.url,
-            fileName,
-          );
+  static async mapAttachment(attachment, invoiceKey) {
 
-          const uploadedUrl = await OrderMapper.uploadToCloud(
-            fileName,
-            downloadedUrl,
-          );
+    if(attachment.type === "POD"){
+      const fileName = `pod-${invoiceKey}${attachment.file_name}`;
+  
+      const downloadedUrl = await OrderMapper.downloadFromCloud(
+        attachment.url,
+        fileName,
+      );
+  
+      const uploadedUrl = await OrderMapper.uploadToCloud(
+        fileName,
+        downloadedUrl,
+      );
+  
+      OrderMapper.deleteFileLocally(downloadedUrl);
+  
+      return {
+        fileName,
+        mimeType: attachment.mime_type,
+        type: attachment.type,
+        additionalInfo: attachment.additionalInfo,
+        url: uploadedUrl,
+        createdAt: attachment.created_iso,
+      };
 
-          OrderMapper.deleteFileLocally(downloadedUrl);
-
-          return {
-            fileName,
-            mimeType: attachment.mime_type,
-            type: attachment.type,
-            additionalInfo: attachment.additionalInfo,
-            url: uploadedUrl,
-            createdAt: attachment.created_iso,
-          };
-        }),
-    );
+    }
+    return {}
   }
-
   static downloadFromCloud(url: string, fileName: string): Promise<string> {
     const pathDestination =
       Env.NODE_ENV !== 'local'
