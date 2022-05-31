@@ -100,13 +100,14 @@ export class OrderController {
   }
 
   @Get(':id')
+  @UseGuards(JWTGuard)
   @ApiOkResponse({ type: GetOrderDto })
   async findOne(
     @Param('id') id: string,
     @Req() req: any,
   ): Promise<GetOrderDto> {
     try {
-      return this.orderService.getOrderDetails(id);
+      return this.orderService.getOrderDetails(id, req.tenants);
     } catch (error) {
       req.logger.error(error);
       throw error;
