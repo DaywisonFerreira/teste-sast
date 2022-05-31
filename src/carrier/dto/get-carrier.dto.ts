@@ -63,7 +63,7 @@ export class GetCarrierDto {
   logo: string;
 
   @ApiPropertyOptional({
-    description: 'Carrier externalDeliveryMethodId',
+    description: 'Carrier externalDeliveryMethods',
     type: DeliveryMethods,
     example: [
       { deliveryModeName: 'LS SAMEDAY', externalDeliveryMethodId: '15111' },

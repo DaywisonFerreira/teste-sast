@@ -14,7 +14,7 @@ class Integration {
   attributes: Attributes[];
 }
 
-class DeliveryMethods {
+export class DeliveryMethods {
   deliveryModeName: string;
 
   externalDeliveryMethodId: string;
@@ -40,7 +40,7 @@ export class CarrierEntity extends Document {
   @Prop({ type: String, required: false, default: '' })
   logo: string;
 
-  @Prop({ type: DeliveryMethods, required: false, default: [] })
+  @Prop({ type: DeliveryMethods, required: false })
   externalDeliveryMethods: DeliveryMethods[];
 
   @Prop({ type: Boolean, default: true })
