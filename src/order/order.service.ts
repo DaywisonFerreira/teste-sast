@@ -127,8 +127,12 @@ export class OrderService {
   }
 
   async findOne(orderId: string): Promise<LeanDocument<OrderEntity>> {
+    const list = Types.ObjectId.isValid(orderId)
+      ? [new Types.ObjectId(orderId), orderId]
+      : [orderId];
+
     const order = await this.OrderModel.findOne({
-      orderId: { $in: [orderId, new Types.ObjectId(orderId)] },
+      orderId: { $in: list },
     }).lean();
 
     if (!order) {
@@ -505,8 +509,10 @@ export class OrderService {
     }
   }
 
-  async getOrderDetails(orderId: string): Promise<any> {
+  async getOrderDetails(orderId: string, tenants: string[]): Promise<any> {
     const order = await this.findOne(orderId);
+    this.validateStore(tenants, String(order.storeId));
+
     const {
       totals = [],
       value,
@@ -669,5 +675,14 @@ export class OrderService {
       path: `${directory_path}/${fileName}`,
       fileName,
     };
+  }
+
+  private validateStore(tenants: string[], storeId: string) {
+    if (!tenants.includes(storeId)) {
+      throw new HttpException(
+        'Order does not belong to this store.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }
