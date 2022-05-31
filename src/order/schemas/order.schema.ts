@@ -560,4 +560,7 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
     { unique: false },
   )
   .index({ storeId: 1, 'statusCode.micro': 1 }, { unique: false })
-  .index({ orderId: 1, 'invoice.key': 1, 'invoice.deliveryMethod': 1 }, { unique: false })
+  .index(
+    { orderId: 1, 'invoice.key': 1, 'invoice.deliveryMethod': 1 },
+    { unique: false },
+  );
