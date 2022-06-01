@@ -4,7 +4,7 @@ import { createBlobService } from 'azure-storage';
 import axios from 'axios';
 import { promises, createWriteStream } from 'fs';
 import { IHubOrder } from '../interfaces/order.interface';
-import { Attachments, OrderDocument } from '../schemas/order.schema';
+import { OrderDocument } from '../schemas/order.schema';
 import { Env } from '../../commons/environment/env';
 
 interface OrderAnalysis {
@@ -48,8 +48,6 @@ export class OrderMapper {
 
     const statusCode = this.mapStatusCode(payload);
 
-    // const attachments = await this.mapAttachments(payload);
-
     return {
       orderSale: payload.sales_order_number,
       partnerOrder: payload.order_number,
@@ -83,19 +81,8 @@ export class OrderMapper {
       partnerStatus: status,
       i18n: payload.history.shipment_volume_micro_state.i18n_name,
       statusCode,
-      //  attachments,
     };
   }
-
-  // static mapAttachments(payload: any): Promise<Attachments[]> {
-  //   const { attachments } = payload.history;
-
-  //   return Promise.all(
-  //     attachments
-  //       .filter(({ type }) => type === 'POD')
-  //       .map(),
-  //   );
-  // }
 
   static async mapAttachment(attachment, invoiceKey) {
     if (attachment.type === 'POD') {
@@ -119,6 +106,7 @@ export class OrderMapper {
         type: attachment.type,
         additionalInfo: attachment.additionalInfo,
         url: uploadedUrl,
+        originalUrl: attachment.url,
         createdAt: attachment.created_iso,
       };
     }
