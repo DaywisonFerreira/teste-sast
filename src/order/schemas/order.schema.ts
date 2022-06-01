@@ -63,6 +63,8 @@ export class Invoice {
   items?: Array<Item>;
 
   customerDocument?: string;
+
+  deliveryMethod?: string;
 }
 
 export class Delivery {
@@ -557,4 +559,8 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
     { storeId: 1, 'statusCode.micro': 1, 'logisticInfo.deliveryCompany': 1 },
     { unique: false },
   )
-  .index({ storeId: 1, 'statusCode.micro': 1 }, { unique: false });
+  .index({ storeId: 1, 'statusCode.micro': 1 }, { unique: false })
+  .index(
+    { orderId: 1, 'invoice.key': 1, 'invoice.deliveryMethod': 1 },
+    { unique: false },
+  );
