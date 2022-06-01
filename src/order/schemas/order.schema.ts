@@ -125,6 +125,8 @@ export class Attachments {
 
   url: string;
 
+  originalUrl: string;
+
   createdAt: string;
 }
 

@@ -21,6 +21,7 @@ import {
   OrderDocument,
   OrderEntity,
   PublicFieldsOrder,
+  Attachments,
 } from './schemas/order.schema';
 import { OrderMapper } from './mappers/orderMapper';
 
@@ -258,6 +259,45 @@ export class OrderService {
     }
   }
 
+  private async generateAttachments(
+    data,
+    isCreate,
+    logger,
+    oldOrder?: any,
+  ): Promise<Attachments[]> {
+    const { invoice } = data;
+
+    // Update flow
+    if (isCreate === false) {
+      const originalUrls =
+        oldOrder?.attachments?.map(({ originalUrl }) => originalUrl) || [];
+
+      let attachments = data.attachments.filter(({ url }) => {
+        if (originalUrls.includes(url)) {
+          logger.warn(
+            `generateAttachment - Invoice key: ${invoice.key} received a duplicate file (${url}) by Intelipost and will be ignore`,
+          );
+          return false;
+        }
+        return true;
+      });
+
+      attachments = await Promise.all(
+        attachments.map(attachment =>
+          OrderMapper.mapAttachment(attachment, invoice.key),
+        ),
+      );
+
+      return [...(oldOrder?.attachments || []), ...attachments];
+    }
+
+    return Promise.all(
+      data.attachments.map(attachment =>
+        OrderMapper.mapAttachment(attachment, invoice.key),
+      ),
+    );
+  }
+
   private generateHistory(data, origin, isCreate, logger, oldOrder?: any) {
     const sortHistory = (HistoryOne, HistoryTwo) => {
       if (
@@ -286,7 +326,7 @@ export class OrderService {
       logger.warn(
         `generateHistory - Order: ${oldOrder.orderSale} received a duplicate status (statusMicro: ${data.statusCode.micro}, statusMacro: ${data.statusCode.macro}) by Intelipost and will be ignore`,
       );
-      return { ignore: true, history: {} };
+      return { ignore: true, history: [] };
     }
 
     if (origin === 'intelipost') {
@@ -300,7 +340,7 @@ export class OrderService {
         return { ignore: false, history: historyToSort.sort(sortHistory) };
       }
     }
-    return { ignore: true, history: {} };
+    return { ignore: true, history: [] };
   }
 
   private async createOrder(data, origin, logger) {
@@ -310,9 +350,12 @@ export class OrderService {
 
     if (!orderFinded.length) {
       const { history } = this.generateHistory(data, origin, true, logger);
+      const attachments = await this.generateAttachments(data, true, logger);
+
       const order = await this.OrderModel.create({
         ...data,
         history,
+        attachments,
       });
       return { success: true, order };
     }
@@ -334,10 +377,12 @@ export class OrderService {
     data.invoiceKeys.push(...orderFinded[0].invoiceKeys);
 
     const { history } = this.generateHistory(data, origin, true, logger);
+    const attachments = await this.generateAttachments(data, true, logger);
 
     const order = await this.OrderModel.create({
       ...data,
       history,
+      attachments,
     });
     return { success: true, order };
   }
@@ -370,19 +415,24 @@ export class OrderService {
       oldOrder,
     );
 
+    const attachments = await this.generateAttachments(
+      data,
+      false,
+      logger,
+      oldOrder,
+    );
+
     const shouldUpdateSourceOfOrder =
       this.getStatusScale(data.statusCode.macro) >
       this.getStatusScale(oldOrder.statusCode.macro);
 
     const newContent = {
-      invoice: {
-        ...data.invoice,
-        ...oldOrder.invoice,
-      },
-      invoiceKeys: [...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys])],
       ...(shouldUpdateSourceOfOrder ? data : {}),
+      invoiceKeys: [...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys])],
       ...(ignore ? {} : { history }),
+      attachments,
     };
+    delete newContent.invoice;
 
     await this.OrderModel.updateMany(configPK, newContent, options);
 
@@ -419,6 +469,14 @@ export class OrderService {
       oldOrder,
     );
 
+    const attachments = await this.generateAttachments(
+      data,
+      false,
+      logger,
+      oldOrder,
+    );
+
+    // repensar em como ignorar um historico novo, porém tbm não enviar para o IHUB
     const newContent = {
       ...(shouldUpdateSourceOfOrder ? data : {}),
       invoice: {
@@ -427,6 +485,7 @@ export class OrderService {
       },
       invoiceKeys: [...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys])],
       ...(ignore ? {} : { history }),
+      attachments,
     };
     const order = await this.OrderModel.findOneAndUpdate(
       configPK,
@@ -450,7 +509,8 @@ export class OrderService {
       useFindAndModify: false,
     };
     let operationStatus: { success: boolean; order: any };
-    const orders = await this.OrderModel.find(configPK);
+    const orders = await this.OrderModel.find(configPK).lean();
+
     if (!orders.length) {
       operationStatus = await this.createOrder(data, origin, logger);
     } else if (orders.length > 1) {
