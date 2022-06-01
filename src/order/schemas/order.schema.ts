@@ -65,6 +65,8 @@ export class Invoice {
   customerDocument?: string;
 
   deliveryMethod?: string;
+
+  status?: string;
 }
 
 export class Delivery {

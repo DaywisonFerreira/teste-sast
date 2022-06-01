@@ -44,6 +44,7 @@ import { RabbitMqModule } from '../rabbitmq/rabbit.module';
         schema: OrderSchema,
       },
     ]),
+    OrderService,
   ],
 })
 export class OrderModule {}

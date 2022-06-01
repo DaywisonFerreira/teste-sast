@@ -126,10 +126,20 @@ export class OrderService {
     return [result, count];
   }
 
-  async findOne(orderId: string): Promise<LeanDocument<OrderEntity>> {
-    const order = await this.OrderModel.findOne({
+  async findOne(
+    orderId: string,
+    key?: string,
+  ): Promise<LeanDocument<OrderEntity>> {
+    // const where = { orderId: { $in: [orderId, new Types.ObjectId(orderId)] } };
+    const where = { orderId: { $in: [orderId, orderId] } };
+
+    if (!key) {
+      where['invoice.key'] = key;
+    }
+    /*     const order = await this.OrderModel.findOne({
       orderId: { $in: [orderId, new Types.ObjectId(orderId)] },
-    }).lean();
+    }).lean(); */
+    const order = await this.OrderModel.findOne(where).lean();
 
     if (!order) {
       throw new HttpException('Order not found.', HttpStatus.NOT_FOUND);
@@ -299,7 +309,7 @@ export class OrderService {
     return { ignore: true, history: {} };
   }
 
-  private async createOrder(data, origin, logger) {
+  public async createOrder(data, origin, logger) {
     const orderFinded = await this.OrderModel.find({
       orderSale: data.orderSale,
     });

@@ -10,6 +10,8 @@ import { AccountService } from 'src/account/account.service';
 import { NestjsEventEmitter } from '../../commons/providers/event/nestjs-event-emitter';
 import { Env } from '../../commons/environment/env';
 import { InvoiceService } from '../invoice.service';
+import { OrderService } from '../../order/order.service';
+import { CarrierService } from '../../carrier/carrier.service';
 
 @Controller()
 export class ConsumerInvoiceController {
@@ -17,6 +19,8 @@ export class ConsumerInvoiceController {
     private readonly accountService: AccountService,
     private readonly eventEmitter: NestjsEventEmitter,
     private readonly invoiceService: InvoiceService,
+    private readonly orderService: OrderService,
+    private readonly carrierService: CarrierService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
   ) {}
 
@@ -34,6 +38,24 @@ export class ConsumerInvoiceController {
       if (data.notfisFile && data.notfisFileName) {
         await this.invoiceService.sendFtp(data, accountId, logger);
       }
+      /// criar outra find pelo internalOrderId e key
+
+      const order = await this.orderService.findOne(data.ordeId, data.key);
+      const { invoice } = order;
+
+      const carrier = await this.carrierService.findByDocument(
+        invoice.carrierDocument,
+      );
+
+      const validDelivery = carrier.externalDeliveryMethods.find(
+        item => invoice.deliveryMethod === item.deliveryModeName,
+      );
+
+      if (!validDelivery) {
+        invoice.status = 'Error';
+      }
+
+      await this.orderService.createOrder({ ...order, invoice }, order, logger);
 
       const account = await this.accountService.findOne(accountId);
 

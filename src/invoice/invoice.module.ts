@@ -15,6 +15,8 @@ import {
 import { InvoiceService } from './invoice.service';
 import { ConsumerInvoiceController } from './consumer/invoice.controller';
 import { CarrierService } from '../carrier/carrier.service';
+import { OrderModule } from '../order/order.module';
+import { CarrierModule } from '../carrier/carrier.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { CarrierService } from '../carrier/carrier.service';
     MongooseModule.forFeature([
       { name: AccountEntity.name, schema: AccountSchema },
     ]),
+    OrderModule,
+    CarrierModule,
   ],
   controllers: [ConsumerInvoiceController],
   providers: [
