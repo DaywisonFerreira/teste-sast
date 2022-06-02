@@ -62,7 +62,11 @@ export class ConsumerInvoiceController {
         );
 
         if (!validDelivery) {
-          invoice.status = 'error';
+          await this.invoiceService.updateStatus(
+            data.key,
+            data.internalOrderId,
+            'error',
+          );
         }
 
         await this.orderService.createOrder(
