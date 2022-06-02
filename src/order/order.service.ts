@@ -290,7 +290,10 @@ export class OrderService {
         )
       ).filter(o => Object.keys(o).length);
 
-      return [...(oldOrder?.attachments || []), ...attachments] as Attachments[];
+      return [
+        ...(oldOrder?.attachments || []),
+        ...attachments,
+      ] as Attachments[];
     }
 
     return (
