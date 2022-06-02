@@ -40,8 +40,8 @@ export class ConsumerInvoiceController {
       }
 
       const order = await this.orderService.findByKeyAndInternalOrderId(
-        data.internalOrderId,
-        data.key,
+        data.key, // 35220634364408000164550020000018301152292010
+        data.order.internalOrderId, // 667347710
       );
 
       if (!order) {
@@ -51,29 +51,29 @@ export class ConsumerInvoiceController {
           'pending',
         );
       } else {
-        const { invoice } = order;
+        const { carrier } = data;
 
-        const carrier = await this.carrierService.findByDocument(
-          invoice.carrierDocument,
+        const _carrier = await this.carrierService.findByDocument(
+          carrier.document,
         );
 
-        const validDelivery = carrier.externalDeliveryMethods.find(
-          item => invoice.deliveryMethod === item.deliveryModeName,
-        );
+        const carrierdeliveryMethod = _carrier?.externalDeliveryMethods;
 
-        if (!validDelivery) {
-          await this.invoiceService.updateStatus(
-            data.key,
-            data.internalOrderId,
-            'error',
+        if (carrierdeliveryMethod) {
+          const deliveryMethod = carrierdeliveryMethod.find(
+            item => order.invoice.deliveryMethod === item.deliveryModeName,
           );
+          if (!deliveryMethod) {
+            await this.invoiceService.updateStatus(
+              data.key,
+              data.internalOrderId,
+              'error',
+            );
+            return;
+          }
+          data.carrier.externalDeliveryMethodId =
+            deliveryMethod.externalDeliveryMethodId;
         }
-
-        await this.orderService.createOrder(
-          { ...order, invoice },
-          order,
-          logger,
-        );
       }
 
       const account = await this.accountService.findOne(accountId);
