@@ -38,24 +38,39 @@ export class ConsumerInvoiceController {
       if (data.notfisFile && data.notfisFileName) {
         await this.invoiceService.sendFtp(data, accountId, logger);
       }
-      /// criar outra find pelo internalOrderId e key
 
-      const order = await this.orderService.findOne(data.ordeId, data.key);
-      const { invoice } = order;
-
-      const carrier = await this.carrierService.findByDocument(
-        invoice.carrierDocument,
+      const order = await this.orderService.findByKeyAndInternalOrderId(
+        data.internalOrderId,
+        data.key,
       );
 
-      const validDelivery = carrier.externalDeliveryMethods.find(
-        item => invoice.deliveryMethod === item.deliveryModeName,
-      );
+      if (!order) {
+        await this.invoiceService.updateStatus(
+          data.key,
+          data.internalOrderId,
+          'pending',
+        );
+      } else {
+        const { invoice } = order;
 
-      if (!validDelivery) {
-        invoice.status = 'Error';
+        const carrier = await this.carrierService.findByDocument(
+          invoice.carrierDocument,
+        );
+
+        const validDelivery = carrier.externalDeliveryMethods.find(
+          item => invoice.deliveryMethod === item.deliveryModeName,
+        );
+
+        if (!validDelivery) {
+          invoice.status = 'error';
+        }
+
+        await this.orderService.createOrder(
+          { ...order, invoice },
+          order,
+          logger,
+        );
       }
-
-      await this.orderService.createOrder({ ...order, invoice }, order, logger);
 
       const account = await this.accountService.findOne(accountId);
 

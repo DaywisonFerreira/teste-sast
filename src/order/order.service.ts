@@ -148,6 +148,16 @@ export class OrderService {
     return order;
   }
 
+  async findByKeyAndInternalOrderId(
+    key: string,
+    internalOrderId: string,
+  ): Promise<LeanDocument<OrderEntity>> {
+    return this.OrderModel.findOne({
+      internalOrderId,
+      'invoice.key': key,
+    }).lean();
+  }
+
   async exportData(
     { orderCreatedAtFrom, orderCreatedAtTo, storeId },
     userId,
