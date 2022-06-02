@@ -62,7 +62,6 @@ export class OrderMapper {
         carrierName: payload.invoice.carrierName,
         carrierDocument: payload.invoice.carrierDocument,
       },
-      dispatchDate: new Date(payload.history.created_iso),
       estimateDeliveryDateDeliveryCompany: payload?.estimated_delivery_date
         ?.client
         ? new Date(payload.estimated_delivery_date.client.current_iso)

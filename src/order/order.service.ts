@@ -282,20 +282,27 @@ export class OrderService {
         return true;
       });
 
-      attachments = await Promise.all(
-        attachments.map(attachment =>
-          OrderMapper.mapAttachment(attachment, invoice.key),
-        ),
-      );
+      attachments = (
+        await Promise.all(
+          attachments.map(attachment =>
+            OrderMapper.mapAttachment(attachment, invoice.key),
+          ),
+        )
+      ).filter(o => Object.keys(o).length);
 
-      return [...(oldOrder?.attachments || []), ...attachments];
+      return [
+        ...(oldOrder?.attachments || []),
+        ...attachments,
+      ] as Attachments[];
     }
 
-    return Promise.all(
-      data.attachments.map(attachment =>
-        OrderMapper.mapAttachment(attachment, invoice.key),
-      ),
-    );
+    return (
+      await Promise.all(
+        data.attachments.map(attachment =>
+          OrderMapper.mapAttachment(attachment, invoice.key),
+        ),
+      )
+    ).filter(o => Object.keys(o).length) as Attachments[];
   }
 
   private generateHistory(data, origin, isCreate, logger, oldOrder?: any) {
@@ -427,12 +434,28 @@ export class OrderService {
       this.getStatusScale(oldOrder.statusCode.macro);
 
     const newContent = {
-      ...(shouldUpdateSourceOfOrder ? data : {}),
+      ...(shouldUpdateSourceOfOrder
+        ? {
+            statusCode: data.statusCode,
+            orderUpdatedAt: data.orderUpdatedAt,
+            partnerMessage: data.partnerMessage,
+            partnerStatusId: data.partnerStatusId,
+            partnerMacroStatusId: data.partnerMacroStatusId,
+            microStatus: data.microStatus,
+            lastOccurrenceMacro: data.lastOccurrenceMacro,
+            lastOccurrenceMicro: data.lastOccurrenceMicro,
+            lastOccurrenceMessage: data.lastOccurrenceMessage,
+            i18n: data.i18n,
+            partnerStatus: data.partnerStatus,
+            status: data.status,
+            deliveryDate: data.deliveryDate,
+            dispatchDate: data.dispatchDate,
+          }
+        : {}),
       invoiceKeys: [...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys])],
       ...(ignore ? {} : { history }),
       attachments,
     };
-    delete newContent.invoice;
 
     await this.OrderModel.updateMany(configPK, newContent, options);
 
