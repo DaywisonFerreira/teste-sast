@@ -26,6 +26,10 @@ export class InteliPostService {
         order.deliveryDate = order.orderUpdatedAt;
       }
 
+      if (order.statusCode.macro === 'order-dispatched') {
+        order.dispatchDate = order.orderUpdatedAt;
+      }
+
       if (order.partnerStatus === 'shipped') {
         order.status = 'dispatched';
       }

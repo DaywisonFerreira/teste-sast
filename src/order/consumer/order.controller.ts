@@ -55,8 +55,7 @@ export class ConsumerOrderController {
     try {
       if (
         order.logisticInfo &&
-        (order.logisticInfo[0].deliveryChannel === 'delivery' ||
-          order.logisticInfo[0].deliveryChannel === 'deliver') &&
+        order.logisticInfo[0].deliveryChannel === 'delivery' &&
         (order.status === 'dispatched' || order.status === 'invoiced')
       ) {
         const orderToSaves: Array<any> = OrderMapper.mapMessageToOrders(order);
