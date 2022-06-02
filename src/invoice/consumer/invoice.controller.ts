@@ -40,8 +40,8 @@ export class ConsumerInvoiceController {
       }
 
       const order = await this.orderService.findByKeyAndInternalOrderId(
-        data.key, // 35220634364408000164550020000018301152292010
-        data.order.internalOrderId, // 667347710
+        data.key,
+        data.order.internalOrderId,
       );
 
       if (!order) {
