@@ -214,9 +214,7 @@ export class InvoiceService {
     );
   }
 
-  async findByStatus(
-    status: string[],
-  ): Promise<LeanDocument<InvoiceEntity[]>> {
+  async findByStatus(status: string[]): Promise<LeanDocument<InvoiceEntity[]>> {
     return this.InvoiceModel.find({
       status: { $in: status },
     }).lean();
