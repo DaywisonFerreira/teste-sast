@@ -14,6 +14,7 @@ export class IntelipostMapper {
     const location = await this.accountService.findOneLocationByDocument(
       data.emitter.document,
     );
+
     const carrier = await this.carrierService.findByDocument(
       data.carrier.document,
     );
@@ -41,7 +42,7 @@ export class IntelipostMapper {
     });
 
     const dataFormatted = {
-      delivery_method_id: carrier.externalDeliveryMethodId,
+      delivery_method_id: data.carrier.externalDeliveryMethodId,
       customer_shipping_costs: data.total.freightValue,
       shipped_date: new Date().toISOString(),
       end_customer: {

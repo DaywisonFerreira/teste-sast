@@ -5,12 +5,19 @@ import * as path from 'path';
 import * as ClientFtp from 'ftp';
 import * as ClientFtpSSH from 'ssh2-sftp-client';
 import { LogProvider } from '@infralabs/infra-logger';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { CarrierService } from '../carrier/carrier.service';
+import { InvoiceDocument, InvoiceEntity } from './schemas/invoice.schema';
 
 @Injectable()
 export class InvoiceService {
-  constructor(private readonly carrierService: CarrierService) {}
+  constructor(
+    private readonly carrierService: CarrierService,
+    @InjectModel(InvoiceEntity.name)
+    private InvoiceModel: Model<InvoiceDocument>,
+  ) {}
 
   async sendFtp(
     data: CreateInvoiceDto,
@@ -194,5 +201,19 @@ export class InvoiceService {
         throw new Error('Invalid file download URL');
       }
     });
+  }
+
+  /**
+   * name
+   */
+  public async updateStatus(
+    key: string,
+    internalOrderId: string,
+    status: string,
+  ): Promise<void> {
+    await this.InvoiceModel.findOneAndUpdate(
+      { key, 'order.internalOrderId': internalOrderId },
+      { status },
+    );
   }
 }

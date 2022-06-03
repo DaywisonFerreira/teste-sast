@@ -10,6 +10,8 @@ import { AccountService } from 'src/account/account.service';
 import { NestjsEventEmitter } from '../../commons/providers/event/nestjs-event-emitter';
 import { Env } from '../../commons/environment/env';
 import { InvoiceService } from '../invoice.service';
+import { OrderService } from '../../order/order.service';
+import { CarrierService } from '../../carrier/carrier.service';
 
 @Controller()
 export class ConsumerInvoiceController {
@@ -17,6 +19,8 @@ export class ConsumerInvoiceController {
     private readonly accountService: AccountService,
     private readonly eventEmitter: NestjsEventEmitter,
     private readonly invoiceService: InvoiceService,
+    private readonly orderService: OrderService,
+    private readonly carrierService: CarrierService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
   ) {}
 
@@ -33,6 +37,43 @@ export class ConsumerInvoiceController {
 
       if (data.notfisFile && data.notfisFileName) {
         await this.invoiceService.sendFtp(data, accountId, logger);
+      }
+
+      const order = await this.orderService.findByKeyAndInternalOrderId(
+        data.key,
+        data.order.internalOrderId,
+      );
+
+      if (!order) {
+        await this.invoiceService.updateStatus(
+          data.key,
+          data.internalOrderId,
+          'pending',
+        );
+      } else {
+        const { carrier } = data;
+
+        const _carrier = await this.carrierService.findByDocument(
+          carrier.document,
+        );
+
+        const carrierdeliveryMethod = _carrier?.externalDeliveryMethods;
+
+        if (carrierdeliveryMethod) {
+          const deliveryMethod = carrierdeliveryMethod.find(
+            item => order.invoice.deliveryMethod === item.deliveryModeName,
+          );
+          if (!deliveryMethod) {
+            await this.invoiceService.updateStatus(
+              data.key,
+              data.internalOrderId,
+              'error',
+            );
+            return;
+          }
+          data.carrier.externalDeliveryMethodId =
+            deliveryMethod.externalDeliveryMethodId;
+        }
       }
 
       const account = await this.accountService.findOne(accountId);
