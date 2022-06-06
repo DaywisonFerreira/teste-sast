@@ -205,11 +205,11 @@ export class InvoiceService {
 
   public async updateStatus(
     key: string,
-    internalOrderId: string,
+    externalOrderId: string,
     status: string,
   ): Promise<void> {
     await this.InvoiceModel.findOneAndUpdate(
-      { key, 'order.internalOrderId': internalOrderId },
+      { key, 'order.externalOrderId': externalOrderId },
       { $set: { status } },
     );
   }

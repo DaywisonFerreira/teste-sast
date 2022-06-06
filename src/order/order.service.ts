@@ -145,10 +145,10 @@ export class OrderService {
 
   async findByKeyAndInternalOrderId(
     key: string,
-    internalOrderId: string,
+    orderSale: string,
   ): Promise<LeanDocument<OrderEntity>> {
     return this.OrderModel.findOne({
-      internalOrderId,
+      orderSale,
       'invoice.key': key,
     }).lean();
   }
