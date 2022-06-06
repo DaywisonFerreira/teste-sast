@@ -4,6 +4,7 @@ import { CarrierService } from 'src/carrier/carrier.service';
 import { CarrierEntity } from 'src/carrier/schemas/carrier.schema';
 import { InvoiceService } from '../invoice.service';
 import { TrackingCodeEntity } from '../schemas/tracking-code.schema';
+import { InvoiceEntity } from '../schemas/invoice.schema';
 
 describe('InvoiceService', () => {
   let service: InvoiceService;
@@ -19,6 +20,10 @@ describe('InvoiceService', () => {
         },
         {
           provide: getModelToken(TrackingCodeEntity.name),
+          useValue: {},
+        },
+        {
+          provide: getModelToken(InvoiceEntity.name),
           useValue: {},
         },
       ],

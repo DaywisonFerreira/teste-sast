@@ -8,6 +8,9 @@ import { AccountEntity } from '../../account/schemas/account.schema';
 import { ConsumerInvoiceController } from '../consumer/invoice.controller';
 import { InvoiceService } from '../invoice.service';
 import { AccountService } from '../../account/account.service';
+import { InvoiceEntity } from '../schemas/invoice.schema';
+import { OrderService } from '../../order/order.service';
+import { OrderEntity } from '../../order/schemas/order.schema';
 
 describe('ConsumerInvoiceController', () => {
   let controller: ConsumerInvoiceController;
@@ -19,6 +22,7 @@ describe('ConsumerInvoiceController', () => {
         InvoiceService,
         CarrierService,
         AccountService,
+        OrderService,
         {
           provide: getModelToken(CarrierEntity.name),
           useValue: {},
@@ -36,6 +40,14 @@ describe('ConsumerInvoiceController', () => {
           useValue: {},
         },
         { provide: 'KafkaService', useValue: {} },
+        {
+          provide: getModelToken(InvoiceEntity.name),
+          useValue: {},
+        },
+        {
+          provide: getModelToken(OrderEntity.name),
+          useValue: {},
+        },
       ],
     }).compile();
 

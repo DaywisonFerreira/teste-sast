@@ -42,7 +42,7 @@ export class IntelipostMapper {
     });
 
     const dataFormatted = {
-      delivery_method_id: carrier.externalDeliveryMethodId,
+      delivery_method_id: data.carrier.externalDeliveryMethodId,
       customer_shipping_costs: data.total.freightValue,
       shipped_date: new Date().toISOString(),
       end_customer: {

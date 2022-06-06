@@ -63,6 +63,10 @@ export class Invoice {
   items?: Array<Item>;
 
   customerDocument?: string;
+
+  deliveryMethod?: string;
+
+  status?: string;
 }
 
 export class Delivery {
