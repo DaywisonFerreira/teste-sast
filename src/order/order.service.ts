@@ -367,7 +367,10 @@ export class OrderService {
 
     if (!orderFinded.length) {
       const { history } = this.generateHistory(data, origin, true, logger);
-      const attachments = await this.generateAttachments(data, true, logger);
+      const attachments =
+        origin === 'intelipost'
+          ? await this.generateAttachments(data, true, logger)
+          : [];
 
       const order = await this.OrderModel.create({
         ...data,
@@ -394,7 +397,10 @@ export class OrderService {
     data.invoiceKeys.push(...orderFinded[0].invoiceKeys);
 
     const { history } = this.generateHistory(data, origin, true, logger);
-    const attachments = await this.generateAttachments(data, true, logger);
+    const attachments =
+      origin === 'intelipost'
+        ? await this.generateAttachments(data, true, logger)
+        : [];
 
     const order = await this.OrderModel.create({
       ...data,
@@ -432,12 +438,10 @@ export class OrderService {
       oldOrder,
     );
 
-    const attachments = await this.generateAttachments(
-      data,
-      false,
-      logger,
-      oldOrder,
-    );
+    const attachments =
+      origin === 'intelipost'
+        ? await this.generateAttachments(data, false, logger, oldOrder)
+        : [];
 
     const shouldUpdateSourceOfOrder =
       this.getStatusScale(data.statusCode.macro) >
@@ -502,12 +506,10 @@ export class OrderService {
       oldOrder,
     );
 
-    const attachments = await this.generateAttachments(
-      data,
-      false,
-      logger,
-      oldOrder,
-    );
+    const attachments =
+      origin === 'intelipost'
+        ? await this.generateAttachments(data, false, logger, oldOrder)
+        : [];
 
     // repensar em como ignorar um historico novo, porém tbm não enviar para o IHUB
     const newContent = {
