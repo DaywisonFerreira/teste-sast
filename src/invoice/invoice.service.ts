@@ -6,7 +6,7 @@ import * as ClientFtp from 'ftp';
 import * as ClientFtpSSH from 'ssh2-sftp-client';
 import { LogProvider } from '@infralabs/infra-logger';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { LeanDocument, Model } from 'mongoose';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { CarrierService } from '../carrier/carrier.service';
 import { InvoiceDocument, InvoiceEntity } from './schemas/invoice.schema';
@@ -203,9 +203,6 @@ export class InvoiceService {
     });
   }
 
-  /**
-   * name
-   */
   public async updateStatus(
     key: string,
     internalOrderId: string,
@@ -213,7 +210,13 @@ export class InvoiceService {
   ): Promise<void> {
     await this.InvoiceModel.findOneAndUpdate(
       { key, 'order.internalOrderId': internalOrderId },
-      { status },
+      { $set: { status } },
     );
+  }
+
+  async findByStatus(status: string[]): Promise<LeanDocument<InvoiceEntity[]>> {
+    return this.InvoiceModel.find({
+      status: { $in: status },
+    }).lean();
   }
 }

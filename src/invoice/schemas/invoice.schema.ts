@@ -32,10 +32,27 @@ class Order {
   externalOrderId: string;
 }
 
+class CarrierData {
+  name?: string;
+
+  email?: string;
+
+  document: string;
+
+  documentType: string;
+
+  stateInscription?: string;
+
+  phone?: string;
+}
+
 @Schema({ collection: 'invoices', timestamps: true })
 export class InvoiceEntity extends Document {
   @Prop({ type: String, required: true })
   id: string;
+
+  @Prop({ type: String, required: true })
+  accountId: string;
 
   @Prop({ type: String, required: true })
   key: string;
@@ -43,8 +60,11 @@ export class InvoiceEntity extends Document {
   @Prop({ type: Order, required: true })
   order: Order;
 
-  @Prop({ type: String, required: false })
+  @Prop({ type: String, required: false, default: 'success' })
   status: string;
+
+  @Prop({ type: CarrierData, required: true })
+  carrier: CarrierData;
 }
 
 export type InvoiceDocument = InvoiceEntity & Document;

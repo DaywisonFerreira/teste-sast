@@ -34,6 +34,7 @@ interface OrderAnalysis {
   };
   deliveryDate?: Date;
   trackingUrl?: string;
+  internalOrderId?: string;
 }
 export class OrderMapper {
   static async mapPartnerToOrder(
@@ -682,6 +683,7 @@ export class OrderMapper {
     orderMapper.orderSale = payload.orderSale;
     orderMapper.orderUpdatedAt = payload.orderUpdatedAt;
     orderMapper.orderCreatedAt = payload.orderCreatedAt;
+    orderMapper.internalOrderId = payload.internalOrderId;
 
     orderMapper.statusCode = {
       micro: payload.statusCode.micro,

@@ -18,6 +18,7 @@ import { CarrierService } from '../carrier/carrier.service';
 import { OrderModule } from '../order/order.module';
 import { CarrierModule } from '../carrier/carrier.module';
 import { InvoiceEntity, InvoiceSchema } from './schemas/invoice.schema';
+import { InvoiceController } from './invoice.controller';
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { InvoiceEntity, InvoiceSchema } from './schemas/invoice.schema';
     OrderModule,
     CarrierModule,
   ],
-  controllers: [ConsumerInvoiceController],
+  controllers: [ConsumerInvoiceController, InvoiceController],
   providers: [
     NestjsEventEmitter,
     InvoiceService,
