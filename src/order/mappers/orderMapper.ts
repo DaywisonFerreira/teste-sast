@@ -4,7 +4,7 @@ import { createBlobService } from 'azure-storage';
 import axios from 'axios';
 import { promises, createWriteStream } from 'fs';
 import { IHubOrder } from '../interfaces/order.interface';
-import { Attachments, OrderDocument } from '../schemas/order.schema';
+import { OrderDocument } from '../schemas/order.schema';
 import { Env } from '../../commons/environment/env';
 
 interface OrderAnalysis {
@@ -49,8 +49,6 @@ export class OrderMapper {
 
     const statusCode = this.mapStatusCode(payload);
 
-    const attachments = await this.mapAttachments(payload);
-
     return {
       orderSale: payload.sales_order_number,
       partnerOrder: payload.order_number,
@@ -65,7 +63,6 @@ export class OrderMapper {
         carrierName: payload.invoice.carrierName,
         carrierDocument: payload.invoice.carrierDocument,
       },
-      dispatchDate: new Date(payload.history.created_iso),
       estimateDeliveryDateDeliveryCompany: payload?.estimated_delivery_date
         ?.client
         ? new Date(payload.estimated_delivery_date.client.current_iso)
@@ -84,41 +81,36 @@ export class OrderMapper {
       partnerStatus: status,
       i18n: payload.history.shipment_volume_micro_state.i18n_name,
       statusCode,
-      attachments,
     };
   }
 
-  static mapAttachments(payload: any): Promise<Attachments[]> {
-    const { attachments } = payload.history;
+  static async mapAttachment(attachment, invoiceKey) {
+    if (attachment.type === 'POD') {
+      const fileName = `pod-${invoiceKey}${attachment.file_name}`;
 
-    return Promise.all(
-      attachments
-        .filter(({ type }) => type === 'POD')
-        .map(async attachment => {
-          const fileName = `pod-${payload.invoice.invoice_key}${attachment.file_name}`;
+      const downloadedUrl = await OrderMapper.downloadFromCloud(
+        attachment.url,
+        fileName,
+      );
 
-          const downloadedUrl = await OrderMapper.downloadFromCloud(
-            attachment.url,
-            fileName,
-          );
+      const uploadedUrl = await OrderMapper.uploadToCloud(
+        fileName,
+        downloadedUrl,
+      );
 
-          const uploadedUrl = await OrderMapper.uploadToCloud(
-            fileName,
-            downloadedUrl,
-          );
+      OrderMapper.deleteFileLocally(downloadedUrl);
 
-          OrderMapper.deleteFileLocally(downloadedUrl);
-
-          return {
-            fileName,
-            mimeType: attachment.mime_type,
-            type: attachment.type,
-            additionalInfo: attachment.additionalInfo,
-            url: uploadedUrl,
-            createdAt: attachment.created_iso,
-          };
-        }),
-    );
+      return {
+        fileName,
+        mimeType: attachment.mime_type,
+        type: attachment.type,
+        additionalInfo: attachment.additionalInfo,
+        url: uploadedUrl,
+        originalUrl: attachment.url,
+        createdAt: attachment.created_iso,
+      };
+    }
+    return {};
   }
 
   static downloadFromCloud(url: string, fileName: string): Promise<string> {

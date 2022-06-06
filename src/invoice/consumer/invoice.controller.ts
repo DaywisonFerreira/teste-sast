@@ -93,7 +93,7 @@ export class ConsumerInvoiceController {
     }
   }
 
-  @OnEvent('invoice.reprocess')
+  @OnEvent('invoice.reprocess', { async: true })
   async reprocess(): Promise<void> {
     const headers = {
       'X-Correlation-Id': uuidV4(),
@@ -171,7 +171,7 @@ export class ConsumerInvoiceController {
           InvoiceStatusEnum.PENDING,
         );
         throw new Error(
-          `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Order not found filter: key: ${data.key}, internalOrderId: ${data.order.internalOrderId} invoice pending.`,
+          `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Order not found filter: key: ${data.key}, internalOrderId: ${data.order.internalOrderId} invoice ${InvoiceStatusEnum.PENDING}.`,
         );
       }
       const carrierdeliveryMethod = carrier?.externalDeliveryMethods;
@@ -183,7 +183,7 @@ export class ConsumerInvoiceController {
         if (!deliveryMethod) {
           await this.setInvoiceStatusError(data);
           throw new Error(
-            `${Env.KAFKA_TOPIC_INVOICE_CREATED} - DeliveryMethod not found ${order.invoice?.deliveryMethod} in carrier with document: ${carrier.document} invoice error.`,
+            `${Env.KAFKA_TOPIC_INVOICE_CREATED} - DeliveryMethod not found ${order.invoice?.deliveryMethod} in carrier with document: ${carrier.document} invoice ${InvoiceStatusEnum.ERROR}.`,
           );
         }
         return deliveryMethod.externalDeliveryMethodId;

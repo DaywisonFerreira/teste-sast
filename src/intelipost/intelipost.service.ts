@@ -26,6 +26,10 @@ export class InteliPostService {
         order.deliveryDate = order.orderUpdatedAt;
       }
 
+      if (order.statusCode.macro === 'order-dispatched') {
+        order.dispatchDate = order.orderUpdatedAt;
+      }
+
       if (order.partnerStatus === 'shipped') {
         order.status = 'dispatched';
       }
@@ -36,7 +40,7 @@ export class InteliPostService {
           orderSale: order.orderSale,
           invoiceKeys: order.invoice.key,
         },
-        { ...order },
+        { ...order, attachments: payload.history.attachments },
         'intelipost',
         logger,
       );
