@@ -143,6 +143,16 @@ export class OrderService {
     return order;
   }
 
+  async findByKeyAndInternalOrderId(
+    key: string,
+    orderSale: string,
+  ): Promise<LeanDocument<OrderEntity>> {
+    return this.OrderModel.findOne({
+      orderSale,
+      'invoice.key': key,
+    }).lean();
+  }
+
   async exportData(
     { orderCreatedAtFrom, orderCreatedAtTo, storeId },
     userId,
@@ -350,7 +360,7 @@ export class OrderService {
     return { ignore: true, history: [] };
   }
 
-  private async createOrder(data, origin, logger) {
+  public async createOrder(data, origin, logger) {
     const orderFinded = await this.OrderModel.find({
       orderSale: data.orderSale,
     });

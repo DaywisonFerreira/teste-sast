@@ -14,6 +14,12 @@ class Integration {
   attributes: Attributes[];
 }
 
+export class DeliveryMethods {
+  deliveryModeName: string;
+
+  externalDeliveryMethodId: string;
+}
+
 @Schema({ collection: 'carriers', timestamps: true })
 export class CarrierEntity extends Document {
   @Prop({ unique: true, type: String })
@@ -34,6 +40,10 @@ export class CarrierEntity extends Document {
   @Prop({ type: String, required: false, default: '' })
   logo: string;
 
+  @Prop({ type: DeliveryMethods, required: false })
+  externalDeliveryMethods: DeliveryMethods[];
+
+  // TODO: deprecated
   @Prop({ type: String, required: false, default: '' })
   externalDeliveryMethodId: string;
 
