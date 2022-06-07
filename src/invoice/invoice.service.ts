@@ -57,9 +57,7 @@ export class InvoiceService {
       data.notfisFileName,
       logger,
     );
-    const filePathLocal = path
-      .join(__dirname, '../tmp', nameFile)
-      .replace('dist', 'src');
+    const filePathLocal = path.join(__dirname, '../tmp', nameFile);
     const file = fs.readFileSync(filePathLocal, 'utf8');
 
     if (destPath && port && password && user) {
@@ -180,9 +178,7 @@ export class InvoiceService {
               ),
             );
           } else {
-            const pathFolder = path
-              .join(__dirname, '../tmp')
-              .replace('dist', 'src');
+            const pathFolder = path.join(__dirname, '../tmp');
 
             if (!fs.existsSync(pathFolder)) {
               fs.mkdirSync(pathFolder);
