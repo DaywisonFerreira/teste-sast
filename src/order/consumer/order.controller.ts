@@ -26,7 +26,7 @@ export class ConsumerOrderController {
   @RabbitSubscribe({
     exchange: Env.RABBITMQ_ORDER_NOTIFICATION_EXCHANGE,
     routingKey: '',
-    queue: `delivery_hub_order_notification_${Env.NODE_ENV}_q`,
+    queue: Env.RABBITMQ_ORDER_NOTIFICATION_QUEUE,
     errorHandler: (channel: Channel, msg: any, error) => {
       const logger = new InfraLogger(
         {
@@ -50,7 +50,7 @@ export class ConsumerOrderController {
     const logger = new InfraLogger(headers, ConsumerOrderController.name);
 
     logger.verbose(
-      `delivery_hub_order_notification_${Env.NODE_ENV}_q - iHub order received with orderSale ${order.externalOrderId} in the integration queue`,
+      `${Env.RABBITMQ_ORDER_NOTIFICATION_QUEUE} - iHub order received with orderSale ${order.externalOrderId} in the integration queue`,
     );
     try {
       if (
