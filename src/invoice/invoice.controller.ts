@@ -16,7 +16,7 @@ export class InvoiceController {
   async reprocess(@Request() request: RequestDto): Promise<string> {
     const { logger } = request;
     try {
-      this.eventEmitter.emit('invoice.reprocess', {});
+      this.eventEmitter.emit('invoice.reprocess', null);
       return 'ok';
     } catch (error) {
       logger.error(error);

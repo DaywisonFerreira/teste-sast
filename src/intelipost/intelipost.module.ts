@@ -19,6 +19,11 @@ import { IntelipostMapper } from './mappers/intelipostMapper';
 import { ConsumerIntelipostController } from './consumer/intelipost.controller';
 import { OnEventIntelipostController } from './consumer/intelipost-event.controller';
 import { IntelipostController } from './intelipost.controller';
+import { InvoiceService } from '../invoice/invoice.service';
+import {
+  InvoiceEntity,
+  InvoiceSchema,
+} from '../invoice/schemas/invoice.schema';
 
 @Module({
   imports: [
@@ -27,6 +32,7 @@ import { IntelipostController } from './intelipost.controller';
       { name: OrderEntity.name, schema: OrderSchema },
       { name: CarrierEntity.name, schema: CarrierSchema },
       { name: AccountEntity.name, schema: AccountSchema },
+      { name: InvoiceEntity.name, schema: InvoiceSchema },
     ]),
   ],
   controllers: [
@@ -40,6 +46,7 @@ import { IntelipostController } from './intelipost.controller';
     IntelipostMapper,
     CarrierService,
     AccountService,
+    InvoiceService,
   ],
 })
 export class IntelipostModule {}

@@ -7,6 +7,7 @@ import {
 } from 'src/account/schemas/account.schema';
 
 import { Env } from '../commons/environment/env';
+import { NestjsEventEmitter } from '../commons/providers/event/nestjs-event-emitter';
 import { ConsumerOrderController } from '../order/consumer/order.controller';
 import { OrderService } from '../order/order.service';
 import { OrderEntity, OrderSchema } from '../order/schemas/order.schema';
@@ -35,7 +36,11 @@ import { OrderEntity, OrderSchema } from '../order/schemas/order.schema';
       },
     ]),
   ],
-  providers: [ConsumerOrderController, OrderService],
+  providers: [
+    ConsumerOrderController,
+    OrderService,
+    { provide: 'EventProvider', useClass: NestjsEventEmitter },
+  ],
   controllers: [],
   exports: [RabbitMQModule],
 })
