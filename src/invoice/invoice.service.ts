@@ -204,7 +204,7 @@ export class InvoiceService {
     externalOrderId: string,
     status: string,
   ): Promise<void> {
-    await this.InvoiceModel.findOneAndUpdate(
+    await this.InvoiceModel.updateOne(
       { key, 'order.externalOrderId': externalOrderId },
       { $set: { status } },
     );
