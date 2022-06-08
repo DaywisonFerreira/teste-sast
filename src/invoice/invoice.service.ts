@@ -215,4 +215,15 @@ export class InvoiceService {
       status: { $in: status },
     }).lean();
   }
+
+  async findByStatusAndOrderFilter(
+    status: string[],
+    { key, externalOrderId },
+  ): Promise<LeanDocument<InvoiceEntity[]>> {
+    return this.InvoiceModel.find({
+      status: { $in: status },
+      key,
+      'order.externalOrderId': externalOrderId,
+    }).lean();
+  }
 }

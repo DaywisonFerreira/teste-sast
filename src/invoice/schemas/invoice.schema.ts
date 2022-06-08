@@ -60,7 +60,7 @@ export class InvoiceEntity extends Document {
   @Prop({ type: Order, required: true })
   order: Order;
 
-  @Prop({ type: String, required: false, default: 'success' })
+  @Prop({ type: String, required: false })
   status: string;
 
   @Prop({ type: CarrierData, required: true })

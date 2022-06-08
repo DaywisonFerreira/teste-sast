@@ -14,6 +14,7 @@ import { UpdateDuplicatedOrders } from './scripts/update-duplicated-orders.servi
 import { UpdateHistoryOrders } from './scripts/update-history-orders.service';
 import { HandleStatusCode } from './scripts/handle-status-code.service';
 import { RabbitMqModule } from '../rabbitmq/rabbit.module';
+import { NestjsEventEmitter } from '../commons/providers/event/nestjs-event-emitter';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { RabbitMqModule } from '../rabbitmq/rabbit.module';
     UpdateDuplicatedOrders,
     UpdateHistoryOrders,
     HandleStatusCode,
+    { provide: 'EventProvider', useClass: NestjsEventEmitter },
   ],
   exports: [
     MongooseModule.forFeature([

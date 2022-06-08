@@ -9,6 +9,8 @@ import { OnEvent } from '@nestjs/event-emitter';
 import axios, { AxiosRequestConfig } from 'axios';
 
 import { Env } from 'src/commons/environment/env';
+import { InvoiceStatusEnum } from '../../invoice/enums/invoice-status-enum';
+import { InvoiceService } from '../../invoice/invoice.service';
 import { InteliPostService } from '../intelipost.service';
 import { IntelipostMapper } from '../mappers/intelipostMapper';
 
@@ -17,6 +19,7 @@ export class OnEventIntelipostController {
   constructor(
     private readonly intelipostService: InteliPostService,
     private readonly intelipostMapper: IntelipostMapper,
+    private readonly invoiceService: InvoiceService,
   ) {}
 
   @OnEvent('intelipost.sent')
@@ -30,6 +33,7 @@ export class OnEventIntelipostController {
         platform,
       },
     };
+
     const { carrier, dataFormatted: intelipostData } =
       await this.intelipostMapper.mapInvoiceToIntelipost(data, false);
 
@@ -54,9 +58,18 @@ export class OnEventIntelipostController {
               `Order with invoiceKey ${order.invoice.invoice_key} was saved`,
             );
           }
+          await this.invoiceService.updateStatus(
+            data.key,
+            data.order.orderSale,
+            InvoiceStatusEnum.SUCCESS,
+          );
+          logger.log({
+            info: `event received: intelipost.sent invoice key: ${data.key} orderSale: ${data.order.orderSale} invoice status: ${InvoiceStatusEnum.SUCCESS}`,
+          });
         }
       })
       .catch(async error => {
+        let invoiceStatus = InvoiceStatusEnum.ERROR;
         if (
           error.response.data.status === 'ERROR' &&
           error.response.status === 400
@@ -81,6 +94,7 @@ export class OnEventIntelipostController {
                 )
                 .then(async retryResponse => {
                   if (retryResponse.status === 200) {
+                    invoiceStatus = InvoiceStatusEnum.SUCCESS;
                     logger.log(
                       `Order created successfully on Intelipost with trackingUrl: ${retryResponse?.data?.content?.tracking_url}`,
                     );
@@ -104,16 +118,27 @@ export class OnEventIntelipostController {
                     }
                   }
                 })
-                .catch(error => logger.error(error));
+                .catch(error => {
+                  logger.error(error);
+                  invoiceStatus = InvoiceStatusEnum.ERROR;
+                });
             } else {
               logger.error(error);
+              invoiceStatus = InvoiceStatusEnum.ERROR;
             }
           } else {
             logger.error(error);
+            invoiceStatus = InvoiceStatusEnum.ERROR;
           }
         } else {
           logger.error(error);
+          invoiceStatus = InvoiceStatusEnum.ERROR;
         }
+        await this.invoiceService.updateStatus(
+          data.key,
+          data.order.orderSale,
+          invoiceStatus,
+        );
       });
   }
 }

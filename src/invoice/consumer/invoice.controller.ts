@@ -79,44 +79,66 @@ export class ConsumerInvoiceController {
     }
 
     const account = await this.accountService.findOne(accountId);
-    const intelipostIntegrationIsNotOk =
+    const intelipostIntegrationIsOk =
       account.integrateIntelipost &&
-      (!carrier?.externalDeliveryMethodId || !carrier?.externalDeliveryMethods);
+      (carrier?.externalDeliveryMethodId || carrier?.externalDeliveryMethods);
 
-    if (intelipostIntegrationIsNotOk) {
+    if (!intelipostIntegrationIsOk) {
       logger.log({
         consumer: Env.KAFKA_TOPIC_INVOICE_CREATED,
-        intelipostIntegrationIsNotOk,
-        info: 'externalDeliveryMethodId and externalDeliveryMethods not found',
+        intelipostIntegrationIsOk,
+        info: 'externalDeliveryMethodId or externalDeliveryMethods not found',
         carrier: {
+          document: carrier?.document,
           externalDeliveryMethodId: carrier?.externalDeliveryMethodId,
-          externalDeliveryMethods: carrier?.externalDeliveryMethodIs,
+          externalDeliveryMethods: carrier?.externalDeliveryMethods,
         },
-        integrateIntelipost: account.integrateIntelipost,
+        account: {
+          id: accountId,
+          integrateIntelipost: account?.integrateIntelipost,
+        },
       });
       await this.setInvoiceStatusError(data);
       return;
     }
 
-    if (account.integrateIntelipost) {
+    if (intelipostIntegrationIsOk) {
       this.eventEmitter.emit('intelipost.sent', { headers, data });
     }
   }
 
   @OnEvent('invoice.reprocess', { async: true })
-  async reprocess(): Promise<void> {
+  async reprocess(filter?: {
+    key: string;
+    externalOrderId: string;
+  }): Promise<void> {
     const headers = {
       'X-Correlation-Id': uuidV4(),
       'X-Version': '1.0',
     };
     const logger = new InfraLogger(headers, ConsumerInvoiceController.name);
+    logger.log({
+      info: 'event invoice.reprocess received',
+      payload: filter,
+    });
     try {
-      const invoices: any[] = await this.invoiceService.findByStatus([
-        InvoiceStatusEnum.PENDING,
-        InvoiceStatusEnum.ERROR,
-      ]);
+      let invoices = [];
+      if (filter) {
+        invoices = await this.invoiceService.findByStatusAndOrderFilter(
+          [InvoiceStatusEnum.PENDING, InvoiceStatusEnum.ERROR],
+          filter,
+        );
+      } else {
+        invoices = await this.invoiceService.findByStatus([
+          InvoiceStatusEnum.PENDING,
+          InvoiceStatusEnum.ERROR,
+        ]);
+      }
 
       for await (const invoice of invoices) {
+        logger.log({
+          info: `reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} status: ${invoice.status}`,
+        });
         const carrier = await this.carrierService.findByDocument(
           invoice.carrier.document,
         );
@@ -126,11 +148,6 @@ export class ConsumerInvoiceController {
         );
         if (externalDeliveryMethodId) {
           invoice.carrier.externalDeliveryMethodId = externalDeliveryMethodId;
-          await this.invoiceService.updateStatus(
-            invoice.key,
-            invoice.order.internalOrderId,
-            InvoiceStatusEnum.SUCCESS,
-          );
         }
         await this.integrateInvoice(
           invoice,

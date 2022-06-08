@@ -15,12 +15,15 @@ import { Env } from '../../commons/environment/env';
 import { OrderService } from '../order.service';
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderMapper } from '../mappers/orderMapper';
+import { EventProvider } from '../../commons/providers/event/nestjs-event-provider.interface';
 
 @Controller()
 export class ConsumerOrderController {
   constructor(
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     private readonly orderService: OrderService,
+    @Inject('EventProvider')
+    private readonly eventEmitter: EventProvider,
   ) {}
 
   @RabbitSubscribe({
@@ -59,9 +62,14 @@ export class ConsumerOrderController {
         (order.status === 'dispatched' || order.status === 'invoiced')
       ) {
         const orderToSaves: Array<any> = OrderMapper.mapMessageToOrders(order);
+        const ordersFilter = [];
         await Promise.all(
-          orderToSaves.map(async orderToSave =>
-            this.orderService.merge(
+          orderToSaves.map(async orderToSave => {
+            ordersFilter.push({
+              externalOrderId: orderToSave.orderSale,
+              key: orderToSave.invoice.key,
+            });
+            return this.orderService.merge(
               headers,
               {
                 orderSale: orderToSave.orderSale,
@@ -70,8 +78,8 @@ export class ConsumerOrderController {
               { ...orderToSave },
               'ihub',
               logger,
-            ),
-          ),
+            );
+          }),
         );
         if (orderToSaves.length) {
           logger.log(
@@ -80,6 +88,14 @@ export class ConsumerOrderController {
             )} was saved`,
           );
         }
+
+        ordersFilter.forEach(filter => {
+          logger.log({
+            info: 'emit: invoice.reprocess',
+            filter,
+          });
+          this.eventEmitter.emit('invoice.reprocess', filter);
+        });
       }
     } catch (error) {
       logger.error(error);
