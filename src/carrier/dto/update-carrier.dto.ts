@@ -40,6 +40,14 @@ export class UpdateCarrierDto {
   generateNotfisFile: boolean;
 
   @ApiPropertyOptional({
+    description: 'External DeliveryMode Id',
+    type: String,
+    example: '368',
+    required: false,
+  })
+  externalDeliveryMethodId: string;
+
+  @ApiPropertyOptional({
     description: 'External DeliveryMethods',
     type: DeliveryMethods,
     example: [

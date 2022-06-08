@@ -84,9 +84,16 @@ export class ConsumerInvoiceController {
       (!carrier?.externalDeliveryMethodId || !carrier?.externalDeliveryMethods);
 
     if (intelipostIntegrationIsNotOk) {
-      logger.log(
-        `${Env.KAFKA_TOPIC_INVOICE_CREATED} - externalDeliveryMethodId and externalDeliveryMethods not found`,
-      );
+      logger.log({
+        consumer: Env.KAFKA_TOPIC_INVOICE_CREATED,
+        intelipostIntegrationIsNotOk,
+        info: 'externalDeliveryMethodId and externalDeliveryMethods not found',
+        carrier: {
+          externalDeliveryMethodId: carrier?.externalDeliveryMethodId,
+          externalDeliveryMethods: carrier?.externalDeliveryMethodIs,
+        },
+        integrateIntelipost: account.integrateIntelipost,
+      });
       await this.setInvoiceStatusError(data);
       return;
     }
