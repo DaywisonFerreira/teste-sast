@@ -60,11 +60,11 @@ export class OnEventIntelipostController {
           }
           await this.invoiceService.updateStatus(
             data.key,
-            data.order.orderSale,
+            data.order.externalOrderId,
             InvoiceStatusEnum.SUCCESS,
           );
           logger.log({
-            info: `event received: intelipost.sent invoice key: ${data.key} orderSale: ${data.order.orderSale} invoice status: ${InvoiceStatusEnum.SUCCESS}`,
+            info: `event received: intelipost.sent invoice key: ${data.key} orderSale: ${data.order.externalOrderId} invoice status: ${InvoiceStatusEnum.SUCCESS}`,
           });
         }
       })
@@ -136,7 +136,7 @@ export class OnEventIntelipostController {
         }
         await this.invoiceService.updateStatus(
           data.key,
-          data.order.orderSale,
+          data.order.externalOrderId,
           invoiceStatus,
         );
       });
