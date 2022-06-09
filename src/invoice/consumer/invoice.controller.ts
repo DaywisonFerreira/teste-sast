@@ -136,9 +136,10 @@ export class ConsumerInvoiceController {
       }
 
       for await (const invoice of invoices) {
-        logger.log({
-          info: `reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} status: ${invoice.status}`,
-        });
+        logger.log(
+          `reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} status: ${invoice.status}`,
+        );
+
         const carrier = await this.carrierService.findByDocument(
           invoice.carrier.document,
         );
@@ -149,13 +150,19 @@ export class ConsumerInvoiceController {
         if (externalDeliveryMethodId) {
           invoice.carrier.externalDeliveryMethodId = externalDeliveryMethodId;
         }
-        await this.integrateInvoice(
-          invoice,
-          invoice.accountId,
-          logger,
-          headers,
-          carrier,
-        );
+        try {
+          await this.integrateInvoice(
+            invoice,
+            invoice.accountId,
+            logger,
+            headers,
+            carrier,
+          );
+        } catch (error) {
+          logger.warn(
+            `Intelipost integration error ${error.message}, key: ${invoice.key} orderSale: ${invoice.order.externalOrderId}`,
+          );
+        }
       }
     } catch (error) {
       logger.error(error);
@@ -187,7 +194,7 @@ export class ConsumerInvoiceController {
     data: any,
   ): Promise<string | null> {
     if (carrier?.externalDeliveryMethods?.length) {
-      const order = await this.orderService.findByKeyAndInternalOrderId(
+      const order = await this.orderService.findByKeyAndOrderSale(
         data.key,
         data.order.externalOrderId,
       );
