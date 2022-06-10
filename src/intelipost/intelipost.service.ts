@@ -19,6 +19,7 @@ export class InteliPostService {
     headers: any,
   ) {
     try {
+      // eslint-disable-next-line no-param-reassign
       logger.context = InteliPostService.name;
       const order = await OrderMapper.mapPartnerToOrder(payload);
 
