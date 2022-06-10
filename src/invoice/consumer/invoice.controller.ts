@@ -36,7 +36,7 @@ export class ConsumerInvoiceController {
       const accountId = headers['X-Tenant-Id'];
 
       logger.log(
-        `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Invoice was received with the OrderSale ${data.order.externalOrderId}`,
+        `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Invoice was received with the orderSale: ${data.order.externalOrderId}`,
       );
 
       const carrier = await this.carrierService.findByDocument(
