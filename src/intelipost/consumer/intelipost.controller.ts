@@ -44,6 +44,10 @@ export class ConsumerIntelipostController {
       },
     ]);
 
-    await this.inteliPostService.intelipost(data, logger, headers);
+    await this.inteliPostService.intelipost(
+      data,
+      new InfraLogger(headers),
+      headers,
+    );
   }
 }

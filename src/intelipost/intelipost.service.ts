@@ -19,6 +19,7 @@ export class InteliPostService {
     headers: any,
   ) {
     try {
+      logger.context = InteliPostService.name;
       const order = await OrderMapper.mapPartnerToOrder(payload);
 
       if (order.statusCode.macro === 'delivered') {
@@ -46,7 +47,9 @@ export class InteliPostService {
       );
 
       if (success) {
-        logger.log(`Order with OrderSale ${orderMerged.orderSale} was saved`);
+        logger.log(
+          `Order with orderSale: ${orderMerged.orderSale} and microStatus: ${orderMerged.statusCode.micro} was saved`,
+        );
       }
 
       if (
