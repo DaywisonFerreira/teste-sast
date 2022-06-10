@@ -139,18 +139,16 @@ export class ConsumerInvoiceController {
         logger.log(
           `reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} status: ${invoice.status}`,
         );
-
-        const carrier = await this.carrierService.findByDocument(
-          invoice.carrier.document,
-        );
-        const externalDeliveryMethodId = await this.getDeliveryMethodFromOrder(
-          carrier,
-          invoice,
-        );
-        if (externalDeliveryMethodId) {
-          invoice.carrier.externalDeliveryMethodId = externalDeliveryMethodId;
-        }
         try {
+          const carrier = await this.carrierService.findByDocument(
+            invoice.carrier.document,
+          );
+          const externalDeliveryMethodId =
+            await this.getDeliveryMethodFromOrder(carrier, invoice);
+          if (externalDeliveryMethodId) {
+            invoice.carrier.externalDeliveryMethodId = externalDeliveryMethodId;
+          }
+
           await this.integrateInvoice(
             invoice,
             invoice.accountId,
@@ -159,8 +157,8 @@ export class ConsumerInvoiceController {
             carrier,
           );
         } catch (error) {
-          logger.warn(
-            `Intelipost integration error ${error.message}, key: ${invoice.key} orderSale: ${invoice.order.externalOrderId}`,
+          logger.log(
+            `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId}`,
           );
         }
       }
