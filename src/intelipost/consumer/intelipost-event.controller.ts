@@ -43,6 +43,25 @@ export class OnEventIntelipostController {
         intelipostData,
         config,
       );
+
+      const isValidationError =
+        response.data.status === 'ERROR' && response.status === 400;
+      let existingOrderNumber = '';
+      if (Array.isArray(response?.data?.messages)) {
+        existingOrderNumber = response?.data?.messages.find(
+          msg => msg.key === 'shipmentOrder.save.already.existing.order.number',
+        );
+      }
+
+      if (isValidationError && existingOrderNumber) {
+        const retryOk = this.retryIntelipostIntegration(
+          { headers, data },
+          logger,
+        );
+        logger.log('Intelipost retry ok');
+        if (retryOk) return;
+      }
+
       if (response.status === 200) {
         logger.log(
           `Order created successfully on Intelipost with trackingUrl: ${response?.data?.content?.tracking_url}`,
@@ -71,24 +90,6 @@ export class OnEventIntelipostController {
         });
       }
     } catch (error) {
-      const isValidationError =
-        error.response.data.status === 'ERROR' && error.response.status === 400;
-      let existingOrderNumber = '';
-      if (Array.isArray(error?.response?.data?.messages)) {
-        existingOrderNumber = error?.response?.data?.messages.find(
-          msg => msg.key === 'shipmentOrder.save.already.existing.order.number',
-        );
-      }
-
-      if (isValidationError && existingOrderNumber) {
-        const retryOk = this.retryIntelipostIntegration(
-          { headers, data },
-          logger,
-        );
-        logger.log('Intelipost retry ok');
-        if (retryOk) return;
-      }
-
       await this.invoiceService.updateStatus(
         data.key,
         data.order.externalOrderId,
