@@ -143,7 +143,7 @@ export class OrderService {
     return order;
   }
 
-  async findByKeyAndInternalOrderId(
+  async findByKeyAndOrderSale(
     key: string,
     orderSale: string,
   ): Promise<LeanDocument<OrderEntity>> {
