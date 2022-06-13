@@ -52,15 +52,16 @@ export class ConsumerOrderController {
 
     const logger = new InfraLogger(headers, ConsumerOrderController.name);
 
-    logger.verbose(
-      `${Env.RABBITMQ_ORDER_NOTIFICATION_QUEUE} - iHub order received with orderSale ${order.externalOrderId} in the integration queue`,
-    );
     try {
       if (
         order.logisticInfo &&
         order.logisticInfo[0].deliveryChannel === 'delivery' &&
         (order.status === 'dispatched' || order.status === 'invoiced')
       ) {
+        logger.verbose(
+          `${Env.RABBITMQ_ORDER_NOTIFICATION_QUEUE} - iHub order received with orderSale ${order.externalOrderId} in the integration queue`,
+        );
+
         const orderToSaves: Array<any> = OrderMapper.mapMessageToOrders(order);
         const ordersFilter = [];
         await Promise.all(

@@ -10,7 +10,7 @@ export class IntelipostMapper {
     private readonly accountService: AccountService,
   ) {}
 
-  async mapInvoiceToIntelipost(data: CreateInvoiceDto, retry?: boolean) {
+  async mapInvoiceToIntelipost(data: CreateInvoiceDto) {
     const location = await this.accountService.findOneLocationByDocument(
       data.emitter.document,
     );
@@ -65,9 +65,7 @@ export class IntelipostMapper {
       origin_federal_tax_payer_id: location.document,
       origin_warehouse_code: location.externalWarehouseCode,
       shipment_order_volume_array: shipmentOrderVolumeArray,
-      order_number: !retry
-        ? data.order.internalOrderId
-        : `${data.order.internalOrderId}-${data.number}`,
+      order_number: data.order.internalOrderId,
       estimated_delivery_date: data.estimatedDeliveryDate,
       sales_channel: location.name,
       sales_order_number: data.order.externalOrderId,

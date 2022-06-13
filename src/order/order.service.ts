@@ -413,11 +413,20 @@ export class OrderService {
   private async updateOrdersWithMultipleInvoices(
     configPK,
     data,
-    oldOrder,
+    oldOrders,
     origin,
     options,
     logger,
   ) {
+    const oldOrder = oldOrders.find(
+      ({ invoice }) => invoice.key === data.invoice.key,
+    );
+    if (!oldOrder || !Object.keys(oldOrder).length) {
+      return logger.log(
+        `updateOrdersWithMultipleInvoices - OldOrder not exists. OrderSale: ${data.orderSale}`,
+      );
+    }
+
     const OrderAlreadyFinished =
       this.getStatusScale(data.statusCode.macro) ===
       this.getStatusScale(oldOrder.statusCode.macro);
@@ -552,7 +561,7 @@ export class OrderService {
       operationStatus = await this.updateOrdersWithMultipleInvoices(
         configPK,
         data,
-        orders[0],
+        orders,
         origin,
         options,
         logger,
