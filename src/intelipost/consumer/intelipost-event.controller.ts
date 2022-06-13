@@ -36,19 +36,21 @@ export class OnEventIntelipostController {
 
     try {
       const { carrier, dataFormatted: intelipostData } =
-        await this.intelipostMapper.mapInvoiceToIntelipost(data, retry);
+        await this.intelipostMapper.mapInvoiceToIntelipost(data);
 
       const response = await axios
         .post(Env.INTELIPOST_SHIPMENT_ORDER_ENDPOINT, intelipostData, config)
         .then(res => res)
         .catch(error => error.response);
 
+      const intelipostErrorKey =
+        'shipmentOrder.save.already.existing.order.number';
       const isValidationError =
         response.data.status === 'ERROR' && response.status === 400;
       let existingOrderNumber = '';
       if (Array.isArray(response?.data?.messages)) {
         existingOrderNumber = response?.data?.messages.find(
-          msg => msg.key === 'shipmentOrder.save.already.existing.order.number',
+          msg => msg.key === intelipostErrorKey,
         );
       }
 
@@ -56,9 +58,8 @@ export class OnEventIntelipostController {
         await this.retryIntelipostIntegration({ headers, data }, logger);
         return;
       }
-      if (retry) {
-        // TODO: corrigir isso
-        throw new Error('shipmentOrder.save.already.existing.order.number');
+      if (isValidationError && existingOrderNumber && retry) {
+        throw new Error(intelipostErrorKey);
       }
 
       if (response.status === 200) {
@@ -85,17 +86,21 @@ export class OnEventIntelipostController {
           data.order.externalOrderId,
           InvoiceStatusEnum.SUCCESS,
         );
+        return;
       }
+
+      throw new Error(JSON.stringify(response?.data));
     } catch (error) {
-      logger.log(
-        `Error: ${error.message}. OrderSale: ${data.order.externalOrderId} invoice key: ${data.key} and status: ${InvoiceStatusEnum.ERROR}`,
+      logger.error(
+        new Error(
+          `Error message: '${error.message}'. OrderSale: ${data.order.externalOrderId} invoice key: ${data.key} and status: ${InvoiceStatusEnum.ERROR}`,
+        ),
       );
       await this.invoiceService.updateStatus(
         data.key,
         data.order.externalOrderId,
         InvoiceStatusEnum.ERROR,
       );
-      // throw error;
     }
   }
 
@@ -103,9 +108,16 @@ export class OnEventIntelipostController {
     { headers, data },
     logger,
   ): Promise<void> {
+    const newData = {
+      ...data,
+      order: {
+        ...data.order,
+        internalOrderId: `${data.order.internalOrderId}-${data.number}`,
+      },
+    };
     logger.log(
-      `Order (${data.order.internalOrderId}) already exists on Intelipost. Retrying with the new orderNumber: ${data.order.internalOrderId}-${data.number}`,
+      `Order (${data.order.internalOrderId}) already exists on Intelipost. Retrying with the new orderNumber: ${newData.order.internalOrderId}`,
     );
-    await this.sendIntelipostData({ headers, data, retry: true });
+    await this.sendIntelipostData({ headers, data: newData, retry: true });
   }
 }
