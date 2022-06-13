@@ -9,11 +9,11 @@ stages:
     - deploy
 
 include:
-  - project: 'infralabs/cxaas/sourcecode/commontools/devops'
+  - project: 'infralabs/infra-shop/cxaas/sourcecode/commontools/devops'
     file: '/variables.yaml'
-  - project: 'infralabs/cxaas/sourcecode/commontools/devops'
+  - project: 'infralabs/infra-shop/cxaas/sourcecode/commontools/devops'
     file: '/qualitycode.yaml'
-  - project: 'infralabs/cxaas/sourcecode/commontools/devops'
+  - project: 'infralabs/infra-shop/cxaas/sourcecode/commontools/devops'
     file: '/build_api_node.yaml'
-  - project: 'infralabs/cxaas/sourcecode/commontools/devops'
+  - project: 'infralabs/infra-shop/cxaas/sourcecode/commontools/devops'
     file: '/deploy_aks.yaml'
