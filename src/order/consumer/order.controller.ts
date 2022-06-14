@@ -59,7 +59,7 @@ export class ConsumerOrderController {
         (order.status === 'dispatched' || order.status === 'invoiced')
       ) {
         logger.verbose(
-          `${Env.RABBITMQ_ORDER_NOTIFICATION_QUEUE} - iHub order received with orderSale ${order.externalOrderId} in the integration queue`,
+          `${Env.RABBITMQ_ORDER_NOTIFICATION_QUEUE} - iHub order received with orderSale ${order.externalOrderId} order ${order.erpInfo?.externalOrderId} in the integration queue`,
         );
 
         const orderToSaves: Array<any> = OrderMapper.mapMessageToOrders(order);
@@ -84,7 +84,9 @@ export class ConsumerOrderController {
         );
         if (orderToSaves.length) {
           logger.log(
-            `Order with invoiceKeys ${orderToSaves[0].invoiceKeys.join(
+            `OrderSale: ${orderToSaves[0].orderSale} order: ${
+              orderToSaves[0].order
+            } with invoiceKeys ${orderToSaves[0].invoiceKeys.join(
               ',',
             )} was saved`,
           );

@@ -49,7 +49,7 @@ export class InteliPostService {
 
       if (success) {
         logger.log(
-          `Order with orderSale: ${orderMerged.orderSale} and microStatus: ${orderMerged.statusCode.micro} was saved`,
+          `OrderSale: ${orderMerged.orderSale} order: ${orderMerged.partnerOrder} and microStatus: ${orderMerged.statusCode.micro} was saved`,
         );
       }
 
@@ -68,11 +68,11 @@ export class InteliPostService {
         await this.amqpConnection.publish(exchange, routeKey, exportingOrder);
 
         logger.log(
-          `Order ${orderMerged.orderSale} sent to exchange '${exchange}' and routeKey '${routeKey}'`,
+          `OrderSale: ${orderMerged.orderSale} order ${orderMerged.partnerOrder} sent to exchange '${exchange}' and routeKey '${routeKey}' status: ${orderMerged.partnerStatus}`,
         );
       } else {
         logger.log(
-          `${order.orderSale} order not sent due to lack of storeId (${orderMerged.storeId}), storeCode (${orderMerged.storeCode}) or internalOrderId (${orderMerged.internalOrderId})`,
+          `OrderSale: ${orderMerged.orderSale} order ${orderMerged.partnerOrder} not sent due to lack of storeId (${orderMerged.storeId}), storeCode (${orderMerged.storeCode}) or internalOrderId (${orderMerged.internalOrderId}) status: ${orderMerged.partnerStatus}`,
         );
       }
     } catch (error) {

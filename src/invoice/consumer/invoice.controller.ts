@@ -36,7 +36,7 @@ export class ConsumerInvoiceController {
       const accountId = headers['X-Tenant-Id'];
 
       logger.log(
-        `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Invoice was received with the orderSale: ${data.order.externalOrderId}`,
+        `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Invoice was received with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId}`,
       );
 
       const carrier = await this.carrierService.findByDocument(
@@ -137,7 +137,7 @@ export class ConsumerInvoiceController {
 
       for await (const invoice of invoices) {
         logger.log(
-          `reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} status: ${invoice.status}`,
+          `reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId} status: ${invoice.status}`,
         );
         try {
           const carrier = await this.carrierService.findByDocument(
@@ -158,7 +158,7 @@ export class ConsumerInvoiceController {
           );
         } catch (error) {
           logger.log(
-            `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId}`,
+            `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId}`,
           );
         }
       }

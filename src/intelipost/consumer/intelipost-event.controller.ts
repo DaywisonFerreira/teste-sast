@@ -64,7 +64,7 @@ export class OnEventIntelipostController {
 
       if (response.status === 200) {
         logger.log(
-          `Order created successfully on Intelipost with orderSale: ${response?.data?.content?.sales_order_number} and trackingUrl: ${response?.data?.content?.tracking_url}`,
+          `Order created successfully on Intelipost with orderSale: ${response?.data?.content?.sales_order_number} order: ${response?.data?.content?.order_number} and trackingUrl: ${response?.data?.content?.tracking_url}`,
         );
 
         const newOrders =
@@ -93,7 +93,7 @@ export class OnEventIntelipostController {
     } catch (error) {
       logger.error(
         new Error(
-          `Error message: '${error.message}'. OrderSale: ${data.order.externalOrderId} invoice key: ${data.key} and status: ${InvoiceStatusEnum.ERROR}`,
+          `Error message: '${error.message}'. OrderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId} invoice key: ${data.key} and status: ${InvoiceStatusEnum.ERROR}`,
         ),
       );
       await this.invoiceService.updateStatus(
@@ -116,7 +116,7 @@ export class OnEventIntelipostController {
       },
     };
     logger.log(
-      `Order (${data.order.internalOrderId}) already exists on Intelipost. Retrying with the new orderNumber: ${newData.order.internalOrderId}`,
+      `OrderSale (${data.order.externalOrderId}) Order (${data.order.internalOrderId}) already exists on Intelipost. Retrying with the new orderNumber: ${newData.order.internalOrderId}`,
     );
     await this.sendIntelipostData({ headers, data: newData, retry: true });
   }
