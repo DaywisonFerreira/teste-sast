@@ -295,7 +295,7 @@ export class OrderService {
       attachments = (
         await Promise.all(
           attachments.map(attachment =>
-            OrderMapper.mapAttachment(attachment, invoice.key),
+            OrderMapper.mapAttachment(attachment, invoice.key, logger),
           ),
         )
       ).filter(o => Object.keys(o).length);
@@ -309,7 +309,7 @@ export class OrderService {
     return (
       await Promise.all(
         data.attachments.map(attachment =>
-          OrderMapper.mapAttachment(attachment, invoice.key),
+          OrderMapper.mapAttachment(attachment, invoice.key, logger),
         ),
       )
     ).filter(o => Object.keys(o).length) as Attachments[];
