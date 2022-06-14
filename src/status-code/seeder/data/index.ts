@@ -15,7 +15,7 @@ export const macroStatus = [
     parentId: null,
   },
   {
-    name: 'out-for-delivery',
+    name: 'out-of-delivery',
     order: 4,
     parentId: null,
   },

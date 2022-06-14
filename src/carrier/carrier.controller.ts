@@ -46,12 +46,17 @@ export class CarrierController {
     @Req() req: any,
   ): Promise<GetCarrierDto> {
     try {
-      const { generateNotfisFile, integration, externalDeliveryMethodId } =
-        updateShippingDto;
+      const {
+        generateNotfisFile,
+        integration,
+        externalDeliveryMethods,
+        externalDeliveryMethodId,
+      } = updateShippingDto;
 
       const carrier = await this.carrierService.update(id, {
         generateNotfisFile,
         integration,
+        externalDeliveryMethods,
         externalDeliveryMethodId,
       });
       req.logger.verbose(`Carrier id: ${carrier.id} updated`);

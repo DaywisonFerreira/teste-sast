@@ -58,11 +58,3 @@ export class MessageService {
 }
 
 ```
-
-## ifc.freight.api.orders - Uso Keycloak
-
-Fazendo login no keycloak:
-
-- https://ifc-stock.postman.co/workspace/Team-Workspace~f8b1e6a8-3403-430c-8543-0f6aa98fbdb0/request/16045662-a0e2c5de-2112-4d36-9d5c-7cf83fb8ac0f
-
-- usar `access_token` como token JWT para chamar a API.

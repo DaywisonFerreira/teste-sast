@@ -15,18 +15,21 @@ import { Env } from '../../commons/environment/env';
 import { OrderService } from '../order.service';
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderMapper } from '../mappers/orderMapper';
+import { EventProvider } from '../../commons/providers/event/nestjs-event-provider.interface';
 
 @Controller()
 export class ConsumerOrderController {
   constructor(
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     private readonly orderService: OrderService,
+    @Inject('EventProvider')
+    private readonly eventEmitter: EventProvider,
   ) {}
 
   @RabbitSubscribe({
     exchange: Env.RABBITMQ_ORDER_NOTIFICATION_EXCHANGE,
     routingKey: '',
-    queue: `delivery_hub_order_notification_${Env.NODE_ENV}_q`,
+    queue: Env.RABBITMQ_ORDER_NOTIFICATION_QUEUE,
     errorHandler: (channel: Channel, msg: any, error) => {
       const logger = new InfraLogger(
         {
@@ -49,20 +52,25 @@ export class ConsumerOrderController {
 
     const logger = new InfraLogger(headers, ConsumerOrderController.name);
 
-    logger.verbose(
-      `delivery_hub_order_notification_${Env.NODE_ENV}_q - iHub order received with orderSale ${order.externalOrderId} in the integration queue`,
-    );
     try {
       if (
         order.logisticInfo &&
-        (order.logisticInfo[0].deliveryChannel === 'delivery' ||
-          order.logisticInfo[0].deliveryChannel === 'deliver') &&
+        order.logisticInfo[0].deliveryChannel === 'delivery' &&
         (order.status === 'dispatched' || order.status === 'invoiced')
       ) {
+        logger.verbose(
+          `${Env.RABBITMQ_ORDER_NOTIFICATION_QUEUE} - iHub order received with orderSale ${order.externalOrderId} order ${order.erpInfo?.externalOrderId} in the integration queue`,
+        );
+
         const orderToSaves: Array<any> = OrderMapper.mapMessageToOrders(order);
+        const ordersFilter = [];
         await Promise.all(
-          orderToSaves.map(async orderToSave =>
-            this.orderService.merge(
+          orderToSaves.map(async orderToSave => {
+            ordersFilter.push({
+              externalOrderId: orderToSave.orderSale,
+              key: orderToSave.invoice.key,
+            });
+            return this.orderService.merge(
               headers,
               {
                 orderSale: orderToSave.orderSale,
@@ -70,16 +78,27 @@ export class ConsumerOrderController {
               },
               { ...orderToSave },
               'ihub',
-            ),
-          ),
+              logger,
+            );
+          }),
         );
         if (orderToSaves.length) {
           logger.log(
-            `Order with invoiceKeys ${orderToSaves[0].invoiceKeys.join(
+            `OrderSale: ${orderToSaves[0].orderSale} order: ${
+              orderToSaves[0].order
+            } with invoiceKeys ${orderToSaves[0].invoiceKeys.join(
               ',',
             )} was saved`,
           );
         }
+
+        ordersFilter.forEach(filter => {
+          logger.log({
+            info: 'emit: invoice.reprocess',
+            filter,
+          });
+          this.eventEmitter.emit('invoice.reprocess', filter);
+        });
       }
     } catch (error) {
       logger.error(error);

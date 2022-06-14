@@ -1,7 +1,13 @@
 import { Types } from 'mongoose';
+import { InfraLogger } from '@infralabs/infra-logger';
+import { createBlobService } from 'azure-storage';
+import axios from 'axios';
+import { promises, createWriteStream } from 'fs';
+
 import { CreateIntelipost } from 'src/intelipost/dto/create-intelipost.dto';
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderDocument } from '../schemas/order.schema';
+import { Env } from '../../commons/environment/env';
 
 interface OrderAnalysis {
   id?: string;
@@ -30,9 +36,12 @@ interface OrderAnalysis {
   };
   deliveryDate?: Date;
   trackingUrl?: string;
+  internalOrderId?: string;
 }
 export class OrderMapper {
-  static mapPartnerToOrder(payload: CreateIntelipost) {
+  static async mapPartnerToOrder(
+    payload: CreateIntelipost,
+  ): Promise<Partial<OrderDocument>> {
     const status =
       typeof payload.history.shipment_order_volume_state === 'string'
         ? payload.history.shipment_order_volume_state
@@ -56,7 +65,6 @@ export class OrderMapper {
         carrierName: payload.invoice.carrierName,
         carrierDocument: payload.invoice.carrierDocument,
       },
-      dispatchDate: new Date(payload.history.created_iso),
       estimateDeliveryDateDeliveryCompany: payload?.estimated_delivery_date
         ?.client
         ? new Date(payload.estimated_delivery_date.client.current_iso)
@@ -76,6 +84,86 @@ export class OrderMapper {
       i18n: payload.history.shipment_volume_micro_state.i18n_name,
       statusCode,
     };
+  }
+
+  static async mapAttachment(attachment, invoiceKey, logger: InfraLogger) {
+    try {
+      if (attachment.type === 'POD') {
+        const fileName = `pod-${invoiceKey}${attachment.file_name}`;
+
+        const downloadedUrl = await OrderMapper.downloadFromCloud(
+          attachment.url,
+          fileName,
+        );
+
+        const uploadedUrl = await OrderMapper.uploadToCloud(
+          fileName,
+          downloadedUrl,
+        );
+
+        OrderMapper.deleteFileLocally(downloadedUrl);
+
+        return {
+          fileName,
+          mimeType: attachment.mime_type,
+          type: attachment.type,
+          additionalInfo: attachment.additionalInfo,
+          url: uploadedUrl,
+          originalUrl: attachment.url,
+          createdAt: attachment.created_iso,
+        };
+      }
+    } catch (error) {
+      logger.error(error);
+    }
+    return {};
+  }
+
+  static downloadFromCloud(url: string, fileName: string): Promise<string> {
+    const pathDestination =
+      Env.NODE_ENV !== 'local'
+        ? `${process.cwd()}/dist/tmp`
+        : `${process.cwd()}/src/tmp`;
+
+    return axios({
+      method: 'GET',
+      url,
+      responseType: 'stream',
+    }).then(
+      (response: any) =>
+        new Promise((resolve, reject) => {
+          const writer = response.data.pipe(
+            createWriteStream(`${pathDestination}/${fileName}`),
+          );
+          writer.on('error', error => reject(error));
+          writer.on('finish', () => resolve(`${pathDestination}/${fileName}`));
+        }),
+    );
+  }
+
+  static uploadToCloud(fileName: string, path: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const blobSvc = createBlobService(Env.AZURE_BS_ACCESS_KEY);
+      blobSvc.createBlockBlobFromLocalFile(
+        String(Env.AZURE_BS_CONTAINER_NAME),
+        fileName,
+        path,
+        error => {
+          if (error) {
+            reject(error);
+          }
+          resolve(
+            `${String(Env.AZURE_BS_STORAGE_URL)}/${String(
+              Env.AZURE_BS_CONTAINER_NAME,
+            )}/${fileName}`,
+          );
+        },
+      );
+    });
+  }
+
+  static deleteFileLocally(path: string) {
+    promises.unlink(path);
   }
 
   static mapStatusCode(payload: any) {
@@ -343,8 +431,10 @@ export class OrderMapper {
           statusId =>
             `${payload.history.shipment_volume_micro_state.id}` === statusId,
         )
-      )
+      ) {
         statusCode.micro = status;
+      }
+
       return statusCode;
     });
 
@@ -365,8 +455,9 @@ export class OrderMapper {
             `${payload.history.shipment_volume_micro_state.shipment_order_volume_state_id}` ===
             macroStatusId,
         )
-      )
+      ) {
         statusCode.macro = statusMacro;
+      }
       return statusCode;
     });
 
@@ -496,6 +587,11 @@ export class OrderMapper {
         }))
       : [];
 
+    const statusCode = {
+      micro: status,
+      macro: status === 'invoiced' ? 'order-created' : 'order-dispatched',
+    };
+
     return arrayOfBillingData.map(billingData => ({
       orderId,
       storeCode,
@@ -516,10 +612,7 @@ export class OrderMapper {
       billingData: arrayOfBillingData, // @deprecated
       logisticInfo,
       status,
-      statusCode: {
-        micro: status,
-        macro: status,
-      },
+      statusCode,
       totalShippingPrice: logisticInfo.length
         ? logisticInfo.reduce((t, { sellingPrice }) => t + sellingPrice, 0)
         : 0,
@@ -545,6 +638,7 @@ export class OrderMapper {
         trackingUrl: billingData.trackingUrl,
         items: billingData.items,
         customerDocument: billingData.customerDocument,
+        deliveryMethod: logisticInfo[0]?.logisticContract,
       },
       delivery: {
         receiverName: deliveryAddress.receiverName,
@@ -587,6 +681,7 @@ export class OrderMapper {
     orderMapper.orderSale = payload.orderSale;
     orderMapper.orderUpdatedAt = payload.orderUpdatedAt;
     orderMapper.orderCreatedAt = payload.orderCreatedAt;
+    orderMapper.internalOrderId = payload.internalOrderId;
 
     orderMapper.statusCode = {
       micro: payload.statusCode.micro,

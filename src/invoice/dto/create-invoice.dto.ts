@@ -60,6 +60,8 @@ export class Carrier {
   phone?: string;
 
   address?: Address;
+
+  externalDeliveryMethodId?: string;
 }
 
 export class Package {

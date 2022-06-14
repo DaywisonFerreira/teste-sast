@@ -21,6 +21,7 @@ import {
   OrderDocument,
   OrderEntity,
   PublicFieldsOrder,
+  Attachments,
 } from './schemas/order.schema';
 import { OrderMapper } from './mappers/orderMapper';
 
@@ -54,7 +55,7 @@ export class OrderService {
     }
 
     if (statusCode) {
-      filter.statusCode.micro = {
+      filter['statusCode.micro'] = {
         $in: statusCode.split(','),
       };
     }
@@ -127,8 +128,12 @@ export class OrderService {
   }
 
   async findOne(orderId: string): Promise<LeanDocument<OrderEntity>> {
+    const list = Types.ObjectId.isValid(orderId)
+      ? [new Types.ObjectId(orderId), orderId]
+      : [orderId];
+
     const order = await this.OrderModel.findOne({
-      orderId: { $in: [orderId, new Types.ObjectId(orderId)] },
+      orderId: { $in: list },
     }).lean();
 
     if (!order) {
@@ -136,6 +141,16 @@ export class OrderService {
     }
 
     return order;
+  }
+
+  async findByKeyAndOrderSale(
+    key: string,
+    orderSale: string,
+  ): Promise<LeanDocument<OrderEntity>> {
+    return this.OrderModel.findOne({
+      orderSale,
+      'invoice.key': key,
+    }).lean();
   }
 
   async exportData(
@@ -233,7 +248,90 @@ export class OrderService {
     return file;
   }
 
-  private generateHistory(data, origin, isCreate, oldOrder = { history: [] }) {
+  private getStatusScale(status: string) {
+    switch (status) {
+      case 'order-created':
+        return 0;
+      case 'order-dispatched':
+        return 2;
+      case 'in-transit':
+        return 3;
+      case 'out-of-delivery':
+        return 4;
+      case 'delivered':
+        return 5;
+      case 'delivery-failed':
+        return 5;
+      case 'canceled':
+        return 5;
+      default:
+        return 1;
+    }
+  }
+
+  private async generateAttachments(
+    data,
+    isCreate,
+    logger,
+    oldOrder?: any,
+  ): Promise<Attachments[]> {
+    const { invoice } = data;
+
+    // Update flow
+    if (isCreate === false) {
+      const originalUrls =
+        oldOrder?.attachments?.map(({ originalUrl }) => originalUrl) || [];
+
+      let attachments = data.attachments.filter(({ url }) => {
+        if (originalUrls.includes(url)) {
+          logger.warn(
+            `generateAttachment - OrderSale: ${data.orderSale} order: ${data.partnerOrder} received a duplicate file (${url}) by Intelipost and will be ignore`,
+          );
+          return false;
+        }
+        return true;
+      });
+
+      attachments = (
+        await Promise.all(
+          attachments.map(attachment =>
+            OrderMapper.mapAttachment(attachment, invoice.key, logger),
+          ),
+        )
+      ).filter(o => Object.keys(o).length);
+
+      return [
+        ...(oldOrder?.attachments || []),
+        ...attachments,
+      ] as Attachments[];
+    }
+
+    return (
+      await Promise.all(
+        data.attachments.map(attachment =>
+          OrderMapper.mapAttachment(attachment, invoice.key, logger),
+        ),
+      )
+    ).filter(o => Object.keys(o).length) as Attachments[];
+  }
+
+  private generateHistory(data, origin, isCreate, logger, oldOrder?: any) {
+    const sortHistory = (HistoryOne, HistoryTwo) => {
+      if (
+        this.getStatusScale(HistoryOne?.statusCode?.macro) >
+        this.getStatusScale(HistoryTwo?.statusCode?.macro)
+      ) {
+        return 1;
+      }
+      if (
+        this.getStatusScale(HistoryOne?.statusCode?.macro) <
+        this.getStatusScale(HistoryTwo?.statusCode?.macro)
+      ) {
+        return -1;
+      }
+      return 0;
+    };
+
     let historyExists = false;
     if (oldOrder && Array.isArray(oldOrder.history)) {
       historyExists = !!oldOrder.history.find(
@@ -241,30 +339,47 @@ export class OrderService {
       );
     }
 
+    if (historyExists) {
+      logger.warn(
+        `generateHistory - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} received a duplicate status (statusMicro: ${data.statusCode.micro}, statusMacro: ${data.statusCode.macro}) by Intelipost and will be ignore`,
+      );
+      return { ignore: true, history: [] };
+    }
+
     if (origin === 'intelipost') {
       const history = OrderMapper.mapPartnerHistoryToOrderHistory(data);
 
       if (isCreate) {
-        return { history: [history] };
+        return { ignore: false, history: [history] };
       }
       if (!historyExists) {
-        return { $push: { history } };
+        const historyToSort = [...oldOrder.history, history];
+        return { ignore: false, history: historyToSort.sort(sortHistory) };
       }
     }
-    return {};
+    return { ignore: true, history: [] };
   }
 
-  private async createOrder(data, origin) {
+  public async createOrder(data, origin, logger) {
     const orderFinded = await this.OrderModel.find({
       orderSale: data.orderSale,
     });
 
-    if (orderFinded.length === 0) {
-      return this.OrderModel.create({
+    if (!orderFinded.length) {
+      const { history } = this.generateHistory(data, origin, true, logger);
+      const attachments =
+        origin === 'intelipost'
+          ? await this.generateAttachments(data, true, logger)
+          : [];
+
+      const order = await this.OrderModel.create({
         ...data,
-        ...this.generateHistory(data, origin, true),
+        history,
+        attachments,
       });
+      return { success: true, order };
     }
+
     for (const order of orderFinded) {
       await this.OrderModel.findOneAndUpdate(
         {
@@ -281,59 +396,148 @@ export class OrderService {
 
     data.invoiceKeys.push(...orderFinded[0].invoiceKeys);
 
-    return this.OrderModel.create({
+    const { history } = this.generateHistory(data, origin, true, logger);
+    const attachments =
+      origin === 'intelipost'
+        ? await this.generateAttachments(data, true, logger)
+        : [];
+
+    const order = await this.OrderModel.create({
       ...data,
-      ...this.generateHistory(data, origin, true),
+      history,
+      attachments,
     });
+    return { success: true, order };
   }
 
   private async updateOrdersWithMultipleInvoices(
     configPK,
     data,
-    oldOrder,
+    oldOrders,
     origin,
     options,
+    logger,
   ) {
-    const { invoice, invoiceKeys, ...dataToSave } = data;
-
-    await this.OrderModel.updateMany(
-      configPK,
-      {
-        ...dataToSave,
-        ...this.generateHistory(
-          { ...dataToSave, invoice, invoiceKeys },
-          origin,
-          false,
-          oldOrder,
-        ),
-      },
-      options,
+    const oldOrder = oldOrders.find(
+      ({ invoice }) => invoice.key === data.invoice.key,
     );
+    if (!oldOrder || !Object.keys(oldOrder).length) {
+      return logger.log(
+        `updateOrdersWithMultipleInvoices - OldOrder not exists. OrderSale: ${data.orderSale} order: ${data.partnerOrder}`,
+      );
+    }
+
+    const OrderAlreadyFinished =
+      this.getStatusScale(data.statusCode.macro) ===
+      this.getStatusScale(oldOrder.statusCode.macro);
+
+    if (OrderAlreadyFinished) {
+      logger.log(
+        `updateOrdersWithMultipleInvoices - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
+      );
+
+      return { success: false, order: oldOrder };
+    }
+
+    const { ignore, history } = this.generateHistory(
+      data,
+      origin,
+      false,
+      logger,
+      oldOrder,
+    );
+
+    const attachments =
+      origin === 'intelipost'
+        ? await this.generateAttachments(data, false, logger, oldOrder)
+        : [];
+
+    const shouldUpdateSourceOfOrder =
+      this.getStatusScale(data.statusCode.macro) >
+      this.getStatusScale(oldOrder.statusCode.macro);
+
+    const newContent = {
+      ...(shouldUpdateSourceOfOrder
+        ? {
+            statusCode: data.statusCode,
+            orderUpdatedAt: data.orderUpdatedAt,
+            partnerMessage: data.partnerMessage,
+            partnerStatusId: data.partnerStatusId,
+            partnerMacroStatusId: data.partnerMacroStatusId,
+            microStatus: data.microStatus,
+            lastOccurrenceMacro: data.lastOccurrenceMacro,
+            lastOccurrenceMicro: data.lastOccurrenceMicro,
+            lastOccurrenceMessage: data.lastOccurrenceMessage,
+            i18n: data.i18n,
+            partnerStatus: data.partnerStatus,
+            status: data.status,
+            deliveryDate: data.deliveryDate,
+            dispatchDate: data.dispatchDate,
+          }
+        : {}),
+      invoiceKeys: [...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys])],
+      ...(ignore ? {} : { history }),
+      attachments,
+    };
+
+    await this.OrderModel.updateMany(configPK, newContent, options);
 
     const order = await this.OrderModel.find({
       orderSale: data.orderSale,
-      'invoice.key': invoice.key,
+      'invoice.key': data.invoice.key,
     });
 
-    return order[0];
+    return { success: true, order: order[0] };
   }
 
-  private async updateOrder(configPK, data, oldOrder, origin, options) {
-    return this.OrderModel.findOneAndUpdate(
-      configPK,
-      {
-        ...data,
-        invoice: {
-          ...data.invoice,
-          ...oldOrder.invoice,
-        },
-        invoiceKeys: [
-          ...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys]),
-        ],
-        ...this.generateHistory(data, origin, false, oldOrder),
+  private async updateOrder(configPK, data, oldOrder, origin, options, logger) {
+    const OrderAlreadyFinished =
+      this.getStatusScale(data.statusCode.macro) ===
+      this.getStatusScale(oldOrder.statusCode.macro);
+
+    if (OrderAlreadyFinished) {
+      logger.warn(
+        `updateOrder - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
+      );
+
+      return { success: false, order: oldOrder };
+    }
+
+    const shouldUpdateSourceOfOrder =
+      this.getStatusScale(data.statusCode.macro) >
+      this.getStatusScale(oldOrder.statusCode.macro);
+
+    const { ignore, history } = this.generateHistory(
+      data,
+      origin,
+      false,
+      logger,
+      oldOrder,
+    );
+
+    const attachments =
+      origin === 'intelipost'
+        ? await this.generateAttachments(data, false, logger, oldOrder)
+        : [];
+
+    // repensar em como ignorar um historico novo, porém tbm não enviar para o IHUB
+    const newContent = {
+      ...(shouldUpdateSourceOfOrder ? data : {}),
+      invoice: {
+        ...data.invoice,
+        ...oldOrder.invoice,
       },
+      invoiceKeys: [...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys])],
+      ...(ignore ? {} : { history }),
+      attachments,
+    };
+    const order = await this.OrderModel.findOneAndUpdate(
+      configPK,
+      newContent,
       options,
     );
+
+    return { success: true, order };
   }
 
   async merge(
@@ -341,41 +545,49 @@ export class OrderService {
     configPK: any,
     data: any = {},
     origin: string,
-    options: any = { new: true, runValidators: true, useFindAndModify: false },
+    logger: any,
   ) {
-    let orderToNotified: any;
-    const orders = await this.OrderModel.find(configPK);
+    const options: any = {
+      new: true,
+      runValidators: true,
+      useFindAndModify: false,
+    };
+    let operationStatus: { success: boolean; order: any };
+    const orders = await this.OrderModel.find(configPK).lean();
+
     if (!orders.length) {
-      orderToNotified = await this.createOrder(data, origin);
+      operationStatus = await this.createOrder(data, origin, logger);
     } else if (orders.length > 1) {
-      orderToNotified = await this.updateOrdersWithMultipleInvoices(
+      operationStatus = await this.updateOrdersWithMultipleInvoices(
         configPK,
         data,
-        orders[0],
+        orders,
         origin,
         options,
+        logger,
       );
     } else {
-      orderToNotified = await this.updateOrder(
+      operationStatus = await this.updateOrder(
         configPK,
         data,
         orders[0],
         origin,
         options,
+        logger,
       );
     }
 
-    if (orderToNotified.storeId) {
+    if (operationStatus.success && operationStatus.order.storeId) {
       let account: Partial<AccountEntity> = await this.accountModel
-        .findOne({ id: orderToNotified.storeId })
+        .findOne({ id: operationStatus.order.storeId })
         .lean();
 
       if (!account) {
-        account = { id: orderToNotified.storeId };
+        account = { id: operationStatus.order.storeId };
       }
 
       const orderToAnalysisNotified: Array<any> =
-        OrderMapper.mapMessageToOrderAnalysis(orderToNotified, account);
+        OrderMapper.mapMessageToOrderAnalysis(operationStatus.order, account);
 
       await this.kafkaProducer.send(
         Env.KAFKA_TOPIC_ORDER_NOTIFIED,
@@ -386,7 +598,7 @@ export class OrderService {
       );
     }
 
-    return orderToNotified;
+    return operationStatus;
   }
 
   private validateRangeOfDates(dateFrom: Date, dateTo: Date) {
@@ -399,8 +611,10 @@ export class OrderService {
     }
   }
 
-  async getOrderDetails(orderId: string): Promise<any> {
+  async getOrderDetails(orderId: string, tenants: string[]): Promise<any> {
     const order = await this.findOne(orderId);
+    this.validateStore(tenants, String(order.storeId));
+
     const {
       totals = [],
       value,
@@ -413,6 +627,7 @@ export class OrderService {
       history = [],
       internalOrderId,
       statusCode,
+      attachments,
     } = order;
 
     /**
@@ -430,7 +645,7 @@ export class OrderService {
       'order-created',
       'order-dispatched',
       'in-transit',
-      'out-for-delivery',
+      'out-of-delivery',
     ];
     const finishersStatus = ['delivered', 'delivery-failed', 'canceled'];
 
@@ -516,6 +731,7 @@ export class OrderService {
       statusCode,
       steppers,
       historyOrderByASC,
+      attachments,
     };
 
     return data;
@@ -561,5 +777,14 @@ export class OrderService {
       path: `${directory_path}/${fileName}`,
       fileName,
     };
+  }
+
+  private validateStore(tenants: string[], storeId: string) {
+    if (!tenants.includes(storeId)) {
+      throw new HttpException(
+        'Order does not belong to this store.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

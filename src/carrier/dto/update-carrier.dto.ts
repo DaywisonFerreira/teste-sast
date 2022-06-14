@@ -20,6 +20,15 @@ class Integration {
   @Type(() => Attributes)
   attributes: Attributes[];
 }
+
+class DeliveryMethods {
+  @IsString()
+  deliveryModeName: string;
+
+  @IsString()
+  externalDeliveryMethodId: string;
+}
+
 export class UpdateCarrierDto {
   @ApiProperty({
     description: 'Generate a NOTFIS file',
@@ -37,6 +46,19 @@ export class UpdateCarrierDto {
     required: false,
   })
   externalDeliveryMethodId: string;
+
+  @ApiPropertyOptional({
+    description: 'External DeliveryMethods',
+    type: DeliveryMethods,
+    example: [
+      { deliveryModeName: 'LS SAMEDAY', externalDeliveryMethodId: '15111' },
+      { deliveryModeName: 'LS NEXTDAY', externalDeliveryMethodId: '740' },
+      { deliveryModeName: 'NORMAL', externalDeliveryMethodId: '1' },
+    ],
+    required: false,
+  })
+  @ValidateNested({ each: true })
+  externalDeliveryMethods: DeliveryMethods[];
 
   @ApiProperty({
     description: 'Carrier integration',

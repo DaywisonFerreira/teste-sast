@@ -63,6 +63,10 @@ export class Invoice {
   items?: Array<Item>;
 
   customerDocument?: string;
+
+  deliveryMethod?: string;
+
+  status?: string;
 }
 
 export class Delivery {
@@ -107,6 +111,27 @@ export class StatusCode {
   micro: string;
 
   macro: string;
+}
+
+export class additionalInfo {
+  key1: string;
+
+  key2: string;
+}
+export class Attachments {
+  fileName: string;
+
+  mimeType: string;
+
+  type: string;
+
+  additionalInfo: additionalInfo;
+
+  url: string;
+
+  originalUrl: string;
+
+  createdAt: string;
 }
 
 export class PickupStoreInfo {
@@ -337,6 +362,9 @@ export class OrderEntity extends Document {
   @Prop({ type: Array, required: false })
   history?: Array<History>;
 
+  @Prop({ type: Array, required: false })
+  attachments?: Array<Attachments>;
+
   @Prop({ type: String, required: false })
   originZipCode?: string; // campo só usado no relatorio
 
@@ -357,13 +385,19 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index({ orderSale: 1, invoiceKeys: 1 }, { unique: false })
   .index({ orderId: 1 }, { unique: false })
   .index(
-    { storeId: 1, status: 1, order: 1, orderSale: 1, partnerOrder: 1 },
+    {
+      storeId: 1,
+      'statusCode.micro': 1,
+      order: 1,
+      orderSale: 1,
+      partnerOrder: 1,
+    },
     { unique: false },
   )
   .index(
     {
       storeId: 1,
-      status: 1,
+      'statusCode.micro': 1,
       order: 1,
       orderSale: 1,
       partnerOrder: 1,
@@ -374,7 +408,7 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index(
     {
       storeId: 1,
-      status: 1,
+      'statusCode.micro': 1,
       order: 1,
       orderSale: 1,
       partnerOrder: 1,
@@ -385,7 +419,7 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index(
     {
       storeId: 1,
-      status: 1,
+      'statusCode.micro': 1,
       order: 1,
       orderSale: 1,
       partnerOrder: 1,
@@ -396,7 +430,7 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index(
     {
       storeId: 1,
-      status: 1,
+      'statusCode.micro': 1,
       order: 1,
       orderSale: 1,
       partnerOrder: 1,
@@ -407,7 +441,7 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index(
     {
       storeId: 1,
-      status: 1,
+      'statusCode.micro': 1,
       order: 1,
       orderSale: 1,
       partnerOrder: 1,
@@ -419,7 +453,7 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index(
     {
       storeId: 1,
-      status: 1,
+      'statusCode.micro': 1,
       order: 1,
       orderSale: 1,
       partnerOrder: 1,
@@ -432,7 +466,7 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index(
     {
       storeId: 1,
-      status: 1,
+      'statusCode.micro': 1,
       order: 1,
       orderSale: 1,
       partnerOrder: 1,
@@ -443,19 +477,22 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
     },
     { unique: false },
   )
-  .index({ storeId: 1, status: 1, receiverName: 1 }, { unique: false })
   .index(
-    { storeId: 1, status: 1, receiverName: 1, orderUpdatedAt: 1 },
+    { storeId: 1, 'statusCode.micro': 1, receiverName: 1 },
     { unique: false },
   )
   .index(
-    { storeId: 1, status: 1, receiverName: 1, orderCreatedAt: 1 },
+    { storeId: 1, 'statusCode.micro': 1, receiverName: 1, orderUpdatedAt: 1 },
+    { unique: false },
+  )
+  .index(
+    { storeId: 1, 'statusCode.micro': 1, receiverName: 1, orderCreatedAt: 1 },
     { unique: false },
   )
   .index(
     {
       storeId: 1,
-      status: 1,
+      'statusCode.micro': 1,
       receiverName: 1,
       'logisticInfo.deliveryCompany': 1,
     },
@@ -464,7 +501,7 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index(
     {
       storeId: 1,
-      status: 1,
+      'statusCode.micro': 1,
       receiverName: 1,
       orderUpdatedAt: 1,
       orderCreatedAt: 1,
@@ -474,7 +511,7 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index(
     {
       storeId: 1,
-      status: 1,
+      'statusCode.micro': 1,
       receiverName: 1,
       orderUpdatedAt: 1,
       orderCreatedAt: 1,
@@ -482,15 +519,18 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
     },
     { unique: false },
   )
-  .index({ storeId: 1, status: 1, orderUpdatedAt: 1 }, { unique: false })
   .index(
-    { storeId: 1, status: 1, orderUpdatedAt: 1, orderCreatedAt: 1 },
+    { storeId: 1, 'statusCode.micro': 1, orderUpdatedAt: 1 },
+    { unique: false },
+  )
+  .index(
+    { storeId: 1, 'statusCode.micro': 1, orderUpdatedAt: 1, orderCreatedAt: 1 },
     { unique: false },
   )
   .index(
     {
       storeId: 1,
-      status: 1,
+      'statusCode.micro': 1,
       orderUpdatedAt: 1,
       'logisticInfo.deliveryCompany': 1,
     },
@@ -499,25 +539,28 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index(
     {
       storeId: 1,
-      status: 1,
+      'statusCode.micro': 1,
       orderUpdatedAt: 1,
       orderCreatedAt: 1,
       'logisticInfo.deliveryCompany': 1,
     },
     { unique: false },
   )
-  .index({ storeId: 1, status: 1, orderCreatedAt: 1 }, { unique: false })
+  .index(
+    { storeId: 1, 'statusCode.micro': 1, orderCreatedAt: 1 },
+    { unique: false },
+  )
   .index(
     {
       storeId: 1,
-      status: 1,
+      'statusCode.micro': 1,
       orderCreatedAt: 1,
       'logisticInfo.deliveryCompany': 1,
     },
     { unique: false },
   )
   .index(
-    { storeId: 1, status: 1, 'logisticInfo.deliveryCompany': 1 },
+    { storeId: 1, 'statusCode.micro': 1, 'logisticInfo.deliveryCompany': 1 },
     { unique: false },
   )
-  .index({ storeId: 1, status: 1 }, { unique: false });
+  .index({ storeId: 1, 'statusCode.micro': 1 }, { unique: false });

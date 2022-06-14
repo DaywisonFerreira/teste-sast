@@ -24,7 +24,7 @@ export class CarrierService {
     return carrierSaved.toJSON();
   }
 
-  async findByDocument(document: string) {
+  async findByDocument(document: string): Promise<CarrierEntity> {
     return this.carrierModel.findOne({ document }).lean();
   }
 

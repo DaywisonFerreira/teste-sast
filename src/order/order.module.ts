@@ -11,10 +11,14 @@ import { OrderEntity, OrderSchema } from './schemas/order.schema';
 import { ConsumerOrderController } from './consumer/order.controller';
 import { UpdateStructureOrder } from './scripts/update-order-structure-json.service';
 import { UpdateDuplicatedOrders } from './scripts/update-duplicated-orders.service';
+import { UpdateHistoryOrders } from './scripts/update-history-orders.service';
 import { HandleStatusCode } from './scripts/handle-status-code.service';
+import { RabbitMqModule } from '../rabbitmq/rabbit.module';
+import { NestjsEventEmitter } from '../commons/providers/event/nestjs-event-emitter';
 
 @Module({
   imports: [
+    RabbitMqModule,
     MongooseModule.forFeature([
       {
         name: OrderEntity.name,
@@ -31,7 +35,9 @@ import { HandleStatusCode } from './scripts/handle-status-code.service';
     OrderService,
     UpdateStructureOrder,
     UpdateDuplicatedOrders,
+    UpdateHistoryOrders,
     HandleStatusCode,
+    { provide: 'EventProvider', useClass: NestjsEventEmitter },
   ],
   exports: [
     MongooseModule.forFeature([
@@ -40,6 +46,7 @@ import { HandleStatusCode } from './scripts/handle-status-code.service';
         schema: OrderSchema,
       },
     ]),
+    OrderService,
   ],
 })
 export class OrderModule {}
