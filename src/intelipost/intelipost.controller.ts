@@ -28,7 +28,7 @@ export class IntelipostController {
   ) {
     try {
       req.logger.verbose(
-        `Intelipost request received for order ${createIntelipost.sales_order_number}`,
+        `Intelipost request received for orderSale: ${createIntelipost.sales_order_number} order: ${createIntelipost.order_number}`,
       );
 
       await this.kafkaProducer.send(

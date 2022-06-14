@@ -33,7 +33,7 @@ export class ConsumerIntelipostController {
     const { data }: { data: CreateIntelipost } = JSON.parse(value);
 
     logger.verbose(
-      `${Env.KAFKA_TOPIC_INTELIPOST_CREATED} - Intelipost tracking received for orderSale ${data.sales_order_number} in the integration queue`,
+      `${Env.KAFKA_TOPIC_INTELIPOST_CREATED} - Intelipost tracking received for orderSale: ${data.sales_order_number} order: ${data.order_number} in the integration queue`,
     );
 
     await this.kafkaProducer.commitOffsets([

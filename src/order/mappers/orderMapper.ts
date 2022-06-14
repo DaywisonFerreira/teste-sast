@@ -1,8 +1,10 @@
 import { Types } from 'mongoose';
-import { CreateIntelipost } from 'src/intelipost/dto/create-intelipost.dto';
+import { InfraLogger } from '@infralabs/infra-logger';
 import { createBlobService } from 'azure-storage';
 import axios from 'axios';
 import { promises, createWriteStream } from 'fs';
+
+import { CreateIntelipost } from 'src/intelipost/dto/create-intelipost.dto';
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderDocument } from '../schemas/order.schema';
 import { Env } from '../../commons/environment/env';
@@ -84,31 +86,35 @@ export class OrderMapper {
     };
   }
 
-  static async mapAttachment(attachment, invoiceKey) {
-    if (attachment.type === 'POD') {
-      const fileName = `pod-${invoiceKey}${attachment.file_name}`;
+  static async mapAttachment(attachment, invoiceKey, logger: InfraLogger) {
+    try {
+      if (attachment.type === 'POD') {
+        const fileName = `pod-${invoiceKey}${attachment.file_name}`;
 
-      const downloadedUrl = await OrderMapper.downloadFromCloud(
-        attachment.url,
-        fileName,
-      );
+        const downloadedUrl = await OrderMapper.downloadFromCloud(
+          attachment.url,
+          fileName,
+        );
 
-      const uploadedUrl = await OrderMapper.uploadToCloud(
-        fileName,
-        downloadedUrl,
-      );
+        const uploadedUrl = await OrderMapper.uploadToCloud(
+          fileName,
+          downloadedUrl,
+        );
 
-      OrderMapper.deleteFileLocally(downloadedUrl);
+        OrderMapper.deleteFileLocally(downloadedUrl);
 
-      return {
-        fileName,
-        mimeType: attachment.mime_type,
-        type: attachment.type,
-        additionalInfo: attachment.additionalInfo,
-        url: uploadedUrl,
-        originalUrl: attachment.url,
-        createdAt: attachment.created_iso,
-      };
+        return {
+          fileName,
+          mimeType: attachment.mime_type,
+          type: attachment.type,
+          additionalInfo: attachment.additionalInfo,
+          url: uploadedUrl,
+          originalUrl: attachment.url,
+          createdAt: attachment.created_iso,
+        };
+      }
+    } catch (error) {
+      logger.error(error);
     }
     return {};
   }

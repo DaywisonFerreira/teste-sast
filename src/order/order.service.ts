@@ -285,7 +285,7 @@ export class OrderService {
       let attachments = data.attachments.filter(({ url }) => {
         if (originalUrls.includes(url)) {
           logger.warn(
-            `generateAttachment - Invoice key: ${invoice.key} received a duplicate file (${url}) by Intelipost and will be ignore`,
+            `generateAttachment - OrderSale: ${data.orderSale} order: ${data.partnerOrder} received a duplicate file (${url}) by Intelipost and will be ignore`,
           );
           return false;
         }
@@ -295,7 +295,7 @@ export class OrderService {
       attachments = (
         await Promise.all(
           attachments.map(attachment =>
-            OrderMapper.mapAttachment(attachment, invoice.key),
+            OrderMapper.mapAttachment(attachment, invoice.key, logger),
           ),
         )
       ).filter(o => Object.keys(o).length);
@@ -309,7 +309,7 @@ export class OrderService {
     return (
       await Promise.all(
         data.attachments.map(attachment =>
-          OrderMapper.mapAttachment(attachment, invoice.key),
+          OrderMapper.mapAttachment(attachment, invoice.key, logger),
         ),
       )
     ).filter(o => Object.keys(o).length) as Attachments[];
@@ -341,7 +341,7 @@ export class OrderService {
 
     if (historyExists) {
       logger.warn(
-        `generateHistory - Order: ${oldOrder.orderSale} received a duplicate status (statusMicro: ${data.statusCode.micro}, statusMacro: ${data.statusCode.macro}) by Intelipost and will be ignore`,
+        `generateHistory - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} received a duplicate status (statusMicro: ${data.statusCode.micro}, statusMacro: ${data.statusCode.macro}) by Intelipost and will be ignore`,
       );
       return { ignore: true, history: [] };
     }
@@ -423,7 +423,7 @@ export class OrderService {
     );
     if (!oldOrder || !Object.keys(oldOrder).length) {
       return logger.log(
-        `updateOrdersWithMultipleInvoices - OldOrder not exists. OrderSale: ${data.orderSale}`,
+        `updateOrdersWithMultipleInvoices - OldOrder not exists. OrderSale: ${data.orderSale} order: ${data.partnerOrder}`,
       );
     }
 
@@ -433,7 +433,7 @@ export class OrderService {
 
     if (OrderAlreadyFinished) {
       logger.log(
-        `updateOrdersWithMultipleInvoices - Order: ${oldOrder.orderSale} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
+        `updateOrdersWithMultipleInvoices - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
       );
 
       return { success: false, order: oldOrder };
@@ -497,7 +497,7 @@ export class OrderService {
 
     if (OrderAlreadyFinished) {
       logger.warn(
-        `updateOrder - Order: ${oldOrder.orderSale} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
+        `updateOrder - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
       );
 
       return { success: false, order: oldOrder };
