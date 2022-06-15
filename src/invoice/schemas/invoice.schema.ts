@@ -69,3 +69,5 @@ export class InvoiceEntity extends Document {
 
 export type InvoiceDocument = InvoiceEntity & Document;
 export const InvoiceSchema = SchemaFactory.createForClass(InvoiceEntity);
+
+InvoiceSchema.index({ status: 1, key: 1, 'order.externalOrderId': 1 });
