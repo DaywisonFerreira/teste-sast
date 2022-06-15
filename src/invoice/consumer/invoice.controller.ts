@@ -117,10 +117,6 @@ export class ConsumerInvoiceController {
       'X-Version': '1.0',
     };
     const logger = new InfraLogger(headers, ConsumerInvoiceController.name);
-    logger.log({
-      info: 'event invoice.reprocess received',
-      payload: filter,
-    });
     try {
       let invoices = [];
       if (filter) {
