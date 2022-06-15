@@ -93,10 +93,6 @@ export class ConsumerOrderController {
         }
 
         ordersFilter.forEach(filter => {
-          logger.log({
-            info: 'emit: invoice.reprocess',
-            filter,
-          });
           this.eventEmitter.emit('invoice.reprocess', filter);
         });
       }
