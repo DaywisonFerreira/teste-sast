@@ -94,6 +94,12 @@ export abstract class Env {
   public static readonly INTELIPOST_PASSWORD: string =
     process.env.INTELIPOST_PASSWORD;
 
+  public static readonly INTELIPOST_TOTAL_REQUESTS: string =
+    process.env.INTELIPOST_TOTAL_REQUESTS;
+
+  public static readonly INTELIPOST_RESEND_TIME: string =
+    process.env.INTELIPOST_RESEND_TIME;
+
   public static readonly RABBITMQ_URI: string = process.env.RABBITMQ_URI;
 
   public static readonly RABBITMQ_PREFETCH: number = Number.parseInt(

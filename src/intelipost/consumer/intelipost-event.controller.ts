@@ -43,6 +43,33 @@ export class OnEventIntelipostController {
         .then(res => res)
         .catch(error => error.response);
 
+      response.status = 429;
+
+      if (response.status === 429 || response.status === 500) {
+        const totalSends = parseInt(Env.INTELIPOST_TOTAL_REQUESTS || '6');
+        for (let resend = 1; resend <= totalSends; ) {
+          setTimeout(async () => {
+            const response = await axios
+              .post(
+                Env.INTELIPOST_SHIPMENT_ORDER_ENDPOINT,
+                intelipostData,
+                config,
+              )
+              .then(res => res)
+              .catch(error => error.response);
+
+            if (response.status === 429 || response.status === 500) {
+              if (resend === totalSends) {
+                throw new Error('Number of attempts exceeded');
+              } else {
+                resend++;
+              }
+            }
+          }, parseInt(Env.INTELIPOST_RESEND_TIME) * 1000);
+        }
+        return;
+      }
+
       const isValidationError =
         response.data.status === 'ERROR' && response.status === 400;
       let existingOrderNumber = '';
