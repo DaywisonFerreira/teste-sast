@@ -20,10 +20,10 @@ export class OnEventIntelipostController {
     private readonly intelipostService: InteliPostService,
     private readonly intelipostMapper: IntelipostMapper,
     private readonly invoiceService: InvoiceService,
-  ) {}
+  ) { }
 
   @OnEvent('intelipost.sent')
-  async sendIntelipostData({ headers, data, retry = false }: any) {
+  async sendIntelipostData({ headers, data, account, retry = false }: any) {
     const logger = new InfraLogger(headers, OnEventIntelipostController.name);
     const apiKey = Env.INTELIPOST_SHIPMENT_ORDER_APIKEY;
     const platform = Env.INTELIPOST_SHIPMENT_ORDER_PLATFORM;
@@ -55,7 +55,7 @@ export class OnEventIntelipostController {
       }
 
       if (isValidationError && existingOrderNumber && !retry) {
-        await this.retryIntelipostIntegration({ headers, data }, logger);
+        await this.retryIntelipostIntegration({ headers, data, account }, logger);
         return;
       }
       if (isValidationError && existingOrderNumber && retry) {
@@ -74,11 +74,20 @@ export class OnEventIntelipostController {
             intelipostData.estimated_delivery_date,
           );
 
+        const extra = account.storeCode ? {
+          storeId: account.id,
+          storeCode: account.storeCode,
+          internalOrderId: data.order.internalOrderId,
+          carrierName: carrier.carrier,
+          carrierDocument: carrier.document,
+        } : {};
+
         for await (const order of newOrders) {
           await this.intelipostService.intelipost(
             order,
             new InfraLogger(headers),
             headers,
+            extra
           );
         }
         await this.invoiceService.updateStatus(
@@ -105,7 +114,7 @@ export class OnEventIntelipostController {
   }
 
   private async retryIntelipostIntegration(
-    { headers, data },
+    { headers, data, account },
     logger,
   ): Promise<void> {
     const newData = {
@@ -118,6 +127,6 @@ export class OnEventIntelipostController {
     logger.log(
       `OrderSale (${data.order.externalOrderId}) Order (${data.order.internalOrderId}) already exists on Intelipost. Retrying with the new orderNumber: ${newData.order.internalOrderId}`,
     );
-    await this.sendIntelipostData({ headers, data: newData, retry: true });
+    await this.sendIntelipostData({ headers, data: newData, account, retry: true });
   }
 }
