@@ -66,9 +66,7 @@ export class AccountController {
 
   @Get(':id')
   @ApiOkResponse({ type: GetAccountDto })
-  async findOneAccount(
-    @Param('id') id: string,
-  ): Promise<GetAccountDto> {
+  async findOneAccount(@Param('id') id: string): Promise<GetAccountDto> {
     const account = await this.accountService.findOneAccountOrLocation(
       id,
       'account',
@@ -98,9 +96,7 @@ export class AccountController {
 
   @Get('locations/:id')
   @ApiOkResponse({ type: GetAccountDto })
-  async findOneLocation(
-    @Param('id') id: string,
-  ): Promise<GetAccountDto> {
+  async findOneLocation(@Param('id') id: string): Promise<GetAccountDto> {
     const account = await this.accountService.findOneAccountOrLocation(
       id,
       'location',
