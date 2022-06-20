@@ -103,7 +103,7 @@ export class ConsumerInvoiceController {
     }
 
     if (intelipostIntegrationIsOk) {
-      this.eventEmitter.emit('intelipost.sent', { headers, data });
+      this.eventEmitter.emit('intelipost.sent', { headers, data, account });
     }
   }
 
