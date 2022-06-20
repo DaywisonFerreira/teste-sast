@@ -52,14 +52,14 @@ export class OrderMapper {
 
     const statusCode = this.mapStatusCode(payload);
 
-    let carrierInfo: any = {}
+    const carrierInfo: any = {};
 
     if (payload.invoice.carrierName) {
-      carrierInfo.carrierName = payload.invoice.carrierName
+      carrierInfo.carrierName = payload.invoice.carrierName;
     }
 
     if (payload.invoice.carrierDocument) {
-      carrierInfo.carrierDocument = payload.invoice.carrierDocument
+      carrierInfo.carrierDocument = payload.invoice.carrierDocument;
     }
 
     return {
