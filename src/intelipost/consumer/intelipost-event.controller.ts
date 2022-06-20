@@ -38,10 +38,30 @@ export class OnEventIntelipostController {
       const { carrier, dataFormatted: intelipostData } =
         await this.intelipostMapper.mapInvoiceToIntelipost(data);
 
-      const response = await axios
-        .post(Env.INTELIPOST_SHIPMENT_ORDER_ENDPOINT, intelipostData, config)
-        .then(res => res)
-        .catch(error => error.response);
+      let response;
+
+      const totalSends = Env.INTELIPOST_TOTAL_RESEND;
+      for (let resend = 1; resend <= totalSends; resend++) {
+        response = await axios
+          .post(Env.INTELIPOST_SHIPMENT_ORDER_ENDPOINT, intelipostData, config)
+          .then(res => res)
+          .catch(error => error.response);
+
+        const error = [429, 502].includes(response?.status);
+
+        if (error && resend + 1 > totalSends) {
+          throw new Error('Number of attempts exceeded');
+        } else if (error) {
+          await new Promise(resolve =>
+            setTimeout(resolve, Env.INTELIPOST_SLEEP_RESEND),
+          );
+          logger.log(
+            `Error when try to create OrderSale (${data.order.externalOrderId}) Order (${data.order.internalOrderId}) on Intelipost. Retrying...`,
+          );
+        } else {
+          break;
+        }
+      }
 
       const intelipostErrorKey =
         'shipmentOrder.save.already.existing.order.number';

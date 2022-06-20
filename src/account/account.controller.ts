@@ -68,14 +68,10 @@ export class AccountController {
   @ApiOkResponse({ type: GetAccountDto })
   async findOneAccount(
     @Param('id') id: string,
-    @Req() req: any,
   ): Promise<GetAccountDto> {
     const account = await this.accountService.findOneAccountOrLocation(
       id,
       'account',
-    );
-    req.logger.verbose(
-      `A request has been received to get the account ${account.id}`,
     );
     // @ts-ignore
     return GetAccountDto.factory(account) as GetAccountDto;
@@ -87,29 +83,27 @@ export class AccountController {
     @Body() update: UpdateGenerateNotfisFile,
     @Req() req: any,
   ): Promise<GetAccountDto> {
-    const { generateNotfisFile, integrateIntelipost } = update;
-    const account = await this.accountService.updateGenerateNotfisFile(id, {
-      generateNotfisFile,
-      integrateIntelipost,
-    });
-    req.logger.verbose(
-      `Account location ${account.id} - Invoice generation: ${generateNotfisFile}`,
-    );
-    return GetAccountDto.factory(account) as GetAccountDto;
+    try {
+      const { generateNotfisFile, integrateIntelipost } = update;
+      const account = await this.accountService.updateGenerateNotfisFile(id, {
+        generateNotfisFile,
+        integrateIntelipost,
+      });
+      return GetAccountDto.factory(account) as GetAccountDto;
+    } catch (error) {
+      req.logger.error(error);
+      throw error;
+    }
   }
 
   @Get('locations/:id')
   @ApiOkResponse({ type: GetAccountDto })
   async findOneLocation(
     @Param('id') id: string,
-    @Req() req: any,
   ): Promise<GetAccountDto> {
     const account = await this.accountService.findOneAccountOrLocation(
       id,
       'location',
-    );
-    req.logger.verbose(
-      `A request has been received to get the location ${account.id}`,
     );
     // @ts-ignore
     return GetAccountDto.factory(account) as GetAccountDto;
@@ -128,7 +122,6 @@ export class AccountController {
       const account = await this.accountService.updateWarehouseCode(id, {
         externalWarehouseCode: warehouseCode,
       });
-      req.logger.verbose(`Account location ${warehouseCode} updated`);
       return GetAccountDto.factory(account) as GetAccountDto;
     } catch (error) {
       req.logger.error(error);
