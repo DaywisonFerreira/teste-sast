@@ -695,33 +695,35 @@ export class OrderMapper {
     orderMapper.internalOrderId = payload.internalOrderId;
 
     orderMapper.statusCode = {
-      micro: payload.statusCode.micro,
-      macro: payload.statusCode.macro,
+      micro: payload.statusCode?.micro || '',
+      macro: payload.statusCode?.macro || '',
     };
 
     orderMapper.invoice = {
-      value: payload.invoice.value,
+      value: payload.invoice?.value || 0,
     };
 
     orderMapper.carrier = {
-      name: payload.invoice.carrierName,
-      document: payload.invoice?.carrierDocument,
+      name: payload.invoice?.carrierName || '',
+      document: payload.invoice?.carrierDocument || '',
     };
 
     orderMapper.deliveryDate = payload.deliveryDate;
     orderMapper.accountName = account?.name || '';
     orderMapper.accountId = account?.id || '';
 
-    orderMapper.customer = {
-      firstName: payload.customer.firstName,
-      lastName: payload.customer.lastName,
-      document: payload.customer.document,
-      documentType: payload.customer.documentType,
-    };
+    if (payload.customer) {
+      orderMapper.customer = {
+        firstName: payload.customer?.firstName || '',
+        lastName: payload.customer?.lastName || '',
+        document: payload.customer?.document || '',
+        documentType: payload.customer?.documentType || '',
+      };
+    }
 
     orderMapper.shippingEstimateDate =
       payload.estimateDeliveryDateDeliveryCompany;
-    orderMapper.trackingUrl = payload.invoice.trackingUrl;
+    orderMapper.trackingUrl = payload.invoice?.trackingUrl || '';
 
     return orderMapper;
   }
