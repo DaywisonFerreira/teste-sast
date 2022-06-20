@@ -52,6 +52,16 @@ export class OrderMapper {
 
     const statusCode = this.mapStatusCode(payload);
 
+    let carrierInfo: any = {}
+
+    if (payload.invoice.carrierName) {
+      carrierInfo.carrierName = payload.invoice.carrierName
+    }
+
+    if (payload.invoice.carrierDocument) {
+      carrierInfo.carrierDocument = payload.invoice.carrierDocument
+    }
+
     return {
       ...extra,
       orderSale: payload.sales_order_number,
@@ -59,13 +69,12 @@ export class OrderMapper {
       orderUpdatedAt: new Date(payload.history.event_date_iso),
       invoiceKeys: [payload.invoice.invoice_key],
       invoice: {
+        ...carrierInfo,
         key: payload.invoice.invoice_key,
         serie: payload.invoice.invoice_series,
         number: payload.invoice.invoice_number,
         trackingUrl: payload.tracking_url,
         trackingNumber: payload.tracking_code,
-        carrierName: extra.carrierName ? extra.carrierName : null,
-        carrierDocument: extra.carrierDocument ? extra.carrierDocument : null,
       },
       estimateDeliveryDateDeliveryCompany: payload?.estimated_delivery_date
         ?.client

@@ -82,8 +82,6 @@ export class OnEventIntelipostController {
               storeId: account.id,
               storeCode: account.storeCode,
               internalOrderId: data.order.internalOrderId,
-              carrierName: carrier.carrier,
-              carrierDocument: carrier.document,
             }
           : {};
 
