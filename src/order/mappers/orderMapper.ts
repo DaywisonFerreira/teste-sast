@@ -41,6 +41,7 @@ interface OrderAnalysis {
 export class OrderMapper {
   static async mapPartnerToOrder(
     payload: CreateIntelipost,
+    extra: Record<string, any> = {},
   ): Promise<Partial<OrderDocument>> {
     const status =
       typeof payload.history.shipment_order_volume_state === 'string'
@@ -52,6 +53,7 @@ export class OrderMapper {
     const statusCode = this.mapStatusCode(payload);
 
     return {
+      ...extra,
       orderSale: payload.sales_order_number,
       partnerOrder: payload.order_number,
       orderUpdatedAt: new Date(payload.history.event_date_iso),
@@ -62,8 +64,8 @@ export class OrderMapper {
         number: payload.invoice.invoice_number,
         trackingUrl: payload.tracking_url,
         trackingNumber: payload.tracking_code,
-        carrierName: payload.invoice.carrierName,
-        carrierDocument: payload.invoice.carrierDocument,
+        carrierName: extra.carrierName ? extra.carrierName : null,
+        carrierDocument: extra.carrierDocument ? extra.carrierDocument : null,
       },
       estimateDeliveryDateDeliveryCompany: payload?.estimated_delivery_date
         ?.client
