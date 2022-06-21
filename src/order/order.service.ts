@@ -353,7 +353,7 @@ export class OrderService {
         return { ignore: false, history: [history] };
       }
       if (!historyExists) {
-        const historyToSort = [...oldOrder.history, history];
+        const historyToSort = [...(oldOrder?.history || []), history];
         return { ignore: false, history: historyToSort.sort(sortHistory) };
       }
     }
