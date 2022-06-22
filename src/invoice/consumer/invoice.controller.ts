@@ -79,7 +79,12 @@ export class ConsumerInvoiceController {
     }
 
     const account = await this.accountService.findOne(accountId);
+    const order = await this.orderService.findByKeyAndOrderSale(
+      data.key,
+      data.order.externalOrderId,
+    );
     const intelipostIntegrationIsOk =
+      order &&
       account.integrateIntelipost &&
       (carrier?.externalDeliveryMethodId || carrier?.externalDeliveryMethods);
 
