@@ -3,19 +3,19 @@ import {
   KafkaService,
   SubscribeTopic,
 } from '@infralabs/infra-nestjs-kafka';
-import { Inject, Controller } from '@nestjs/common';
+import { Controller, Inject } from '@nestjs/common';
 
 import { InfraLogger } from '@infralabs/infra-logger';
+import { OnEvent } from '@nestjs/event-emitter';
 import { AccountService } from 'src/account/account.service';
 import { Account, DeliveryMethods } from 'src/carrier/schemas/carrier.schema';
 import { v4 as uuidV4 } from 'uuid';
-import { OnEvent } from '@nestjs/event-emitter';
-import { NestjsEventEmitter } from '../../commons/providers/event/nestjs-event-emitter';
-import { Env } from '../../commons/environment/env';
-import { InvoiceService } from '../invoice.service';
-import { OrderService } from '../../order/order.service';
 import { CarrierService } from '../../carrier/carrier.service';
+import { Env } from '../../commons/environment/env';
+import { NestjsEventEmitter } from '../../commons/providers/event/nestjs-event-emitter';
+import { OrderService } from '../../order/order.service';
 import { InvoiceStatusEnum } from '../enums/invoice-status-enum';
+import { InvoiceService } from '../invoice.service';
 
 @Controller()
 export class ConsumerInvoiceController {

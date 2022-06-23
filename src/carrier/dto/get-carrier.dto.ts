@@ -8,8 +8,6 @@ class DeliveryMethods {
 }
 
 class Account {
-  active: boolean;
-
   id: string;
 
   externalDeliveryMethods: DeliveryMethods[];
@@ -87,7 +85,6 @@ export class GetCarrierDto {
       intelipost: {
         accounts: [
           {
-            active: true,
             id: '62138e29f97af3226d0af8a5',
             externalDeliveryMethods: [
               {

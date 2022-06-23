@@ -1,4 +1,4 @@
-import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 class Attributes {
@@ -22,8 +22,6 @@ export class DeliveryMethods {
 }
 
 export class Account {
-  active: boolean;
-
   id: string;
 
   externalDeliveryMethods: DeliveryMethods[];
