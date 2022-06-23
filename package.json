@@ -1,6 +1,6 @@
 {
   "name": "ifc.freight.api.orders",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "description": "Freight API Orders",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
@@ -32,8 +32,8 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "jest --runInBand --forceExit --passWithNoTests --no-cache",
+    "test:watch": "npm test -- --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",

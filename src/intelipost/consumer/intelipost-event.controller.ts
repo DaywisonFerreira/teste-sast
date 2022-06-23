@@ -4,11 +4,12 @@
 /* eslint-disable radix */
 
 import { InfraLogger } from '@infralabs/infra-logger';
-import { Controller } from '@nestjs/common';
+import { Controller, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import axios, { AxiosRequestConfig } from 'axios';
 
 import { Env } from 'src/commons/environment/env';
+import { ApiGateway } from '../../commons/providers/api/api-gateway.interface';
+import { IntelipostApiGatewayResponse } from '../../commons/providers/api/intelipost-api-gateway';
 import { InvoiceStatusEnum } from '../../invoice/enums/invoice-status-enum';
 import { InvoiceService } from '../../invoice/invoice.service';
 import { InteliPostService } from '../intelipost.service';
@@ -20,28 +21,39 @@ export class OnEventIntelipostController {
     private readonly intelipostService: InteliPostService,
     private readonly intelipostMapper: IntelipostMapper,
     private readonly invoiceService: InvoiceService,
+    @Inject('ApiGateway')
+    private readonly intelipostApiGateway: ApiGateway,
   ) {}
 
   @OnEvent('intelipost.sent')
   async sendIntelipostData({ headers, data, account, retry = false }: any) {
     const logger = new InfraLogger(headers, OnEventIntelipostController.name);
-    const apiKey = Env.INTELIPOST_SHIPMENT_ORDER_APIKEY;
-    const platform = Env.INTELIPOST_SHIPMENT_ORDER_PLATFORM;
-    const config: AxiosRequestConfig = {
-      headers: {
-        'APi-key': apiKey,
-        platform,
-      },
-    };
 
     try {
       const { carrier, dataFormatted: intelipostData } =
         await this.intelipostMapper.mapInvoiceToIntelipost(data);
 
-      const response = await axios
-        .post(Env.INTELIPOST_SHIPMENT_ORDER_ENDPOINT, intelipostData, config)
-        .then(res => res)
-        .catch(error => error.response);
+      let response: IntelipostApiGatewayResponse<any>;
+
+      const totalSends = Env.INTELIPOST_TOTAL_RESEND;
+      for (let resend = 1; resend <= totalSends; resend++) {
+        response = await this.intelipostApiGateway.post(intelipostData);
+
+        const error = [429, 502].includes(response?.status);
+
+        if (error && resend + 1 > totalSends) {
+          throw new Error('Number of attempts exceeded');
+        } else if (error) {
+          await new Promise(resolve =>
+            setTimeout(resolve, Env.INTELIPOST_SLEEP_RESEND),
+          );
+          logger.log(
+            `Error when try to create OrderSale (${data.order.externalOrderId}) Order (${data.order.internalOrderId}) on Intelipost. Retrying...`,
+          );
+        } else {
+          break;
+        }
+      }
 
       const intelipostErrorKey =
         'shipmentOrder.save.already.existing.order.number';
