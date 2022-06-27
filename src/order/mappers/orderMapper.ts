@@ -39,7 +39,10 @@ interface OrderAnalysis {
   internalOrderId?: string;
 }
 export class OrderMapper {
-  static mapPartnerToOrder(payload: CreateIntelipost): Partial<OrderDocument> {
+  static async mapPartnerToOrder(
+    payload: CreateIntelipost,
+    extra: Record<string, any> = {},
+  ): Promise<Partial<OrderDocument>> {
     const status =
       typeof payload.history.shipment_order_volume_state === 'string'
         ? payload.history.shipment_order_volume_state
@@ -49,19 +52,29 @@ export class OrderMapper {
 
     const statusCode = this.mapStatusCode(payload);
 
+    const carrierInfo: any = {};
+
+    if (payload.invoice.carrierName) {
+      carrierInfo.carrierName = payload.invoice.carrierName;
+    }
+
+    if (payload.invoice.carrierDocument) {
+      carrierInfo.carrierDocument = payload.invoice.carrierDocument;
+    }
+
     return {
+      ...extra,
       orderSale: payload.sales_order_number,
       partnerOrder: payload.order_number,
       orderUpdatedAt: new Date(payload.history.event_date_iso),
       invoiceKeys: [payload.invoice.invoice_key],
       invoice: {
+        ...carrierInfo,
         key: payload.invoice.invoice_key,
         serie: payload.invoice.invoice_series,
         number: payload.invoice.invoice_number,
         trackingUrl: payload.tracking_url,
         trackingNumber: payload.tracking_code,
-        carrierName: payload.invoice.carrierName,
-        carrierDocument: payload.invoice.carrierDocument,
       },
       estimateDeliveryDateDeliveryCompany: payload?.estimated_delivery_date
         ?.client
@@ -682,33 +695,35 @@ export class OrderMapper {
     orderMapper.internalOrderId = payload.internalOrderId;
 
     orderMapper.statusCode = {
-      micro: payload.statusCode.micro,
-      macro: payload.statusCode.macro,
+      micro: payload.statusCode?.micro || '',
+      macro: payload.statusCode?.macro || '',
     };
 
     orderMapper.invoice = {
-      value: payload.invoice.value,
+      value: payload.invoice?.value || 0,
     };
 
     orderMapper.carrier = {
-      name: payload.invoice.carrierName,
-      document: payload.invoice?.carrierDocument,
+      name: payload.invoice?.carrierName || '',
+      document: payload.invoice?.carrierDocument || '',
     };
 
     orderMapper.deliveryDate = payload.deliveryDate;
     orderMapper.accountName = account?.name || '';
     orderMapper.accountId = account?.id || '';
 
-    orderMapper.customer = {
-      firstName: payload.customer.firstName,
-      lastName: payload.customer.lastName,
-      document: payload.customer.document,
-      documentType: payload.customer.documentType,
-    };
+    if (payload.customer) {
+      orderMapper.customer = {
+        firstName: payload.customer?.firstName || '',
+        lastName: payload.customer?.lastName || '',
+        document: payload.customer?.document || '',
+        documentType: payload.customer?.documentType || '',
+      };
+    }
 
     orderMapper.shippingEstimateDate =
       payload.estimateDeliveryDateDeliveryCompany;
-    orderMapper.trackingUrl = payload.invoice.trackingUrl;
+    orderMapper.trackingUrl = payload.invoice?.trackingUrl || '';
 
     return orderMapper;
   }
