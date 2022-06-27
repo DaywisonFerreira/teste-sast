@@ -39,9 +39,7 @@ interface OrderAnalysis {
   internalOrderId?: string;
 }
 export class OrderMapper {
-  static mapPartnerToOrder(
-    payload: CreateIntelipost,
-  ): Partial<OrderDocument> {
+  static mapPartnerToOrder(payload: CreateIntelipost): Partial<OrderDocument> {
     const status =
       typeof payload.history.shipment_order_volume_state === 'string'
         ? payload.history.shipment_order_volume_state
