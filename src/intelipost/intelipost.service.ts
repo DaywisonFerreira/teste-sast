@@ -21,7 +21,7 @@ export class InteliPostService {
     try {
       // eslint-disable-next-line no-param-reassign
       logger.context = InteliPostService.name;
-      const order = await OrderMapper.mapPartnerToOrder(payload);
+      const order = OrderMapper.mapPartnerToOrder(payload);
 
       if (order.statusCode.macro === 'delivered') {
         order.status = order.statusCode.macro;
