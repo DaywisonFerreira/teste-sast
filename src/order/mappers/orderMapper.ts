@@ -39,10 +39,10 @@ interface OrderAnalysis {
   internalOrderId?: string;
 }
 export class OrderMapper {
-  static async mapPartnerToOrder(
+  static mapPartnerToOrder(
     payload: CreateIntelipost,
     extra: Record<string, any> = {},
-  ): Promise<Partial<OrderDocument>> {
+  ): Partial<OrderDocument> {
     const status =
       typeof payload.history.shipment_order_volume_state === 'string'
         ? payload.history.shipment_order_volume_state
