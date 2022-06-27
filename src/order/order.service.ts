@@ -353,7 +353,7 @@ export class OrderService {
         return { ignore: false, history: [history] };
       }
       if (!historyExists) {
-        const historyToSort = [...oldOrder.history, history];
+        const historyToSort = [...(oldOrder?.history || []), history];
         return { ignore: false, history: historyToSort.sort(sortHistory) };
       }
     }
@@ -422,9 +422,10 @@ export class OrderService {
       ({ invoice }) => invoice.key === data.invoice.key,
     );
     if (!oldOrder || !Object.keys(oldOrder).length) {
-      return logger.log(
+      logger.log(
         `updateOrdersWithMultipleInvoices - OldOrder not exists. OrderSale: ${data.orderSale} order: ${data.partnerOrder}`,
       );
+      return { success: false, order: data };
     }
 
     const OrderAlreadyFinished =
