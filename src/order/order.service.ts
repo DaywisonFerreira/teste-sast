@@ -334,9 +334,12 @@ export class OrderService {
 
     let historyExists = false;
     if (oldOrder && Array.isArray(oldOrder.history)) {
-      historyExists = !!oldOrder.history.find(
-        ({ statusCode }) => statusCode?.micro === data.statusCode.micro,
-      );
+      historyExists = !!oldOrder.history.find(history => {
+        return (
+          history.partnerStatusId === data.partnerStatusId &&
+          history.orderUpdatedAt.getTime() === data.orderUpdatedAt.getTime()
+        );
+      });
     }
 
     if (historyExists) {
@@ -428,9 +431,9 @@ export class OrderService {
       return { success: false, order: data };
     }
 
-    const OrderAlreadyFinished =
-      this.getStatusScale(data.statusCode.macro) ===
-      this.getStatusScale(oldOrder.statusCode.macro);
+    const OrderAlreadyFinished = this.checkIfOrderAlreadyFinished(
+      oldOrder.statusCode.micro,
+    );
 
     if (OrderAlreadyFinished) {
       logger.log(
@@ -453,9 +456,10 @@ export class OrderService {
         ? await this.generateAttachments(data, false, logger, oldOrder)
         : [];
 
-    const shouldUpdateSourceOfOrder =
-      this.getStatusScale(data.statusCode.macro) >
-      this.getStatusScale(oldOrder.statusCode.macro);
+    const shouldUpdateSourceOfOrder = this.shouldUpdateSourceOfOrder(
+      data.statusCode.macro,
+      oldOrder.statusCode.macro,
+    );
 
     const newContent = {
       ...(shouldUpdateSourceOfOrder
@@ -492,9 +496,9 @@ export class OrderService {
   }
 
   private async updateOrder(configPK, data, oldOrder, origin, options, logger) {
-    const OrderAlreadyFinished =
-      this.getStatusScale(data.statusCode.macro) ===
-      this.getStatusScale(oldOrder.statusCode.macro);
+    const OrderAlreadyFinished = this.checkIfOrderAlreadyFinished(
+      oldOrder.statusCode.micro,
+    );
 
     if (OrderAlreadyFinished) {
       logger.warn(
@@ -504,9 +508,10 @@ export class OrderService {
       return { success: false, order: oldOrder };
     }
 
-    const shouldUpdateSourceOfOrder =
-      this.getStatusScale(data.statusCode.macro) >
-      this.getStatusScale(oldOrder.statusCode.macro);
+    const shouldUpdateSourceOfOrder = this.shouldUpdateSourceOfOrder(
+      data.statusCode.macro,
+      oldOrder.statusCode.macro,
+    );
 
     const { ignore, history } = this.generateHistory(
       data,
@@ -787,5 +792,28 @@ export class OrderService {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  private shouldUpdateSourceOfOrder(
+    intelipostStatusCodeMacro: string,
+    oldOrderStatusCodeMacro: string,
+  ): boolean {
+    return (
+      this.getStatusScale(intelipostStatusCodeMacro) >=
+      this.getStatusScale(oldOrderStatusCodeMacro)
+    );
+  }
+
+  private checkIfOrderAlreadyFinished(microStatus: string): boolean {
+    const microStatusCodeFinisher = [
+      'damage',
+      'delivered-success',
+      'shippment-loss',
+      'shippment-returned',
+      'shippment-returning',
+      'shippment-stolen',
+      'waiting-post-office-pickup',
+    ];
+    return microStatusCodeFinisher.includes(microStatus);
   }
 }
