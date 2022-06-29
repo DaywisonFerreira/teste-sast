@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
-  IsBoolean,
   IsNotEmpty,
   IsString,
   ValidateNested,
@@ -17,9 +16,6 @@ class DeliveryMethods {
   externalDeliveryMethodId: string;
 }
 class Account {
-  @IsBoolean()
-  active: boolean;
-
   @IsString()
   @IsNotEmpty()
   id: string;
