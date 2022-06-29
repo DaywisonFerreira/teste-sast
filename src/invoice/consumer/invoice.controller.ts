@@ -43,7 +43,7 @@ export class ConsumerInvoiceController {
         data.carrier.document,
       );
 
-      const partnersAccounts = carrier?.partners?.intelipost?.accounts;
+      const partnersAccounts = carrier?.partners?.intelipost?.accounts || [];
 
       const deliveryMethods = this.getDeliveryMethodsFromAccount(
         accountId,
@@ -162,7 +162,7 @@ export class ConsumerInvoiceController {
             invoice.carrier.document,
           );
 
-          const partnersAccounts = carrier?.partners?.intelipost?.accounts;
+          const partnersAccounts = carrier?.partners?.intelipost?.accounts || [];
 
           const deliveryMethods = this.getDeliveryMethodsFromAccount(
             invoice.accountId,
