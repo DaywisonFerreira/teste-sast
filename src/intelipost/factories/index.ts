@@ -37,7 +37,7 @@ export const MessageOrderNotified = content => {
   };
 
   orderMapper.invoice = {
-    value: payload.invoice?.value || 0
+    value: payload.invoice?.value || 0,
   };
 
   orderMapper.carrier = {
@@ -70,7 +70,7 @@ export const MessageOrderNotified = content => {
     },
     key: uuidV4(),
     value: JSON.stringify({
-      data: orderMapper
+      data: orderMapper,
     }),
   };
 };

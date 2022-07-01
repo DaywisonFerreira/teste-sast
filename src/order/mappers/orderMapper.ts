@@ -8,6 +8,7 @@ import { CreateIntelipost } from 'src/intelipost/dto/create-intelipost.dto';
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderDocument } from '../schemas/order.schema';
 import { Env } from '../../commons/environment/env';
+
 export class OrderMapper {
   static mapPartnerToOrder(
     payload: CreateIntelipost,
