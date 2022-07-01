@@ -20,7 +20,48 @@ export const MessageIntelipostCreated = content => {
 
 // KAFKA_TOPIC_ORDER_NOTIFIED
 export const MessageOrderNotified = content => {
-  const { orderToAnalysisNotified, headers } = content;
+  const { order: payload, account, headers } = content;
+
+  const orderMapper: any = {};
+
+  orderMapper.id = payload.id;
+  orderMapper.orderSale = payload.orderSale;
+  orderMapper.orderUpdatedAt = payload.orderUpdatedAt;
+  orderMapper.orderCreatedAt = payload.orderCreatedAt;
+  orderMapper.internalOrderId = payload.internalOrderId;
+  orderMapper.partnerOrder = payload.partnerOrder;
+
+  orderMapper.statusCode = {
+    micro: payload.statusCode?.micro || '',
+    macro: payload.statusCode?.macro || '',
+  };
+
+  orderMapper.invoice = {
+    value: payload.invoice?.value || 0
+  };
+
+  orderMapper.carrier = {
+    name: payload.invoice?.carrierName || '',
+    document: payload.invoice?.carrierDocument || '',
+  };
+
+  orderMapper.deliveryDate = payload.deliveryDate;
+  orderMapper.accountName = account?.name || '';
+  orderMapper.accountId = account?.id || '';
+
+  if (payload.customer) {
+    orderMapper.customer = {
+      firstName: payload.customer?.firstName || '',
+      lastName: payload.customer?.lastName || '',
+      document: payload.customer?.document || '',
+      documentType: payload.customer?.documentType || '',
+    };
+  }
+
+  orderMapper.shippingEstimateDate =
+    payload.estimateDeliveryDateDeliveryCompany;
+  orderMapper.trackingUrl = payload.invoice?.trackingUrl || '';
+
   return {
     headers: {
       'X-Correlation-Id':
@@ -29,9 +70,7 @@ export const MessageOrderNotified = content => {
     },
     key: uuidV4(),
     value: JSON.stringify({
-      data: {
-        ...orderToAnalysisNotified,
-      },
+      data: orderMapper
     }),
   };
 };

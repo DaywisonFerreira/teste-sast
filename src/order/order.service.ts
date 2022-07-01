@@ -592,13 +592,11 @@ export class OrderService {
         account = { id: operationStatus.order.storeId };
       }
 
-      const orderToAnalysisNotified: Array<any> =
-        OrderMapper.mapMessageToOrderAnalysis(operationStatus.order, account);
-
       await this.kafkaProducer.send(
         Env.KAFKA_TOPIC_ORDER_NOTIFIED,
         MessageOrderNotified({
-          orderToAnalysisNotified,
+          order: operationStatus.order,
+          account,
           headers,
         }),
       );
