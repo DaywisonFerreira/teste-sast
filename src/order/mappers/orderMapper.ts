@@ -9,35 +9,6 @@ import { IHubOrder } from '../interfaces/order.interface';
 import { OrderDocument } from '../schemas/order.schema';
 import { Env } from '../../commons/environment/env';
 
-interface OrderAnalysis {
-  id?: string;
-  accountName?: string;
-  accountId?: string;
-  orderSale?: string;
-  orderUpdatedAt?: Date;
-  orderCreatedAt?: Date;
-  shippingEstimateDate?: Date;
-  statusCode?: {
-    micro: string;
-    macro: string;
-  };
-  invoice?: {
-    value: number;
-  };
-  carrier?: {
-    name?: string;
-    document?: string;
-  };
-  customer?: {
-    firstName: string;
-    lastName: string;
-    document: string;
-    documentType: string;
-  };
-  deliveryDate?: Date;
-  trackingUrl?: string;
-  internalOrderId?: string;
-}
 export class OrderMapper {
   static mapPartnerToOrder(
     payload: CreateIntelipost,
@@ -680,51 +651,5 @@ export class OrderMapper {
     return Number.parseFloat(
       value && value.$numberDecimal ? value.$numberDecimal : value,
     );
-  }
-
-  static mapMessageToOrderAnalysis(
-    payload: Partial<OrderDocument>,
-    account: any,
-  ): any {
-    const orderMapper: OrderAnalysis = {};
-
-    orderMapper.id = payload.id;
-    orderMapper.orderSale = payload.orderSale;
-    orderMapper.orderUpdatedAt = payload.orderUpdatedAt;
-    orderMapper.orderCreatedAt = payload.orderCreatedAt;
-    orderMapper.internalOrderId = payload.internalOrderId;
-
-    orderMapper.statusCode = {
-      micro: payload.statusCode?.micro || '',
-      macro: payload.statusCode?.macro || '',
-    };
-
-    orderMapper.invoice = {
-      value: payload.invoice?.value || 0,
-    };
-
-    orderMapper.carrier = {
-      name: payload.invoice?.carrierName || '',
-      document: payload.invoice?.carrierDocument || '',
-    };
-
-    orderMapper.deliveryDate = payload.deliveryDate;
-    orderMapper.accountName = account?.name || '';
-    orderMapper.accountId = account?.id || '';
-
-    if (payload.customer) {
-      orderMapper.customer = {
-        firstName: payload.customer?.firstName || '',
-        lastName: payload.customer?.lastName || '',
-        document: payload.customer?.document || '',
-        documentType: payload.customer?.documentType || '',
-      };
-    }
-
-    orderMapper.shippingEstimateDate =
-      payload.estimateDeliveryDateDeliveryCompany;
-    orderMapper.trackingUrl = payload.invoice?.trackingUrl || '';
-
-    return orderMapper;
   }
 }

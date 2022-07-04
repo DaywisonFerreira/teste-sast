@@ -502,7 +502,7 @@ export class OrderService {
 
     if (OrderAlreadyFinished) {
       logger.warn(
-        `updateOrder - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
+        `updateOrder - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} already finished with status: ${oldOrder.statusCode.micro}, request update with status: ${data.statusCode.micro} will be ignored`,
       );
 
       return { success: false, order: oldOrder };
@@ -592,13 +592,11 @@ export class OrderService {
         account = { id: operationStatus.order.storeId };
       }
 
-      const orderToAnalysisNotified: Array<any> =
-        OrderMapper.mapMessageToOrderAnalysis(operationStatus.order, account);
-
       await this.kafkaProducer.send(
         Env.KAFKA_TOPIC_ORDER_NOTIFIED,
         MessageOrderNotified({
-          orderToAnalysisNotified,
+          order: operationStatus.order,
+          account,
           headers,
         }),
       );
@@ -805,15 +803,7 @@ export class OrderService {
   }
 
   private checkIfOrderAlreadyFinished(microStatus: string): boolean {
-    const microStatusCodeFinisher = [
-      'damage',
-      'delivered-success',
-      'shippment-loss',
-      'shippment-returned',
-      'shippment-returning',
-      'shippment-stolen',
-      'waiting-post-office-pickup',
-    ];
+    const microStatusCodeFinisher = ['delivered-success'];
     return microStatusCodeFinisher.includes(microStatus);
   }
 }
