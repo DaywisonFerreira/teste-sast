@@ -502,7 +502,7 @@ export class OrderService {
 
     if (OrderAlreadyFinished) {
       logger.warn(
-        `updateOrder - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
+        `updateOrder - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} already finished with status: ${oldOrder.statusCode.micro}, request update with status: ${data.statusCode.micro} will be ignored`,
       );
 
       return { success: false, order: oldOrder };
@@ -803,15 +803,7 @@ export class OrderService {
   }
 
   private checkIfOrderAlreadyFinished(microStatus: string): boolean {
-    const microStatusCodeFinisher = [
-      'damage',
-      'delivered-success',
-      'shippment-loss',
-      'shippment-returned',
-      'shippment-returning',
-      'shippment-stolen',
-      'waiting-post-office-pickup',
-    ];
+    const microStatusCodeFinisher = ['delivered-success'];
     return microStatusCodeFinisher.includes(microStatus);
   }
 }
