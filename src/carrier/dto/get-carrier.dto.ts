@@ -1,6 +1,26 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { classToClass, plainToClass } from 'class-transformer';
 
+class DeliveryMethods {
+  deliveryModeName: string;
+
+  externalDeliveryMethodId: string;
+}
+
+class Account {
+  id: string;
+
+  externalDeliveryMethods: DeliveryMethods[];
+}
+
+class Intelipost {
+  accounts: Account[];
+}
+
+class Partners {
+  intelipost: Intelipost;
+}
+
 class Attributes {
   key: string;
 
@@ -13,11 +33,7 @@ class Integration {
 
   attributes: Attributes[];
 }
-class DeliveryMethods {
-  deliveryModeName: string;
 
-  externalDeliveryMethodId: string;
-}
 export class GetCarrierDto {
   @ApiProperty({
     description: 'Identifier',
@@ -63,15 +79,30 @@ export class GetCarrierDto {
   logo: string;
 
   @ApiPropertyOptional({
-    description: 'Carrier externalDeliveryMethods',
-    type: DeliveryMethods,
-    example: [
-      { deliveryModeName: 'LS SAMEDAY', externalDeliveryMethodId: '15111' },
-      { deliveryModeName: 'LS NEXTDAY', externalDeliveryMethodId: '740' },
-      { deliveryModeName: 'NORMAL', externalDeliveryMethodId: '1' },
-    ],
+    description: 'Carrier partners',
+    type: Object,
+    example: {
+      intelipost: {
+        accounts: [
+          {
+            id: '62138e29f97af3226d0af8a5',
+            externalDeliveryMethods: [
+              {
+                deliveryModeName: 'LS SAMEDAY',
+                externalDeliveryMethodId: '15111',
+              },
+              {
+                deliveryModeName: 'RAPIDA',
+                externalDeliveryMethodId: '740',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    required: false,
   })
-  externalDeliveryMethods: DeliveryMethods[];
+  partners: Partners;
 
   @ApiProperty({
     description: 'Active Carrier',

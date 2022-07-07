@@ -1,4 +1,4 @@
-import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 class Attributes {
@@ -6,6 +6,7 @@ class Attributes {
 
   value: string | number | boolean;
 }
+
 class Integration {
   type: string;
 
@@ -18,6 +19,20 @@ export class DeliveryMethods {
   deliveryModeName: string;
 
   externalDeliveryMethodId: string;
+}
+
+export class Account {
+  id: string;
+
+  externalDeliveryMethods: DeliveryMethods[];
+}
+
+export class Intelipost {
+  accounts: Account[];
+}
+
+export class Partners {
+  intelipost: Intelipost;
 }
 
 @Schema({ collection: 'carriers', timestamps: true })
@@ -40,8 +55,8 @@ export class CarrierEntity extends Document {
   @Prop({ type: String, required: false, default: '' })
   logo: string;
 
-  @Prop({ type: DeliveryMethods, required: false })
-  externalDeliveryMethods: DeliveryMethods[];
+  @Prop({ type: Partners, required: false })
+  partners: Partners;
 
   // TODO: deprecated
   @Prop({ type: String, required: false, default: '' })

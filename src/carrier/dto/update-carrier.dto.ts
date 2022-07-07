@@ -2,6 +2,37 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNotEmpty, IsString, ValidateNested } from 'class-validator';
 
+class DeliveryMethods {
+  @IsString()
+  @IsNotEmpty()
+  deliveryModeName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  externalDeliveryMethodId: string;
+}
+class Account {
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+
+  @ValidateNested({ each: true })
+  @Type(() => DeliveryMethods)
+  externalDeliveryMethods: DeliveryMethods[];
+}
+
+class Intelipost {
+  @ValidateNested({ each: true })
+  @Type(() => Account)
+  accounts: Account[];
+}
+
+class Partners {
+  @ValidateNested({ each: true })
+  @Type(() => Intelipost)
+  intelipost: Intelipost;
+}
+
 class Attributes {
   @IsString()
   key: string;
@@ -19,14 +50,6 @@ class Integration {
   @ValidateNested({ each: true })
   @Type(() => Attributes)
   attributes: Attributes[];
-}
-
-class DeliveryMethods {
-  @IsString()
-  deliveryModeName: string;
-
-  @IsString()
-  externalDeliveryMethodId: string;
 }
 
 export class UpdateCarrierDto {
@@ -48,17 +71,32 @@ export class UpdateCarrierDto {
   externalDeliveryMethodId: string;
 
   @ApiPropertyOptional({
-    description: 'External DeliveryMethods',
-    type: DeliveryMethods,
-    example: [
-      { deliveryModeName: 'LS SAMEDAY', externalDeliveryMethodId: '15111' },
-      { deliveryModeName: 'LS NEXTDAY', externalDeliveryMethodId: '740' },
-      { deliveryModeName: 'NORMAL', externalDeliveryMethodId: '1' },
-    ],
+    description: 'Carrier partners',
+    type: Object,
+    example: {
+      intelipost: {
+        accounts: [
+          {
+            id: '62138e29f97af3226d0af8a5',
+            externalDeliveryMethods: [
+              {
+                deliveryModeName: 'LS SAMEDAY',
+                externalDeliveryMethodId: '15111',
+              },
+              {
+                deliveryModeName: 'RAPIDA',
+                externalDeliveryMethodId: '740',
+              },
+            ],
+          },
+        ],
+      },
+    },
     required: false,
   })
-  @ValidateNested({ each: true })
-  externalDeliveryMethods: DeliveryMethods[];
+  @ValidateNested()
+  @Type(() => Partners)
+  partners: Partners;
 
   @ApiProperty({
     description: 'Carrier integration',

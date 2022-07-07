@@ -49,14 +49,14 @@ export class CarrierController {
       const {
         generateNotfisFile,
         integration,
-        externalDeliveryMethods,
+        partners,
         externalDeliveryMethodId,
       } = updateShippingDto;
 
       const carrier = await this.carrierService.update(id, {
         generateNotfisFile,
         integration,
-        externalDeliveryMethods,
+        partners,
         externalDeliveryMethodId,
       });
       req.logger.verbose(`Carrier id: ${carrier.id} updated`);

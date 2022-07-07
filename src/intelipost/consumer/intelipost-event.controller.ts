@@ -2,7 +2,7 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable radix */
-
+import { Types } from 'mongoose';
 import { InfraLogger } from '@infralabs/infra-logger';
 import { Controller, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
@@ -91,7 +91,7 @@ export class OnEventIntelipostController {
 
         const extra = account.storeCode
           ? {
-              storeId: account.id,
+              storeId: new Types.ObjectId(account.id),
               storeCode: account.storeCode,
               internalOrderId: data.order.internalOrderId,
             }
