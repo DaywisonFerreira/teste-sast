@@ -78,9 +78,10 @@ export class CsvMapper {
         const matchHistory = history.find(h => h.statusCode.micro === status);
         return {
           ...acc,
-          [statusMapper[status]]: matchHistory
-            ? matchHistory.orderUpdatedAt.toISOString()
-            : '',
+          [statusMapper[status]]:
+            matchHistory && matchHistory.orderUpdatedAt
+              ? matchHistory.orderUpdatedAt?.toISOString()
+              : '',
         };
       }, {});
 
@@ -109,14 +110,17 @@ export class CsvMapper {
           .map(({ carrierName }: { carrierName: string }) => carrierName)
           .join(', '),
         Transportadora: logisticInfo && logisticInfo[0].deliveryCompany,
-        'Data Despacho': dispatchDate.toISOString(),
+        'Data Despacho': dispatchDate ? dispatchDate?.toISOString() : '',
         'Status Transportador': statusCode,
-        'Data do último status': orderUpdatedAt.toISOString(),
-        'Data Entrega': deliveryDate.toISOString(),
+        'Data do último status': orderUpdatedAt
+          ? orderUpdatedAt?.toISOString()
+          : '',
+        'Data Entrega': deliveryDate ? deliveryDate?.toISOString() : '',
         'Previsão Entrega Cliente':
           logisticInfo && logisticInfo[0].shippingEstimateDate,
-        'Previsão Entrega Transp.':
-          estimateDeliveryDateDeliveryCompany.toISOString(),
+        'Previsão Entrega Transp.': estimateDeliveryDateDeliveryCompany
+          ? estimateDeliveryDateDeliveryCompany?.toISOString()
+          : '',
         'Mensagem Intelipost': partnerMessage,
         'Preço Frete': logisticInfo.reduce(
           (price: number, { sellingPrice }: ILogisticInfo) => {
@@ -125,7 +129,9 @@ export class CsvMapper {
           0,
         ),
         'No Volumes': numberVolumes,
-        'Data Criação Pedido': orderCreatedAt.toISOString(),
+        'Data Criação Pedido': orderCreatedAt
+          ? orderCreatedAt?.toISOString()
+          : '',
         MicroStatus: partnerStatus,
         'Pagina Rastreamento': billingData
           .map(({ trackingUrl }: { trackingUrl: string }) => trackingUrl)
@@ -151,7 +157,7 @@ export class CsvMapper {
         'Última Ocorrência (Micro)': lastOccurrenceMicro,
         'Última Ocorrência (Mensagem)': lastOccurrenceMessage,
         'Quantidade de Ocorrências': quantityOccurrences,
-        'Data_Hora Pagamento': paymentDate.toISOString(),
+        'Data_Hora Pagamento': paymentDate ? paymentDate?.toISOString() : '',
         ...histories,
       };
     });
