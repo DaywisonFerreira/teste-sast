@@ -47,7 +47,6 @@ export class CsvMapper {
 
       const statusMapper = {
         created: 'Pedido criado',
-        invoiced: 'Faturado',
         dispatched: 'Despachado',
         'hub-transfer': 'Em transferência entre hubs',
         'carrier-possession': 'Em posse da transportadora',
