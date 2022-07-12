@@ -47,13 +47,14 @@ export class CsvMapper {
 
       const statusMapper = {
         created: 'Pedido criado',
-        'operational-problem': 'Problema operacional',
+        invoiced: 'Faturado',
+        dispatched: 'Despachado',
+        'hub-transfer': 'Em transferência entre hubs',
         'carrier-possession': 'Em posse da transportadora',
-        'first-delivery-failed': 'Insucesso na primeira tentativa de entrega',
+        'delivery-route': 'Em rota de entrega',
+        'operational-problem': 'Problema operacional',
         'address-error': 'Erro no endereço',
         'shippment-loss': 'Extravio',
-        'hub-transfer': 'Em transferência entre hubs',
-        'delivery-route': 'Em rota de entrega',
         'shippment-returned': 'Devolvido',
         'zip-code-not-serviced': 'CEP não atendido pela transportadora',
         'customer-refused': 'Cliente recusou a carga',
@@ -61,14 +62,13 @@ export class CsvMapper {
         'away-customer': 'Cliente ausente',
         'shippment-stolen': 'Roubo',
         'tax-stop': 'Parada no posto fiscal',
-        dispatched: 'Despachado',
         'shippment-returning': 'Em devolução',
-        'delivered-success': 'Entregue',
         'waiting-post-office-pickup':
           'Aguardando retirada na agência dos Correios',
         damage: 'Avaria',
         'unknown-customer': 'Cliente desconhecido',
-        invoiced: 'Faturado',
+        'first-delivery-failed': 'Insucesso na primeira tentativa de entrega',
+        'delivered-success': 'Entregue',
       };
 
       const statusCode = data.statusCode?.micro
@@ -80,7 +80,7 @@ export class CsvMapper {
         return {
           ...acc,
           [statusMapper[status]]: matchHistory
-            ? matchHistory.orderUpdatedAt
+            ? matchHistory.orderUpdatedAt.toISOString()
             : '',
         };
       }, {});
@@ -110,13 +110,13 @@ export class CsvMapper {
           .map(({ carrierName }: { carrierName: string }) => carrierName)
           .join(', '),
         Transportadora: logisticInfo && logisticInfo[0].deliveryCompany,
-        'Data Despacho': dispatchDate,
+        'Data Despacho': dispatchDate.toISOString(),
         'Status Transportador': statusCode,
-        'Data do último status': orderUpdatedAt,
-        'Data Entrega': deliveryDate,
+        'Data do último status': orderUpdatedAt.toISOString(),
+        'Data Entrega': deliveryDate.toISOString(),
         'Previsão Entrega Cliente':
           logisticInfo && logisticInfo[0].shippingEstimateDate,
-        'Previsão Entrega Transp.': estimateDeliveryDateDeliveryCompany,
+        'Previsão Entrega Transp.': estimateDeliveryDateDeliveryCompany.toISOString(),
         'Mensagem Intelipost': partnerMessage,
         'Preço Frete': logisticInfo.reduce(
           (price: number, { sellingPrice }: ILogisticInfo) => {
@@ -125,7 +125,7 @@ export class CsvMapper {
           0,
         ),
         'No Volumes': numberVolumes,
-        'Data Criação Pedido': orderCreatedAt,
+        'Data Criação Pedido': orderCreatedAt.toISOString(),
         MicroStatus: partnerStatus,
         'Pagina Rastreamento': billingData
           .map(({ trackingUrl }: { trackingUrl: string }) => trackingUrl)
@@ -151,7 +151,7 @@ export class CsvMapper {
         'Última Ocorrência (Micro)': lastOccurrenceMicro,
         'Última Ocorrência (Mensagem)': lastOccurrenceMessage,
         'Quantidade de Ocorrências': quantityOccurrences,
-        'Data_Hora Pagamento': paymentDate,
+        'Data_Hora Pagamento': paymentDate.toISOString(),
         ...histories,
       };
     });
