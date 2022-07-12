@@ -75,18 +75,15 @@ export class CsvMapper {
         ? statusMapper[data.statusCode.micro]
         : '';
 
-      const histories = !history
-        ? []
-        : history
-            .map(historyStatus =>
-              historyStatus.statusCode?.micro
-                ? {
-                    [statusMapper[historyStatus.statusCode.micro]]:
-                      historyStatus.orderUpdatedAt,
-                  }
-                : {},
-            )
-            .filter(historyStatus => Object.keys(historyStatus).length);
+      const histories = Object.keys(statusMapper).reduce((acc, status) => {
+        const matchHistory = history.find(h => h.statusCode.micro === status);
+        return {
+          ...acc,
+          [statusMapper[status]]: matchHistory
+            ? matchHistory.orderUpdatedAt
+            : '',
+        };
+      }, {});
 
       return {
         'Nome do Destinatário': receiverName,
