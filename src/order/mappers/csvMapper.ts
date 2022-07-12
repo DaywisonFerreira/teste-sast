@@ -116,7 +116,8 @@ export class CsvMapper {
         'Data Entrega': deliveryDate.toISOString(),
         'Previsão Entrega Cliente':
           logisticInfo && logisticInfo[0].shippingEstimateDate,
-        'Previsão Entrega Transp.': estimateDeliveryDateDeliveryCompany.toISOString(),
+        'Previsão Entrega Transp.':
+          estimateDeliveryDateDeliveryCompany.toISOString(),
         'Mensagem Intelipost': partnerMessage,
         'Preço Frete': logisticInfo.reduce(
           (price: number, { sellingPrice }: ILogisticInfo) => {
