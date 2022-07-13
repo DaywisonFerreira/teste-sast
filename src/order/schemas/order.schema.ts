@@ -381,186 +381,20 @@ export class OrderEntity extends Document {
 export type OrderDocument = OrderEntity & Document;
 export const OrderSchema = SchemaFactory.createForClass(OrderEntity);
 
-OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
-  .index({ orderSale: 1, invoiceKeys: 1 }, { unique: false })
-  .index({ orderId: 1 }, { unique: false })
+OrderSchema.index({ storeId: 1, 'statusCode.micro': 1 }, { unique: false })
+  .index({storeId: 1, orderCreatedAt: 1}, {unique: false})
   .index(
     {
       storeId: 1,
-      'statusCode.micro': 1,
       order: 1,
       orderSale: 1,
       partnerOrder: 1,
-    },
-    { unique: false },
-  )
-  .index(
-    {
-      storeId: 1,
-      'statusCode.micro': 1,
-      order: 1,
-      orderSale: 1,
-      partnerOrder: 1,
-      receiverName: 1,
-    },
-    { unique: false },
-  )
-  .index(
-    {
-      storeId: 1,
-      'statusCode.micro': 1,
-      order: 1,
-      orderSale: 1,
-      partnerOrder: 1,
-      orderUpdatedAt: 1,
-    },
-    { unique: false },
-  )
-  .index(
-    {
-      storeId: 1,
-      'statusCode.micro': 1,
-      order: 1,
-      orderSale: 1,
-      partnerOrder: 1,
-      orderCreatedAt: 1,
-    },
-    { unique: false },
-  )
-  .index(
-    {
-      storeId: 1,
-      'statusCode.micro': 1,
-      order: 1,
-      orderSale: 1,
-      partnerOrder: 1,
+      'customer.firstName': 1,
+      'customer.fullName': 1,
+      'billingData.customerDocument': 1,
       'logisticInfo.deliveryCompany': 1,
-    },
-    { unique: false },
-  )
-  .index(
-    {
-      storeId: 1,
-      'statusCode.micro': 1,
-      order: 1,
-      orderSale: 1,
-      partnerOrder: 1,
-      receiverName: 1,
-      orderUpdatedAt: 1,
-    },
-    { unique: false },
-  )
-  .index(
-    {
-      storeId: 1,
-      'statusCode.micro': 1,
-      order: 1,
-      orderSale: 1,
-      partnerOrder: 1,
-      receiverName: 1,
       orderUpdatedAt: 1,
       orderCreatedAt: 1,
     },
     { unique: false },
   )
-  .index(
-    {
-      storeId: 1,
-      'statusCode.micro': 1,
-      order: 1,
-      orderSale: 1,
-      partnerOrder: 1,
-      receiverName: 1,
-      orderUpdatedAt: 1,
-      orderCreatedAt: 1,
-      'logisticInfo.deliveryCompany': 1,
-    },
-    { unique: false },
-  )
-  .index(
-    { storeId: 1, 'statusCode.micro': 1, receiverName: 1 },
-    { unique: false },
-  )
-  .index(
-    { storeId: 1, 'statusCode.micro': 1, receiverName: 1, orderUpdatedAt: 1 },
-    { unique: false },
-  )
-  .index(
-    { storeId: 1, 'statusCode.micro': 1, receiverName: 1, orderCreatedAt: 1 },
-    { unique: false },
-  )
-  .index(
-    {
-      storeId: 1,
-      'statusCode.micro': 1,
-      receiverName: 1,
-      'logisticInfo.deliveryCompany': 1,
-    },
-    { unique: false },
-  )
-  .index(
-    {
-      storeId: 1,
-      'statusCode.micro': 1,
-      receiverName: 1,
-      orderUpdatedAt: 1,
-      orderCreatedAt: 1,
-    },
-    { unique: false },
-  )
-  .index(
-    {
-      storeId: 1,
-      'statusCode.micro': 1,
-      receiverName: 1,
-      orderUpdatedAt: 1,
-      orderCreatedAt: 1,
-      'logisticInfo.deliveryCompany': 1,
-    },
-    { unique: false },
-  )
-  .index(
-    { storeId: 1, 'statusCode.micro': 1, orderUpdatedAt: 1 },
-    { unique: false },
-  )
-  .index(
-    { storeId: 1, 'statusCode.micro': 1, orderUpdatedAt: 1, orderCreatedAt: 1 },
-    { unique: false },
-  )
-  .index(
-    {
-      storeId: 1,
-      'statusCode.micro': 1,
-      orderUpdatedAt: 1,
-      'logisticInfo.deliveryCompany': 1,
-    },
-    { unique: false },
-  )
-  .index(
-    {
-      storeId: 1,
-      'statusCode.micro': 1,
-      orderUpdatedAt: 1,
-      orderCreatedAt: 1,
-      'logisticInfo.deliveryCompany': 1,
-    },
-    { unique: false },
-  )
-  .index(
-    { storeId: 1, 'statusCode.micro': 1, orderCreatedAt: 1 },
-    { unique: false },
-  )
-  .index(
-    {
-      storeId: 1,
-      'statusCode.micro': 1,
-      orderCreatedAt: 1,
-      'logisticInfo.deliveryCompany': 1,
-    },
-    { unique: false },
-  )
-  .index(
-    { storeId: 1, 'statusCode.micro': 1, 'logisticInfo.deliveryCompany': 1 },
-    { unique: false },
-  )
-  .index({ storeId: 1, 'statusCode.micro': 1 }, { unique: false });
