@@ -382,7 +382,7 @@ export type OrderDocument = OrderEntity & Document;
 export const OrderSchema = SchemaFactory.createForClass(OrderEntity);
 
 OrderSchema.index({ storeId: 1, 'statusCode.micro': 1 }, { unique: false })
-  .index({storeId: 1, orderCreatedAt: 1}, {unique: false})
+  .index({ storeId: 1, orderCreatedAt: 1 }, { unique: false })
   .index(
     {
       storeId: 1,
@@ -397,4 +397,4 @@ OrderSchema.index({ storeId: 1, 'statusCode.micro': 1 }, { unique: false })
       orderCreatedAt: 1,
     },
     { unique: false },
-  )
+  );
