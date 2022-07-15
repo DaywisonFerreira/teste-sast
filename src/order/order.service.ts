@@ -58,10 +58,11 @@ export class OrderService {
       };
     }
 
-    if ( shippingEstimateDate){
+    if (shippingEstimateDate) {
       filter['logisticInfo.shippingEstimateDate'] = {
-         $regex: `${shippingEstimateDate}.*`, $options: 'i' 
-      }
+        $regex: `${shippingEstimateDate}.*`,
+        $options: 'i',
+      };
     }
 
     if (search) {
