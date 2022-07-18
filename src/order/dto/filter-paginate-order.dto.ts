@@ -31,13 +31,22 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
   orderCreatedAtTo?: string | null;
 
   @ApiPropertyOptional({
-    description: 'Estimated date of the delivery',
+    description: 'Estimated date of the delivery (start)',
     type: String,
     example: '2022-01-18',
     required: false,
   })
   @IsOptional()
-  shippingEstimateDate?: string | null;
+  shippingEstimateDateFrom?: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Estimated date of the delivery (end)',
+    type: String,
+    example: '2022-01-18',
+    required: false,
+  })
+  @IsOptional()
+  shippingEstimateDateTo?: string | null;
 
   @ApiPropertyOptional({
     description: 'Status code of order',

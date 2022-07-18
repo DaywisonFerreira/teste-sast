@@ -43,7 +43,8 @@ export class OrderService {
     storeId,
     orderCreatedAtFrom,
     orderCreatedAtTo,
-    shippingEstimateDate,
+    shippingEstimateDateFrom,
+    shippingEstimateDateTo,
     statusCode,
   }): Promise<[LeanDocument<OrderEntity[]>, number]> {
     const filter: any = {};
@@ -55,13 +56,6 @@ export class OrderService {
     if (statusCode) {
       filter['statusCode.micro'] = {
         $in: statusCode.split(','),
-      };
-    }
-
-    if (shippingEstimateDate) {
-      filter['logisticInfo.shippingEstimateDate'] = {
-        $regex: `${shippingEstimateDate}.*`,
-        $options: 'i',
       };
     }
 
@@ -86,6 +80,23 @@ export class OrderService {
           },
         },
       ];
+    }
+
+    if (shippingEstimateDateFrom && shippingEstimateDateTo) {
+      const dateFrom = new Date(`${shippingEstimateDateFrom} 00:00:00-03:00`);
+      const dateTo = new Date(`${shippingEstimateDateTo} 23:59:59-03:00`);
+      this.validateRangeOfDates(dateFrom, dateTo);
+      filter.estimateDeliveryDateDeliveryCompany = {
+        $gte: dateFrom,
+        $lte: dateTo,
+      };
+    }
+
+    if (shippingEstimateDateFrom && !shippingEstimateDateTo) {
+      filter.estimateDeliveryDateDeliveryCompany = {
+        $gte: new Date(`${shippingEstimateDateFrom} 00:00:00-03:00`),
+        $lte: new Date(`${shippingEstimateDateFrom} 23:59:59-03:00`),
+      };
     }
 
     if (orderCreatedAtFrom && orderCreatedAtTo) {
