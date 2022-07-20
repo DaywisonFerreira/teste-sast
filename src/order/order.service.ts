@@ -79,6 +79,7 @@ export class OrderService {
             $options: 'i',
           },
         },
+        { 'invoice.number': { $regex: `${search}.*`, $options: 'i' } },
       ];
     }
 
