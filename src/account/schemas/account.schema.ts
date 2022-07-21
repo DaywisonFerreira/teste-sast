@@ -1,7 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Type } from 'class-transformer';
 import { Document } from 'mongoose';
-import { SalesChannelEntity } from '../../sales-channel/schemas/sales-channel.schema';
 
 export enum AccountTypeEnum {
   location = 'location',
@@ -52,8 +50,7 @@ export class AccountEntity extends Document {
     default: [],
     required: false,
   })
-  @Type(() => SalesChannelEntity)
-  salesChannels: SalesChannelEntity[];
+  salesChannels: string[];
 
   @Prop({ type: Boolean, default: false, required: false })
   generateNotfisFile: boolean;
