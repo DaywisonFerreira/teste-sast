@@ -385,7 +385,10 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index({ orderSale: 1, invoiceKeys: 1 }, { unique: false })
   .index({ orderId: 1 }, { unique: false })
   .index({ storeId: 1, orderCreatedAt: 1 }, { unique: false })
-  .index({ storeId: 1, orderCreatedAt: 1, orderUpdatedAt: 1, 'statusCode.micro': 1 }, { unique: false })
+  .index(
+    { storeId: 1, orderCreatedAt: 1, orderUpdatedAt: 1, 'statusCode.micro': 1 },
+    { unique: false },
+  )
   .index(
     {
       storeId: 1,
