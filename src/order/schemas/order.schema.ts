@@ -387,7 +387,12 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index({ orderId: 1 }, { unique: false })
   .index({ storeId: 1, orderCreatedAt: 1 }, { unique: false })
   .index(
-    { storeId: 1, orderCreatedAt: 1, estimateDeliveryDateDeliveryCompany: 1, 'statusCode.micro': 1 },
+    {
+      storeId: 1,
+      orderCreatedAt: 1,
+      estimateDeliveryDateDeliveryCompany: 1,
+      'statusCode.micro': 1,
+    },
     { unique: false },
   )
   .index(
