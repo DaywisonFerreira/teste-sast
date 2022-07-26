@@ -47,18 +47,18 @@ export class CsvMapper {
 
       // DO NOT CHANGE THE ORDER
       const statusMapper = {
-        created: 'Pedido criado',
+        created: 'Criado',
         dispatched: 'Despachado',
-        'hub-transfer': 'Em processo de entrega',
-        'carrier-possession': 'Em processo de entrega',
+        'hub-transfer': 'Em processo de entrega (hub-transfer)',
+        'carrier-possession': 'Em processo de entrega (carrier-possession)',
         'delivery-route': 'Em rota de entrega',
         'operational-problem': 'Problema operacional',
-        'address-error': 'Endereço Insuficiente',
+        'address-error': 'Endereço Insuficiente (address-error)',
         'shippment-loss': 'Extravio',
         'shippment-returned': 'Devolvido',
-        'zip-code-not-serviced': 'Problema operacional',
+        'zip-code-not-serviced': 'Problema operacional (zip-code-not-serviced)',
         'customer-refused': 'Recusado pelo destinatario',
-        'address-not-found': 'Endereço Insuficiente',
+        'address-not-found': 'Endereço Insuficiente (address-not-found)',
         'away-customer': 'Destinatário Ausente',
         'shippment-stolen': 'Roubo',
         'tax-stop': 'Parada no posto fiscal',
@@ -67,7 +67,7 @@ export class CsvMapper {
           'Aguardando retirada na agência dos Correios',
         damage: 'Avaria',
         'unknown-customer': 'Destinatário desconhecido',
-        'first-delivery-failed': 'Problema operacional',
+        'first-delivery-failed': 'Problema operacional (first-delivery-failed)',
         'delivered-success': 'Entregue',
       };
 
