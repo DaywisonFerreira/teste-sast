@@ -47,7 +47,7 @@ export class CsvMapper {
 
       // DO NOT CHANGE THE ORDER
       const statusMapper = {
-        created: 'Pedido criado',
+        created: 'Criado',
         dispatched: 'Despachado',
         'hub-transfer': 'Em processo de entrega',
         'carrier-possession': 'Em processo de entrega',
