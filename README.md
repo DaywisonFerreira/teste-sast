@@ -1,5 +1,6 @@
 ## ifc.freight.api.orders
 
+
 Detalhamento de comunicação com filas do tipo "fanout":
 
 - [Pacote NPM utilizado para comunicação com RabbitMq](https://www.npmjs.com/package/@golevelup/nestjs-rabbitmq)

@@ -45,28 +45,29 @@ export class CsvMapper {
         history,
       } = data;
 
+      // DO NOT CHANGE THE ORDER
       const statusMapper = {
-        created: 'Pedido criado',
+        created: 'Criado',
         dispatched: 'Despachado',
-        'hub-transfer': 'Em transferência entre hubs',
-        'carrier-possession': 'Em posse da transportadora',
+        'hub-transfer': 'Em processo de entrega (hub-transfer)',
+        'carrier-possession': 'Em processo de entrega (carrier-possession)',
         'delivery-route': 'Em rota de entrega',
         'operational-problem': 'Problema operacional',
-        'address-error': 'Erro no endereço',
+        'address-error': 'Endereço Insuficiente (address-error)',
         'shippment-loss': 'Extravio',
         'shippment-returned': 'Devolvido',
-        'zip-code-not-serviced': 'CEP não atendido pela transportadora',
-        'customer-refused': 'Cliente recusou a carga',
-        'address-not-found': 'Endereço não encontrado',
-        'away-customer': 'Cliente ausente',
+        'zip-code-not-serviced': 'Problema operacional (zip-code-not-serviced)',
+        'customer-refused': 'Recusado pelo destinatario',
+        'address-not-found': 'Endereço Insuficiente (address-not-found)',
+        'away-customer': 'Destinatário Ausente',
         'shippment-stolen': 'Roubo',
         'tax-stop': 'Parada no posto fiscal',
         'shippment-returning': 'Em devolução',
         'waiting-post-office-pickup':
           'Aguardando retirada na agência dos Correios',
         damage: 'Avaria',
-        'unknown-customer': 'Cliente desconhecido',
-        'first-delivery-failed': 'Insucesso na primeira tentativa de entrega',
+        'unknown-customer': 'Destinatário desconhecido',
+        'first-delivery-failed': 'Problema operacional (first-delivery-failed)',
         'delivered-success': 'Entregue',
       };
 
