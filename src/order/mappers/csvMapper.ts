@@ -76,7 +76,7 @@ export class CsvMapper {
         : '';
 
       const histories = Object.keys(statusMapper).reduce((acc, status) => {
-        const matchHistory = history.find(h => h.statusCode?.micro === status);
+        const matchHistory = history?.find(h => h.statusCode?.micro === status);
         return {
           ...acc,
           [statusMapper[status]]:
