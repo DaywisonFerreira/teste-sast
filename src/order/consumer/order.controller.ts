@@ -126,7 +126,6 @@ export class ConsumerOrderController {
     );
     try {
       file = await this.orderService.exportData(data, user.id, logger);
-      console.log(file);
       const urlFile = await this.uploadFile(file);
 
       await this.kafkaProducer.send(Env.KAFKA_TOPIC_NOTIFY_MESSAGE_WEBSOCKET, {
