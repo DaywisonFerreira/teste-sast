@@ -38,6 +38,7 @@ export const MessageOrderNotified = content => {
 
   orderMapper.invoice = {
     value: payload.invoice?.value || 0,
+    number: payload.invoice?.number || '',
   };
 
   orderMapper.carrier = {
