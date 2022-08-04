@@ -16,6 +16,14 @@ export class ExportOrdersDto {
     required: true,
   })
   orderCreatedAtTo: string;
+
+  @ApiProperty({
+    description: 'Type of the  file ',
+    type: String,
+    example: 'xlsx or csv',
+    required: true,
+  }) // required false mas verificar se não existir default csv
+  type: string;
 }
 
 export class HeadersExportOrdersDto {
