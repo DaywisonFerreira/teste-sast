@@ -847,6 +847,16 @@ export class OrderService {
     if (!wb && !ws) {
       workbook = utils.book_new();
       worksheet = utils.json_to_sheet(data, { skipHeader });
+      if (last) {
+        utils.book_append_sheet(workbook, worksheet);
+        writeFile(workbook, `${directory_path}/${fileName}`);
+      }
+      return {
+        path: `${directory_path}/${fileName}`,
+        fileName,
+        worksheet,
+        workbook,
+      };
     } else {
       utils.sheet_add_json(ws, data, { skipHeader, origin: -1 });
     }
@@ -855,6 +865,9 @@ export class OrderService {
       utils.book_append_sheet(wb, ws);
       writeFile(wb, `${directory_path}/${fileName}`);
     }
+
+    worksheet = ws
+    workbook = wb 
 
     return {
       path: `${directory_path}/${fileName}`,
