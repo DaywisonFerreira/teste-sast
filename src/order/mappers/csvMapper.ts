@@ -66,18 +66,21 @@ export class CsvMapper {
         'waiting-post-office-pickup':
           'Aguardando retirada na agência dos Correios',
         damage: 'Avaria',
-        'invoiced': 'Faturado',
+        invoiced: 'Faturado',
         'unknown-customer': 'Destinatário desconhecido',
         'first-delivery-failed': 'Problema operacional (first-delivery-failed)',
         'delivered-success': 'Entregue',
       };
 
-      let statusCode = ''
+      let statusCode = '';
 
       if (data.statusCode?.micro && statusMapper[data.statusCode.micro]) {
-        statusCode = statusMapper[data.statusCode.micro]
-      } else if (data.statusCode?.micro && !statusMapper[data.statusCode.micro]) {
-        statusCode = data.statusCode.micro
+        statusCode = statusMapper[data.statusCode.micro];
+      } else if (
+        data.statusCode?.micro &&
+        !statusMapper[data.statusCode.micro]
+      ) {
+        statusCode = data.statusCode.micro;
       }
 
       const histories = Object.keys(statusMapper).reduce((acc, status) => {

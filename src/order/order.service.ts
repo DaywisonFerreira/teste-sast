@@ -857,17 +857,16 @@ export class OrderService {
         worksheet,
         workbook,
       };
-    } else {
-      utils.sheet_add_json(ws, data, { skipHeader, origin: -1 });
     }
+    utils.sheet_add_json(ws, data, { skipHeader, origin: -1 });
 
     if (last) {
       utils.book_append_sheet(wb, ws);
       writeFile(wb, `${directory_path}/${fileName}`);
     }
 
-    worksheet = ws
-    workbook = wb 
+    worksheet = ws;
+    workbook = wb;
 
     return {
       path: `${directory_path}/${fileName}`,
