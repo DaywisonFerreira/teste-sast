@@ -68,18 +68,19 @@ export class OrderService {
         { 'customer.firstName': { $regex: `${search}.*`, $options: 'i' } },
         { 'customer.fullName': { $regex: `${search}.*`, $options: 'i' } },
         {
-          'billingData.customerDocument': {
+          'invoice.customerDocument': {
             $regex: `${search}.*`,
             $options: 'i',
           },
         },
+        { 'invoice.number': { $regex: `${search}.*`, $options: 'i' } },
         {
           'logisticInfo.deliveryCompany': {
             $regex: `${search}.*`,
             $options: 'i',
           },
         },
-        { 'invoice.number': { $regex: `${search}.*`, $options: 'i' } },
+
       ];
     }
 
