@@ -80,7 +80,6 @@ export class OrderService {
             $options: 'i',
           },
         },
-
       ];
     }
 

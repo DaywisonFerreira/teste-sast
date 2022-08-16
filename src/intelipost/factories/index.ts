@@ -65,7 +65,9 @@ export const MessageOrderNotified = content => {
   orderMapper.shippingEstimateDate =
     payload.estimateDeliveryDateDeliveryCompany;
 
-  orderMapper.deliveryCompany = payload.logisticInfo?.length ? (payload.logisticInfo[0].deliveryCompany || '') : '';
+  orderMapper.deliveryCompany = payload.logisticInfo?.length
+    ? payload.logisticInfo[0].deliveryCompany || ''
+    : '';
 
   return {
     headers: {
