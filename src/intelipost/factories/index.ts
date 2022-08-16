@@ -38,6 +38,9 @@ export const MessageOrderNotified = content => {
 
   orderMapper.invoice = {
     value: payload.invoice?.value || 0,
+    number: payload.invoice?.number || '',
+    trackingUrl: payload.invoice?.trackingUrl || '',
+    customerDocument: payload.invoice?.customerDocument || '',
   };
 
   orderMapper.carrier = {
@@ -53,6 +56,7 @@ export const MessageOrderNotified = content => {
     orderMapper.customer = {
       firstName: payload.customer?.firstName || '',
       lastName: payload.customer?.lastName || '',
+      fullName: payload.customer?.fullName || '',
       document: payload.customer?.document || '',
       documentType: payload.customer?.documentType || '',
     };
@@ -60,10 +64,14 @@ export const MessageOrderNotified = content => {
 
   orderMapper.shippingEstimateDate =
     payload.estimateDeliveryDateDeliveryCompany;
-  orderMapper.trackingUrl = payload.invoice?.trackingUrl || '';
+
+  orderMapper.deliveryCompany = payload.logisticInfo?.length
+    ? payload.logisticInfo[0].deliveryCompany || ''
+    : '';
 
   return {
     headers: {
+      'X-Tenant-Id': orderMapper.accountId,
       'X-Correlation-Id':
         headers['X-Correlation-Id'] || headers['x-correlation-id'] || uuidV4(),
       'X-Version': '1.0',
