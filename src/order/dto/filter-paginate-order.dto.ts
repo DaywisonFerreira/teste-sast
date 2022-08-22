@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional } from 'class-validator';
+import { IsDateString, IsOptional, IsString } from 'class-validator';
 import { RequestPaginateDto } from 'src/commons/dtos/request-paginate.dto';
 
 export class FilterPaginateOrderDto extends RequestPaginateDto {
@@ -10,50 +10,50 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
     example: 'MTM4332214731',
   })
   @IsOptional()
+  @IsString()
   search?: string | null;
 
   @ApiPropertyOptional({
-    description: 'Order creation date (start)',
+    description:
+      'Order creation date (start). Start and End must be 2 months interval. Example: 2022-01-18',
     type: String,
-    example: '2022-10-30',
-    required: false,
   })
   @IsOptional()
+  @IsDateString()
   orderCreatedAtFrom?: string | null;
 
   @ApiPropertyOptional({
-    description: 'Order creation date (end)',
+    description:
+      'Order creation date (end). Start and End must be 2 months interval. Example: 2022-01-18',
     type: String,
-    example: '2022-11-30',
-    required: false,
   })
   @IsOptional()
+  @IsDateString()
   orderCreatedAtTo?: string | null;
 
   @ApiPropertyOptional({
-    description: 'Estimated date of the delivery (start)',
+    description:
+      'Estimated date of the delivery (start). Start and End must be 2 months interval. Example: 2022-01-18',
     type: String,
-    example: '2022-01-18',
-    required: false,
   })
   @IsOptional()
+  @IsDateString()
   shippingEstimateDateFrom?: string | null;
 
   @ApiPropertyOptional({
-    description: 'Estimated date of the delivery (end)',
+    description:
+      'Estimated date of the delivery (end). Start and End must be 2 months interval. Example: 2022-01-18',
     type: String,
-    example: '2022-01-18',
-    required: false,
   })
   @IsOptional()
+  @IsDateString()
   shippingEstimateDateTo?: string | null;
 
   @ApiPropertyOptional({
-    description: 'Status code of order',
+    description: 'Status code of order. Example: dispatched,delivered,invoiced',
     type: String,
-    example: 'dispatched,delivered,invoiced',
-    required: false,
   })
   @IsOptional()
+  @IsString()
   statusCode?: string | null;
 }
