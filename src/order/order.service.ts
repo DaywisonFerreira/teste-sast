@@ -219,6 +219,7 @@ export class OrderService {
         lastOccurrenceMessage: 1,
         quantityOccurrences: 1,
         history: 1,
+        totals: 1,
       })
         .limit(chunkSize)
         .skip(chunkSize * page)
