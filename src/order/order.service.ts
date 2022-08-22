@@ -791,8 +791,7 @@ export class OrderService {
     );
 
     const fileName =
-      file ||
-      `Status_Entregas_${filter.storeCode || ''}_${from}-${to}.csv`;
+      file || `Status_Entregas_${filter.storeCode || ''}_${from}-${to}.csv`;
 
     appendFileSync(`${directory_path}/${fileName}`, csv || '', {
       flag: 'a+',
@@ -836,8 +835,7 @@ export class OrderService {
     );
 
     const fileName =
-      file ||
-      `Status_Entregas_${filter.storeCode || ''}_${from}-${to}.csv`;
+      file || `Status_Entregas_${filter.storeCode || ''}_${from}-${to}.csv`;
 
     const skipHeader = !!file;
     if (!wb && !ws) {
