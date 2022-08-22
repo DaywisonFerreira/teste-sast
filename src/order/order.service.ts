@@ -220,6 +220,7 @@ export class OrderService {
         quantityOccurrences: 1,
         history: 1,
         totals: 1,
+        storeCode: 1,
       })
         .limit(chunkSize)
         .skip(chunkSize * page)
@@ -242,7 +243,7 @@ export class OrderService {
             orderCreatedAtFrom,
             orderCreatedAtTo,
             userId,
-            storeId,
+            storeCode: result[0]?.storeCode,
           },
           file.fileName,
         );
@@ -255,7 +256,7 @@ export class OrderService {
             orderCreatedAtFrom,
             orderCreatedAtTo,
             userId,
-            storeId,
+            storeCode: result[0]?.storeCode,
           },
           file.fileName,
           file.workbook,
@@ -789,12 +790,8 @@ export class OrderService {
       'ddMMyyyy',
     );
 
-    // TODO: no nome do arquivo é necessário colocar o nome da loja
     const fileName =
-      file ||
-      `Status_Entregas_${from}-${to}-${filter.storeId.substr(
-        filter.storeId.length - 3,
-      )}${filter.userId.substr(filter.userId.length - 3)}.csv`;
+      file || `Status_Entregas_${filter.storeCode || ''}_${from}-${to}.csv`;
 
     appendFileSync(`${directory_path}/${fileName}`, csv || '', {
       flag: 'a+',
@@ -837,12 +834,8 @@ export class OrderService {
       'ddMMyyyy',
     );
 
-    // TODO: no nome do arquivo é necessário colocar o nome da loja
     const fileName =
-      file ||
-      `Status_Entregas_${from}-${to}-${filter.storeId.substr(
-        filter.storeId.length - 3,
-      )}${filter.userId.substr(filter.userId.length - 3)}.xlsx`;
+      file || `Status_Entregas_${filter.storeCode || ''}_${from}-${to}.csv`;
 
     const skipHeader = !!file;
     if (!wb && !ws) {
