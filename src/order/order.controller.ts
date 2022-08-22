@@ -53,8 +53,8 @@ export class OrderController {
         search,
         orderCreatedAtFrom,
         orderCreatedAtTo,
-        orderUpdatedAtFrom,
-        orderUpdatedAtTo,
+        shippingEstimateDateFrom,
+        shippingEstimateDateTo,
         statusCode,
       } = filterPaginateDto;
 
@@ -71,8 +71,8 @@ export class OrderController {
         storeId: xTenantId,
         orderCreatedAtFrom,
         orderCreatedAtTo,
-        orderUpdatedAtFrom,
-        orderUpdatedAtTo,
+        shippingEstimateDateFrom,
+        shippingEstimateDateTo,
         statusCode,
       });
 

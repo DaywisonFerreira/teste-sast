@@ -43,8 +43,8 @@ export class OrderService {
     storeId,
     orderCreatedAtFrom,
     orderCreatedAtTo,
-    orderUpdatedAtFrom,
-    orderUpdatedAtTo,
+    shippingEstimateDateFrom,
+    shippingEstimateDateTo,
     statusCode,
   }): Promise<[LeanDocument<OrderEntity[]>, number]> {
     const filter: any = {};
@@ -82,6 +82,23 @@ export class OrderService {
       ];
     }
 
+    if (shippingEstimateDateFrom && shippingEstimateDateTo) {
+      const dateFrom = new Date(`${shippingEstimateDateFrom} 00:00:00-03:00`);
+      const dateTo = new Date(`${shippingEstimateDateTo} 23:59:59-03:00`);
+      this.validateRangeOfDates(dateFrom, dateTo);
+      filter.estimateDeliveryDateDeliveryCompany = {
+        $gte: dateFrom,
+        $lte: dateTo,
+      };
+    }
+
+    if (shippingEstimateDateFrom && !shippingEstimateDateTo) {
+      filter.estimateDeliveryDateDeliveryCompany = {
+        $gte: new Date(`${shippingEstimateDateFrom} 00:00:00-03:00`),
+        $lte: new Date(`${shippingEstimateDateFrom} 23:59:59-03:00`),
+      };
+    }
+
     if (orderCreatedAtFrom && orderCreatedAtTo) {
       const dateFrom = new Date(`${orderCreatedAtFrom} 00:00:00-03:00`);
       const dateTo = new Date(`${orderCreatedAtTo} 23:59:59-03:00`);
@@ -96,23 +113,6 @@ export class OrderService {
       filter.orderCreatedAt = {
         $gte: new Date(`${orderCreatedAtFrom} 00:00:00-03:00`),
         $lte: new Date(`${orderCreatedAtFrom} 23:59:59-03:00`),
-      };
-    }
-
-    if (orderUpdatedAtFrom && orderUpdatedAtTo) {
-      const dateFrom = new Date(`${orderUpdatedAtFrom} 00:00:00-03:00`);
-      const dateTo = new Date(`${orderUpdatedAtTo} 23:59:59-03:00`);
-      this.validateRangeOfDates(dateFrom, dateTo);
-      filter.orderUpdatedAt = {
-        $gte: dateFrom,
-        $lte: dateTo,
-      };
-    }
-
-    if (orderUpdatedAtFrom && !orderUpdatedAtTo) {
-      filter.orderUpdatedAt = {
-        $gte: new Date(`${orderUpdatedAtFrom} 00:00:00-03:00`),
-        $lte: new Date(`${orderUpdatedAtFrom} 23:59:59-03:00`),
       };
     }
 
