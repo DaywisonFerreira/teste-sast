@@ -38,6 +38,14 @@ export abstract class Env {
     10,
   );
 
+  public static readonly AZURE_ACCOUNT_NAME: string = String(
+    process.env.AZURE_ACCOUNT_NAME,
+  );
+
+  public static readonly AZURE_ACCOUNT_KEY: string = String(
+    process.env.AZURE_ACCOUNT_KEY,
+  );
+
   public static readonly AZURE_BS_CONTAINER_NAME: string =
     process.env.AZURE_BS_CONTAINER_NAME;
 

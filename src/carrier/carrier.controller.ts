@@ -18,7 +18,11 @@ import { existsSync, unlinkSync } from 'fs';
 import { FastifyFileInterceptor } from 'src/commons/interceptors/file.interceptor';
 import { diskStorage } from 'multer';
 import { Env } from 'src/commons/environment/env';
-import { createBlobService } from 'azure-storage';
+import {
+  BlobServiceClient,
+  StorageSharedKeyCredential,
+} from '@azure/storage-blob';
+import { InfraLogger } from '@infralabs/infra-logger';
 import { GetCarrierDto } from './dto/get-carrier.dto';
 import { UpdateCarrierDto } from './dto/update-carrier.dto';
 import { CarrierService } from './carrier.service';
@@ -71,24 +75,33 @@ export class CarrierController {
     fileLocally: any,
     localFileName: string,
   ): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const blobSvc = createBlobService(String(Env.AZURE_BS_ACCESS_KEY));
-      blobSvc.createBlockBlobFromLocalFile(
-        String(Env.AZURE_BS_CONTAINER_NAME),
-        localFileName,
-        fileLocally.path,
-        error => {
-          if (error) {
-            reject(error);
-          }
-          resolve(
-            `${String(Env.AZURE_BS_STORAGE_URL)}/${String(
-              process.env.AZURE_BS_CONTAINER_NAME,
-            )}/${localFileName}`,
-          );
-        },
+    const logger = new InfraLogger();
+    try {
+      logger.log(`Starting file upload (${localFileName})`);
+      const credentials = new StorageSharedKeyCredential(
+        Env.AZURE_ACCOUNT_NAME,
+        Env.AZURE_ACCOUNT_KEY,
       );
-    });
+      const blobServiceClient = new BlobServiceClient(
+        Env.AZURE_BS_STORAGE_URL,
+        credentials,
+      );
+      const containerClient = blobServiceClient.getContainerClient(
+        Env.AZURE_BS_CONTAINER_NAME,
+      );
+      const blockBlobClient = containerClient.getBlockBlobClient(localFileName);
+      await blockBlobClient.uploadFile(
+        `${fileLocally.destination}/${localFileName}`,
+      );
+
+      logger.log(`Finish file upload (${localFileName})`);
+      return `${String(Env.AZURE_BS_STORAGE_URL)}/${String(
+        Env.AZURE_BS_CONTAINER_NAME,
+      )}/${localFileName}`;
+    } catch (error) {
+      logger.error(error);
+      throw error;
+    }
   }
 
   @Patch(':id/logo')
@@ -112,9 +125,8 @@ export class CarrierController {
     @Body() _: UploadLogoDto,
     @Req() req: any,
   ) {
-    const localFileName = `${file.filename}_${file.originalname}`;
     try {
-      const logo = await this.uploadFile(file, localFileName);
+      const logo = await this.uploadFile(file, file.filename);
       await this.carrierService.updateLogo(id, {
         logo,
       });

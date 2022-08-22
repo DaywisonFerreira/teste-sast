@@ -1,10 +1,13 @@
 import { Types } from 'mongoose';
 import { InfraLogger } from '@infralabs/infra-logger';
-import { createBlobService } from 'azure-storage';
 import axios from 'axios';
 import { promises, createWriteStream } from 'fs';
 
 import { CreateIntelipost } from 'src/intelipost/dto/create-intelipost.dto';
+import {
+  BlobServiceClient,
+  StorageSharedKeyCredential,
+} from '@azure/storage-blob';
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderDocument } from '../schemas/order.schema';
 import { Env } from '../../commons/environment/env';
@@ -123,25 +126,32 @@ export class OrderMapper {
     );
   }
 
-  static uploadToCloud(fileName: string, path: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const blobSvc = createBlobService(Env.AZURE_BS_ACCESS_KEY);
-      blobSvc.createBlockBlobFromLocalFile(
-        String(Env.AZURE_BS_CONTAINER_NAME),
-        fileName,
-        path,
-        error => {
-          if (error) {
-            reject(error);
-          }
-          resolve(
-            `${String(Env.AZURE_BS_STORAGE_URL)}/${String(
-              Env.AZURE_BS_CONTAINER_NAME,
-            )}/${fileName}`,
-          );
-        },
+  static async uploadToCloud(fileName: string, path: string): Promise<string> {
+    const logger = new InfraLogger();
+    try {
+      logger.log(`Starting file upload (${fileName})`);
+      const credentials = new StorageSharedKeyCredential(
+        Env.AZURE_ACCOUNT_NAME,
+        Env.AZURE_ACCOUNT_KEY,
       );
-    });
+      const blobServiceClient = new BlobServiceClient(
+        Env.AZURE_BS_STORAGE_URL,
+        credentials,
+      );
+      const containerClient = blobServiceClient.getContainerClient(
+        Env.AZURE_BS_CONTAINER_NAME,
+      );
+      const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+      await blockBlobClient.uploadFile(path);
+
+      logger.log(`Finish file upload (${fileName})`);
+      return `${String(Env.AZURE_BS_STORAGE_URL)}/${String(
+        Env.AZURE_BS_CONTAINER_NAME,
+      )}/${fileName}`;
+    } catch (error) {
+      logger.error(error);
+      throw error;
+    }
   }
 
   static deleteFileLocally(path: string) {
