@@ -18,6 +18,7 @@ export const PublicFieldsOrder = {
   history: 1,
   'invoice.number': 1,
   'invoice.trackingUrl': 1,
+  'invoice.customerDocument': 1,
   'billingData.invoiceValue': 1,
   'billingData.customerDocument': 1,
   'billingData.trackingUrl': 1,
