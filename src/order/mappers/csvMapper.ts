@@ -71,9 +71,16 @@ export class CsvMapper {
         'delivered-success': 'Entregue',
       };
 
-      const statusCode = data.statusCode?.micro
-        ? statusMapper[data.statusCode.micro]
-        : '';
+      let statusCode = '';
+
+      if (data.statusCode?.micro && statusMapper[data.statusCode.micro]) {
+        statusCode = statusMapper[data.statusCode.micro];
+      } else if (
+        data.statusCode?.micro &&
+        !statusMapper[data.statusCode.micro]
+      ) {
+        statusCode = data.statusCode.micro;
+      }
 
       const histories = Object.keys(statusMapper).reduce((acc, status) => {
         const matchHistory = history?.find(h => h.statusCode?.micro === status);

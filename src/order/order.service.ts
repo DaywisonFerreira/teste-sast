@@ -13,10 +13,9 @@ import { Env } from 'src/commons/environment/env';
 import { MessageOrderNotified } from 'src/intelipost/factories';
 
 import { existsSync, mkdirSync } from 'fs';
-import { utils } from 'xlsx';
+import { utils, writeFile } from 'xlsx';
 
 import { CsvMapper } from './mappers/csvMapper';
-import { chunkArray } from '../commons/utils/array.utils';
 import {
   OrderDocument,
   OrderEntity,
@@ -155,7 +154,7 @@ export class OrderService {
   }
 
   async exportData(
-    { orderCreatedAtFrom, orderCreatedAtTo, storeId },
+    { orderCreatedAtFrom, orderCreatedAtTo, type, storeId },
     userId,
     logger: any,
   ) {
@@ -181,6 +180,8 @@ export class OrderService {
     let file = {
       path: '',
       fileName: '',
+      worksheet: '',
+      workbook: '',
     };
 
     const pages = Math.ceil(countOrders / chunkSize);
@@ -229,12 +230,11 @@ export class OrderService {
         } records`,
       );
 
-      const paginatedResult = chunkArray(result, chunkSize / 10);
-
       // eslint-disable-next-line no-await-in-loop
-      for await (const result of paginatedResult) {
-        const dataFormatted = CsvMapper.mapOrderToCsv(result);
 
+      const dataFormatted = CsvMapper.mapOrderToCsv(result);
+
+      if (type === 'csv') {
         file = this.createCsvLocally(
           dataFormatted,
           {
@@ -244,6 +244,22 @@ export class OrderService {
             storeId,
           },
           file.fileName,
+        );
+      }
+
+      if (type === 'xslx') {
+        file = this.createXslxLocally(
+          dataFormatted,
+          {
+            orderCreatedAtFrom,
+            orderCreatedAtTo,
+            userId,
+            storeId,
+          },
+          file.fileName,
+          file.workbook,
+          file.worksheet,
+          page + 1 === pages,
         );
       }
     }
@@ -745,6 +761,9 @@ export class OrderService {
 
   private createCsvLocally(data: unknown[], filter: any, file?: string) {
     let csv: string;
+    let workbook: any;
+    let worksheet: any;
+
     const directory_path =
       process.env.NODE_ENV !== 'local'
         ? `${process.cwd()}/dist/tmp`
@@ -769,6 +788,7 @@ export class OrderService {
       'ddMMyyyy',
     );
 
+    // TODO: no nome do arquivo é necessário colocar o nome da loja
     const fileName =
       file ||
       `Status_Entregas_${from}-${to}-${filter.storeId.substr(
@@ -782,6 +802,77 @@ export class OrderService {
     return {
       path: `${directory_path}/${fileName}`,
       fileName,
+      workbook,
+      worksheet,
+    };
+  }
+
+  private createXslxLocally(
+    data: unknown[],
+    filter: any,
+    file?: string,
+    wb?: any,
+    ws?: any,
+    last?: boolean,
+  ) {
+    let workbook: any;
+    let worksheet: any;
+
+    const directory_path =
+      process.env.NODE_ENV !== 'local'
+        ? `${process.cwd()}/dist/tmp`
+        : `${process.cwd()}/src/tmp`;
+
+    if (!existsSync(directory_path)) {
+      mkdirSync(directory_path);
+    }
+
+    const from = lightFormat(
+      new Date(`${filter.orderCreatedAtFrom}T00:00:00`),
+      'ddMMyyyy',
+    );
+    const to = lightFormat(
+      new Date(`${filter.orderCreatedAtTo}T23:59:59`),
+      'ddMMyyyy',
+    );
+
+    // TODO: no nome do arquivo é necessário colocar o nome da loja
+    const fileName =
+      file ||
+      `Status_Entregas_${from}-${to}-${filter.storeId.substr(
+        filter.storeId.length - 3,
+      )}${filter.userId.substr(filter.userId.length - 3)}.xlsx`;
+
+    const skipHeader = !!file;
+    if (!wb && !ws) {
+      workbook = utils.book_new();
+      worksheet = utils.json_to_sheet(data, { skipHeader });
+      if (last) {
+        utils.book_append_sheet(workbook, worksheet);
+        writeFile(workbook, `${directory_path}/${fileName}`);
+      }
+      return {
+        path: `${directory_path}/${fileName}`,
+        fileName,
+        worksheet,
+        workbook,
+      };
+    }
+    utils.sheet_add_json(ws, data, { skipHeader, origin: -1 });
+
+    if (last) {
+      utils.book_append_sheet(wb, ws);
+      writeFile(wb, `${directory_path}/${fileName}`);
+    }
+
+    worksheet = ws;
+    workbook = wb;
+
+    return {
+      path: `${directory_path}/${fileName}`,
+      fileName,
+      worksheet,
+      workbook,
     };
   }
 
