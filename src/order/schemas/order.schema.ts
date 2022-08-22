@@ -9,6 +9,7 @@ export const PublicFieldsOrder = {
   'customer.firstName': 1,
   'customer.lastName': 1,
   orderUpdatedAt: 1,
+  estimateDeliveryDateDeliveryCompany: 1,
   orderSale: 1,
   order: 1,
   status: 1,
@@ -17,6 +18,7 @@ export const PublicFieldsOrder = {
   history: 1,
   'invoice.number': 1,
   'invoice.trackingUrl': 1,
+  'invoice.customerDocument': 1,
   'billingData.invoiceValue': 1,
   'billingData.customerDocument': 1,
   'billingData.trackingUrl': 1,
@@ -386,14 +388,19 @@ OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index({ orderId: 1 }, { unique: false })
   .index({ storeId: 1, orderCreatedAt: 1 }, { unique: false })
   .index(
-    { storeId: 1, orderCreatedAt: 1, orderUpdatedAt: 1, 'statusCode.micro': 1 },
+    {
+      storeId: 1,
+      orderCreatedAt: 1,
+      estimateDeliveryDateDeliveryCompany: 1,
+      'statusCode.micro': 1,
+    },
     { unique: false },
   )
   .index(
     {
       storeId: 1,
       orderCreatedAt: 1,
-      orderUpdatedAt: 1,
+      estimateDeliveryDateDeliveryCompany: 1,
       'statusCode.micro': 1,
       order: 1,
       orderSale: 1,
