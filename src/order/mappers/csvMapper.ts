@@ -5,13 +5,6 @@ interface IReceiverPhones {
   type: string;
 }
 
-interface ILogisticInfo {
-  logisticContract: string;
-  deliveryCompany: string;
-  shippingEstimateDate: string;
-  deliveryChannel: string;
-  sellingPrice: number;
-}
 export class CsvMapper {
   static mapOrderToCsv(csvData: unknown[]) {
     return csvData.map((data: any) => {
@@ -43,6 +36,7 @@ export class CsvMapper {
         lastOccurrenceMessage,
         quantityOccurrences,
         history,
+        totals,
       } = data;
 
       // DO NOT CHANGE THE ORDER
@@ -130,12 +124,7 @@ export class CsvMapper {
           ? estimateDeliveryDateDeliveryCompany?.toISOString()
           : '',
         'Mensagem Intelipost': partnerMessage,
-        'Preço Frete': logisticInfo.reduce(
-          (price: number, { sellingPrice }: ILogisticInfo) => {
-            return (price += sellingPrice);
-          },
-          0,
-        ),
+        'Preço Frete': totals.find(total => total?.id === 'Shipping')?.value,
         'No Volumes': numberVolumes,
         'Data Criação Pedido': orderCreatedAt
           ? orderCreatedAt?.toISOString()
