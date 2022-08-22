@@ -1,29 +1,33 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsDateString, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class ExportOrdersDto {
   @ApiProperty({
-    description: 'Range of list (start)',
+    description: 'Order createdAt date (start). Start and End must be 2 months interval. Example: 2022-10-30',
     type: String,
-    example: '2022-10-30',
     required: true,
   })
+  @IsDateString()
+  @IsNotEmpty()
   orderCreatedAtFrom: string;
 
   @ApiProperty({
-    description: 'Range of list (end)',
+    description: 'Order createdAt date (end). Start and End must be 2 months interval. Example: 2022-11-30. ',
     type: String,
-    example: '2022-11-30',
     required: true,
   })
+  @IsDateString()
+  @IsNotEmpty()
   orderCreatedAtTo: string;
 
-  @ApiProperty({
-    description: 'Type of the  file ',
+  @ApiPropertyOptional({
+    description: 'Type of the exported file. Default: xlsx',
     type: String,
-    example: 'xlsx or csv',
-    required: true,
-  }) // required false mas verificar se não existir default csv
-  type: string;
+    default: 'xlsx',
+  })
+  @IsOptional()
+  @IsString()
+  type?: string;
 }
 
 export class HeadersExportOrdersDto {
