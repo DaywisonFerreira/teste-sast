@@ -66,7 +66,6 @@ export class CsvMapper {
         'waiting-post-office-pickup':
           'Aguardando retirada na agência dos Correios',
         damage: 'Avaria',
-        invoiced: 'Faturado',
         'unknown-customer': 'Destinatário desconhecido',
         'first-delivery-failed': 'Problema operacional (first-delivery-failed)',
         'delivered-success': 'Entregue',
