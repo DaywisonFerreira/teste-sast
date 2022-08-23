@@ -249,8 +249,8 @@ export class OrderService {
         );
       }
 
-      if (type === 'xslx') {
-        file = this.createXslxLocally(
+      if (type === 'xlsx') {
+        file = this.createXlsxLocally(
           dataFormatted,
           {
             orderCreatedAtFrom,
@@ -805,7 +805,7 @@ export class OrderService {
     };
   }
 
-  private createXslxLocally(
+  private createXlsxLocally(
     data: unknown[],
     filter: any,
     file?: string,
@@ -835,7 +835,7 @@ export class OrderService {
     );
 
     const fileName =
-      file || `Status_Entregas_${filter.storeCode || ''}_${from}-${to}.csv`;
+      file || `Status_Entregas_${filter.storeCode || ''}_${from}-${to}.xlsx`;
 
     const skipHeader = !!file;
     if (!wb && !ws) {
