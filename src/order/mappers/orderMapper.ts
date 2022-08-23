@@ -127,7 +127,7 @@ export class OrderMapper {
   }
 
   static async uploadToCloud(fileName: string, path: string): Promise<string> {
-    const logger = new InfraLogger();
+    const logger = new InfraLogger({}, OrderMapper.name);
     try {
       logger.log(`Starting file upload (${fileName})`);
       const credentials = new StorageSharedKeyCredential(

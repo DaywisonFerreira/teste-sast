@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Req,
+  Headers,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -74,8 +75,9 @@ export class CarrierController {
   private async uploadFile(
     fileLocally: any,
     localFileName: string,
+    headers: any,
   ): Promise<string> {
-    const logger = new InfraLogger();
+    const logger = new InfraLogger(headers, CarrierController.name);
     try {
       logger.log(`Starting file upload (${localFileName})`);
       const credentials = new StorageSharedKeyCredential(
@@ -124,9 +126,10 @@ export class CarrierController {
     @Param('id') id: string,
     @Body() _: UploadLogoDto,
     @Req() req: any,
+    @Headers() headers: any,
   ) {
     try {
-      const logo = await this.uploadFile(file, file.filename);
+      const logo = await this.uploadFile(file, file.filename, headers);
       await this.carrierService.updateLogo(id, {
         logo,
       });
