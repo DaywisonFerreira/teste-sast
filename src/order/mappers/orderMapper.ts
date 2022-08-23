@@ -613,6 +613,7 @@ export class OrderMapper {
       orderCreatedAt: creationDate,
       paymentDate,
       invoiceKeys: arrayOfBillingData.map(({ invoiceKey }) => invoiceKey),
+      estimateDeliveryDateDeliveryCompany: logisticInfo?.length ? new Date(logisticInfo[0].shippingEstimateDate) : null,
       totals: totals.map(total => ({
         id: total.id,
         name: total.name,
