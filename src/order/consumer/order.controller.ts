@@ -126,7 +126,7 @@ export class ConsumerOrderController {
     );
     try {
       file = await this.orderService.exportData(data, user.id, logger);
-      const urlFile = await this.uploadFile(file);
+      const urlFile = await this.uploadFile(file, headers);
 
       await this.kafkaProducer.send(Env.KAFKA_TOPIC_NOTIFY_MESSAGE_WEBSOCKET, {
         headers: {
@@ -155,8 +155,8 @@ export class ConsumerOrderController {
     await promises.unlink(path);
   }
 
-  private async uploadFile(fileLocally: any) {
-    const logger = new InfraLogger();
+  private async uploadFile(fileLocally: any, headers: any) {
+    const logger = new InfraLogger(headers, ConsumerOrderController.name);
     try {
       logger.log(`Starting file upload (${fileLocally.fileName})`);
       const credentials = new StorageSharedKeyCredential(
