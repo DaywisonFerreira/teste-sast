@@ -385,6 +385,13 @@ export const OrderSchema = SchemaFactory.createForClass(OrderEntity);
 
 OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
   .index({ orderSale: 1, invoiceKeys: 1 }, { unique: false })
+  .index({ partnerOrder: 1 }, { unique: false })
+  .index({ order: 1 }, { unique: false })
+  .index({ orderSale: 1 }, { unique: false })
+  .index({ storeCode: 1 }, { unique: false })
+  .index({ 'statusCode.micro': 1 }, { unique: false })
+  .index({ 'invoice.carrierDocument': 1 }, { unique: false })
+  .index({ createdAt: -1 }, { unique: false })
   .index({ orderId: 1 }, { unique: false })
   .index({ storeId: 1, orderCreatedAt: 1 }, { unique: false })
   .index(
