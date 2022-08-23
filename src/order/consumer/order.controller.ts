@@ -5,10 +5,13 @@ import {
   KafkaService,
   SubscribeTopic,
 } from '@infralabs/infra-nestjs-kafka';
+import {
+  BlobServiceClient,
+  StorageSharedKeyCredential,
+} from '@azure/storage-blob';
 import { Controller, Inject } from '@nestjs/common';
 import { InfraLogger } from '@infralabs/infra-logger';
 import { existsSync, promises } from 'fs';
-import { createBlobService } from 'azure-storage';
 import { v4 as uuidV4 } from 'uuid';
 import { NotificationTypes } from 'src/commons/enums/notification.enum';
 import { Env } from '../../commons/environment/env';
@@ -123,7 +126,7 @@ export class ConsumerOrderController {
     );
     try {
       file = await this.orderService.exportData(data, user.id, logger);
-      const urlFile = await this.uploadFile(file);
+      const urlFile = await this.uploadFile(file, headers);
 
       await this.kafkaProducer.send(Env.KAFKA_TOPIC_NOTIFY_MESSAGE_WEBSOCKET, {
         headers: {
@@ -152,25 +155,34 @@ export class ConsumerOrderController {
     await promises.unlink(path);
   }
 
-  private uploadFile(fileLocally: any) {
-    return new Promise((resolve, reject) => {
-      const blobSvc = createBlobService(String(Env.AZURE_BS_ACCESS_KEY));
-      blobSvc.createBlockBlobFromLocalFile(
-        String(Env.AZURE_BS_CONTAINER_NAME),
-        fileLocally.fileName,
-        fileLocally.path,
-        error => {
-          if (error) {
-            reject(error);
-          }
-          resolve(
-            `${String(Env.AZURE_BS_STORAGE_URL)}/${String(
-              process.env.AZURE_BS_CONTAINER_NAME,
-            )}/${fileLocally.fileName}`,
-          );
-        },
+  private async uploadFile(fileLocally: any, headers: any) {
+    const logger = new InfraLogger(headers, ConsumerOrderController.name);
+    try {
+      logger.log(`Starting file upload (${fileLocally.fileName})`);
+      const credentials = new StorageSharedKeyCredential(
+        Env.AZURE_ACCOUNT_NAME,
+        Env.AZURE_ACCOUNT_KEY,
       );
-    });
+      const blobServiceClient = new BlobServiceClient(
+        Env.AZURE_BS_STORAGE_URL,
+        credentials,
+      );
+      const containerClient = blobServiceClient.getContainerClient(
+        Env.AZURE_BS_CONTAINER_NAME,
+      );
+      const blockBlobClient = containerClient.getBlockBlobClient(
+        fileLocally.fileName,
+      );
+      await blockBlobClient.uploadFile(fileLocally.path);
+
+      logger.log(`Finish file upload (${fileLocally.fileName})`);
+      return `${String(Env.AZURE_BS_STORAGE_URL)}/${String(
+        Env.AZURE_BS_CONTAINER_NAME,
+      )}/${fileLocally.fileName}`;
+    } catch (error) {
+      logger.error(error);
+      throw error;
+    }
   }
 
   private async removeFromQueue(

@@ -5,13 +5,6 @@ interface IReceiverPhones {
   type: string;
 }
 
-interface ILogisticInfo {
-  logisticContract: string;
-  deliveryCompany: string;
-  shippingEstimateDate: string;
-  deliveryChannel: string;
-  sellingPrice: number;
-}
 export class CsvMapper {
   static mapOrderToCsv(csvData: unknown[]) {
     return csvData.map((data: any) => {
@@ -43,6 +36,7 @@ export class CsvMapper {
         lastOccurrenceMessage,
         quantityOccurrences,
         history,
+        totals,
       } = data;
 
       // DO NOT CHANGE THE ORDER
@@ -71,9 +65,16 @@ export class CsvMapper {
         'delivered-success': 'Entregue',
       };
 
-      const statusCode = data.statusCode?.micro
-        ? statusMapper[data.statusCode.micro]
-        : '';
+      let statusCode = '';
+
+      if (data.statusCode?.micro && statusMapper[data.statusCode.micro]) {
+        statusCode = statusMapper[data.statusCode.micro];
+      } else if (
+        data.statusCode?.micro &&
+        !statusMapper[data.statusCode.micro]
+      ) {
+        statusCode = data.statusCode.micro;
+      }
 
       const histories = Object.keys(statusMapper).reduce((acc, status) => {
         const matchHistory = history?.find(h => h.statusCode?.micro === status);
@@ -123,12 +124,7 @@ export class CsvMapper {
           ? estimateDeliveryDateDeliveryCompany?.toISOString()
           : '',
         'Mensagem Intelipost': partnerMessage,
-        'Preço Frete': logisticInfo.reduce(
-          (price: number, { sellingPrice }: ILogisticInfo) => {
-            return (price += sellingPrice);
-          },
-          0,
-        ),
+        'Preço Frete': totals.find(total => total?.id === 'Shipping')?.value,
         'No Volumes': numberVolumes,
         'Data Criação Pedido': orderCreatedAt
           ? orderCreatedAt?.toISOString()

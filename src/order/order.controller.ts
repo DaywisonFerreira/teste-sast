@@ -53,8 +53,8 @@ export class OrderController {
         search,
         orderCreatedAtFrom,
         orderCreatedAtTo,
-        orderUpdatedAtFrom,
-        orderUpdatedAtTo,
+        shippingEstimateDateFrom,
+        shippingEstimateDateTo,
         statusCode,
       } = filterPaginateDto;
 
@@ -71,8 +71,8 @@ export class OrderController {
         storeId: xTenantId,
         orderCreatedAtFrom,
         orderCreatedAtTo,
-        orderUpdatedAtFrom,
-        orderUpdatedAtTo,
+        shippingEstimateDateFrom,
+        shippingEstimateDateTo,
         statusCode,
       });
 
@@ -123,11 +123,16 @@ export class OrderController {
   ) {
     const { userId, userName, email, logger } = request;
     try {
-      const { orderCreatedAtFrom, orderCreatedAtTo } = exportOrdersDto;
+      const {
+        orderCreatedAtFrom,
+        orderCreatedAtTo,
+        type = 'xlsx',
+      } = exportOrdersDto;
 
       const filter = {
         orderCreatedAtFrom,
         orderCreatedAtTo,
+        type,
         storeId: headers['x-tenant-id'],
       };
 
