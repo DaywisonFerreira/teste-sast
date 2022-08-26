@@ -126,7 +126,7 @@ export class OrderController {
       const {
         orderCreatedAtFrom,
         orderCreatedAtTo,
-        type = 'xlsx',
+        type = 'csv',
       } = exportOrdersDto;
 
       const filter = {
