@@ -28,9 +28,9 @@ export class ExportOrdersDto {
   orderCreatedAtTo: string;
 
   @ApiPropertyOptional({
-    description: 'Type of the exported file. Default: xlsx',
+    description: 'Type of the exported file. Default: csv',
     type: String,
-    default: 'xlsx',
+    default: 'csv',
   })
   @IsOptional()
   @IsString()
