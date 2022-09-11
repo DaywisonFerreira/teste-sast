@@ -30,7 +30,7 @@ export class AccountService {
       .lean();
 
     if (alreadyExist) {
-      throw new Error('Account already exist');
+      return alreadyExist;
     }
 
     // eslint-disable-next-line new-cap
