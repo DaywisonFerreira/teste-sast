@@ -2,13 +2,13 @@ import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Model } from 'mongoose';
 import faker from '@faker-js/faker';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { AccountService } from '../account.service';
 import {
   AccountDocument,
   AccountEntity,
   AccountTypeEnum,
 } from '../schemas/account.schema';
-import { HttpException, HttpStatus } from '@nestjs/common';
 
 export const mockAccount = (): AccountEntity =>
   ({
@@ -155,13 +155,11 @@ describe('AccountService', () => {
 
     const mockedAccount = mockAccount();
 
-    jest
-      .spyOn(AccountModel, 'findOne')
-      .mockReturnValueOnce({
-        ...mockedAccount,
-        accountType: 'location',
-        accounts: [],
-      } as any);
+    jest.spyOn(AccountModel, 'findOne').mockReturnValueOnce({
+      ...mockedAccount,
+      accountType: 'location',
+      accounts: [],
+    } as any);
 
     jest
       .spyOn(AccountModel, 'findOneAndUpdate')
@@ -180,17 +178,14 @@ describe('AccountService', () => {
 
     const mockedAccount = mockAccount();
 
-    jest
-      .spyOn(AccountModel, 'findOne')
-      .mockImplementationOnce((): any => null);
+    jest.spyOn(AccountModel, 'findOne').mockImplementationOnce((): any => null);
 
     try {
-      await sut.associateLocation(
-        mockedAccount.id,
-        mockedAccount.id,
-      );
+      await sut.associateLocation(mockedAccount.id, mockedAccount.id);
     } catch (error) {
-      expect(error).toStrictEqual(new HttpException('Account not found', HttpStatus.NOT_FOUND))
+      expect(error).toStrictEqual(
+        new HttpException('Account not found', HttpStatus.NOT_FOUND),
+      );
     }
   });
 
@@ -199,20 +194,17 @@ describe('AccountService', () => {
 
     const mockedAccount = mockAccount();
 
-    jest
-      .spyOn(AccountModel, 'findOne')
-      .mockReturnValueOnce({
-        ...mockedAccount,
-        accountType: 'location',
-      } as any);
+    jest.spyOn(AccountModel, 'findOne').mockReturnValueOnce({
+      ...mockedAccount,
+      accountType: 'location',
+    } as any);
 
     try {
-      await sut.associateLocation(
-        mockedAccount.id,
-        mockedAccount.id,
-      );
+      await sut.associateLocation(mockedAccount.id, mockedAccount.id);
     } catch (error) {
-      expect(error).toStrictEqual(new HttpException('Already associated', HttpStatus.BAD_REQUEST))
+      expect(error).toStrictEqual(
+        new HttpException('Already associated', HttpStatus.BAD_REQUEST),
+      );
     }
   });
 
@@ -223,10 +215,10 @@ describe('AccountService', () => {
 
     const response = await sut.findAll(
       {
-        name: "test",
-        shipToAddress: "true",
-        accountType: "account",
-        locationId: "0a2fe1ed-4148-4838-a1f1-18ef13284374",
+        name: 'test',
+        shipToAddress: 'true',
+        accountType: 'account',
+        locationId: '0a2fe1ed-4148-4838-a1f1-18ef13284374',
       },
       1,
       20,
