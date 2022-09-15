@@ -102,13 +102,15 @@ describe('AccountService', () => {
 
     const mockedAccount = mockAccount();
 
-    expect(await sut.create({
-      ...mockedAccount,
-      fiscalCode: faker.datatype.string(),
-      address: {
-        zipCode: faker.datatype.string(),
-      },
-    })).toBeUndefined();
+    expect(
+      await sut.create({
+        ...mockedAccount,
+        fiscalCode: faker.datatype.string(),
+        address: {
+          zipCode: faker.datatype.string(),
+        },
+      }),
+    ).toBeUndefined();
   });
 
   test('should update an account with success', async () => {
