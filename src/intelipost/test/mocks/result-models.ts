@@ -1,3 +1,33 @@
+export const account = {
+  _id: {
+    $oid: '6310f86828b7a43323757cce',
+  },
+  generateNotfisFile: false,
+  salesChannels: ['b6ff3536-cf3e-4e32-9c12-feed42683b3a'],
+  accounts: [],
+  shipToAddress: false,
+  externalWarehouseCode: '',
+  integrateIntelipost: false,
+  active: true,
+  id: '61a9fbac5d4828001172df30',
+  name: 'Infrastore',
+  icon: 'https://www.infracommerce.com.br/image/infracommerce.svg',
+  accountType: 'account',
+  createdAt: {
+    $date: {
+      $numberLong: '1662049432457',
+    },
+  },
+  updatedAt: {
+    $date: {
+      $numberLong: '1662058725156',
+    },
+  },
+  document: '35978191000145',
+  zipCode: '04548005',
+  __v: 0,
+};
+
 export const location = {
   _id: { $oid: '61f2d90daa458d001195ae6f' },
   salesChannels: [],

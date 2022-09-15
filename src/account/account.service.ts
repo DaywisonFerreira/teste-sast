@@ -169,10 +169,11 @@ export class AccountService {
     return account;
   }
 
-  async findOneLocationByDocument(document: string) {
+  async findOneLocationByDocument(document: string, accountId: string) {
     const account = await this.accountModel
       .findOne(
         {
+          'accounts.id': accountId,
           document: document
             .replace(/-/g, '')
             .replace(/\./g, '')
