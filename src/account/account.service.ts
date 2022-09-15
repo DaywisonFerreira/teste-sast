@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { LeanDocument, Model } from 'mongoose';
-import { IFilterObject } from 'src/commons/interfaces/filter-object.interface';
+import { IFilterObject } from '../commons/interfaces/filter-object.interface';
 import {
   AccountDocument,
   AccountEntity,
@@ -15,7 +15,7 @@ export class AccountService {
     private accountModel: Model<AccountDocument>,
   ) {}
 
-  async create(accountData): Promise<LeanDocument<AccountEntity>> {
+  async create(accountData): Promise<void> {
     const mapData = {
       ...accountData,
       document: accountData.fiscalCode
@@ -30,16 +30,18 @@ export class AccountService {
       .lean();
 
     if (alreadyExist) {
-      return alreadyExist;
+      return;
     }
 
     // eslint-disable-next-line new-cap
     const accountToSave = new this.accountModel(mapData);
-    const accountSaved = await accountToSave.save();
-    return accountSaved.toJSON();
+    await accountToSave.save();
   }
 
-  async update(id: string, accountData): Promise<LeanDocument<AccountEntity>> {
+  async update(
+    id: string,
+    accountData: any,
+  ): Promise<LeanDocument<AccountEntity>> {
     const mapData = {
       ...accountData,
       document: accountData.fiscalCode
@@ -58,7 +60,10 @@ export class AccountService {
       .lean();
   }
 
-  async associateLocation(accountId: string, locationId: string) {
+  async associateLocation(
+    accountId: string,
+    locationId: string,
+  ): Promise<AccountEntity> {
     const location = await this.accountModel.findOne({
       id: locationId,
       accountType: AccountTypeEnum.location,
@@ -84,7 +89,7 @@ export class AccountService {
       throw new HttpException('Already associated', HttpStatus.BAD_REQUEST);
     }
 
-    await this.accountModel.findOneAndUpdate(
+    return this.accountModel.findOneAndUpdate(
       { id: location.id, accountType: AccountTypeEnum.location },
       {
         $push: {
@@ -233,8 +238,10 @@ export class AccountService {
     });
   }
 
-  async findOne(id: string): Promise<LeanDocument<AccountEntity>> {
-    const account = await this.accountModel.findOne({ id }).lean();
+  async findById(id: string): Promise<LeanDocument<AccountEntity>> {
+    const account = await this.accountModel
+      .findOne({ id, active: true })
+      .lean();
     if (!account) {
       throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
     }

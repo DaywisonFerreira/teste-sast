@@ -91,7 +91,7 @@ export class ConsumerInvoiceController {
     if (data.notfisFile && data.notfisFileName) {
       await this.invoiceService.sendFtp(data, accountId, logger);
     }
-    const account = await this.accountService.findOne(accountId);
+    const account = await this.accountService.findById(accountId);
     const order = await this.orderService.findByKeyAndOrderSale(
       data.key,
       data.order.externalOrderId,

@@ -24,7 +24,6 @@ export class ConsumerAccountController {
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerAccountController.name);
     const { data } = JSON.parse(value);
-
     try {
       logger.log(
         `${Env.KAFKA_TOPIC_ACCOUNT_CREATED} - Account consumer was received`,
@@ -50,7 +49,6 @@ export class ConsumerAccountController {
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerAccountController.name);
     const { data } = JSON.parse(value);
-
     try {
       logger.log(
         `${Env.KAFKA_TOPIC_ACCOUNT_CHANGED} - Account consumer was received`,
@@ -76,7 +74,6 @@ export class ConsumerAccountController {
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerAccountController.name);
     const { data } = JSON.parse(value);
-
     try {
       logger.log(
         `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_CREATED} - Account consumer was received`,
@@ -157,7 +154,6 @@ export class ConsumerAccountController {
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerAccountController.name);
     const { data } = JSON.parse(value);
-
     try {
       logger.log(
         `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_UNASSOCIATED} - Account consumer was received ${data.id}`,
