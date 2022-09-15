@@ -15,7 +15,7 @@ import { IntelipostController } from '../intelipost.controller';
 import { InteliPostService } from '../intelipost.service';
 import { IntelipostMapper } from '../mappers/intelipostMapper';
 import { message } from './mocks/freight.invoice.created';
-import { carrier, location } from './mocks/result-models';
+import { carrier, location, account } from './mocks/result-models';
 
 const gateway = {
   post: jest.fn(),
@@ -96,6 +96,7 @@ describe('IntelipostController', () => {
       );
       await constrollerEvent.sendIntelipostData({
         data: message.data,
+        account,
         headers: { 'X-Correlation-Id': 'test' },
       });
       expect(gateway.post).toHaveBeenCalledTimes(Env.INTELIPOST_TOTAL_RESEND);
@@ -118,6 +119,7 @@ describe('IntelipostController', () => {
     );
     await constrollerEvent.sendIntelipostData({
       data: message.data,
+      account,
       headers: { 'X-Correlation-Id': 'test' },
     });
     expect(gateway.post).toHaveBeenCalledTimes(2);

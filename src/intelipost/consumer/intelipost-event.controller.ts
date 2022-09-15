@@ -31,7 +31,7 @@ export class OnEventIntelipostController {
 
     try {
       const { carrier, dataFormatted: intelipostData } =
-        await this.intelipostMapper.mapInvoiceToIntelipost(data);
+        await this.intelipostMapper.mapInvoiceToIntelipost(data, account.id);
 
       let response: IntelipostApiGatewayResponse<any>;
 

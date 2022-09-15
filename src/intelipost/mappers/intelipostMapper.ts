@@ -10,9 +10,10 @@ export class IntelipostMapper {
     private readonly accountService: AccountService,
   ) {}
 
-  async mapInvoiceToIntelipost(data: CreateInvoiceDto) {
+  async mapInvoiceToIntelipost(data: CreateInvoiceDto, accountId: string) {
     const location = await this.accountService.findOneLocationByDocument(
       data.emitter.document,
+      accountId,
     );
 
     const carrier = await this.carrierService.findByDocument(
