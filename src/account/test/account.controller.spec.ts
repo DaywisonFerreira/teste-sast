@@ -4,7 +4,7 @@ import { AccountController } from '../account.controller';
 import { AccountService } from '../account.service';
 import { FilterPaginateAccountDto } from '../dto/filter-paginate-account.dto';
 import { PaginateAccountDto } from '../dto/paginate-account.dto';
-import { AccountServiceSpy, mockAccounts } from './mock';
+import { AccountServiceSpy, mockAccounts } from './mock/index.mock';
 
 type SutTypes = {
   sut: AccountController;
