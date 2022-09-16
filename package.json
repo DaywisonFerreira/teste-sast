@@ -161,6 +161,11 @@
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
+    "testPathIgnorePatterns": [
+      ".*\\.spec\\.ts$",
+      ".*\\.mock\\.ts$",
+      ".*\\.test\\.ts$"
+    ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
