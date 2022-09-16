@@ -258,7 +258,7 @@ describe('OrderService', () => {
         workbook: '',
       };
 
-      const fileName = 'Status_Entregas_TEST_14092022-14092022.xlsx';
+      let fileName = 'Status_Entregas_TEST_14092022-14092022.xlsx';
       const directory_path =
         process.env.NODE_ENV !== 'local'
           ? `${process.cwd()}/dist/tmp`
@@ -299,14 +299,32 @@ describe('OrderService', () => {
         path: `${directory_path}/${fileName}`,
       });
 
-      expect(spyFsExistsSync).toBeCalledTimes(2);
-      expect(spyFsExistsSyncFalse).toBeCalledTimes(2);
+      fileName = 'Status_Entregas__14092022-14092022.xlsx';
+
+      expect(
+        await (service as any).createXlsxLocally(
+          data,
+          { ...exportData, storeCode: null },
+          null,
+          'test',
+          file.worksheet,
+          true,
+        ),
+      ).toStrictEqual({
+        ...file,
+        fileName,
+        workbook: 'test',
+        path: `${directory_path}/${fileName}`,
+      });
+
+      expect(spyFsExistsSync).toBeCalledTimes(3);
+      expect(spyFsExistsSyncFalse).toBeCalledTimes(3);
       expect(spyFsMkdirSync).toBeCalledTimes(1);
       expect(spyXlsxUtilsBookNew).toBeCalledTimes(1);
       expect(spyXlsxUtilsJsonToSheet).toBeCalledTimes(1);
-      expect(spyXlsxUtilsBookAppendSheet).toBeCalledTimes(2);
-      expect(spyFsWriteFile).toBeCalledTimes(2);
-      expect(spyXlsxUtilsSheetAddJson).toBeCalledTimes(1);
+      expect(spyXlsxUtilsBookAppendSheet).toBeCalledTimes(3);
+      expect(spyFsWriteFile).toBeCalledTimes(3);
+      expect(spyXlsxUtilsSheetAddJson).toBeCalledTimes(2);
     });
 
     it('Should return attachments generated', async () => {

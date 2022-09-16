@@ -228,4 +228,30 @@ describe('AccountService', () => {
 
     expect(response).toEqual([[mockedAccount], 1]);
   });
+
+  test('Should return an account', async () => {
+    const { sut, AccountModel } = await makeSut();
+
+    const mockedAccount = mockAccount();
+
+    const response = await sut.findById('0a2fe1ed-4148-4838-a1f1-18ef13284374');
+
+    expect(response).toEqual(mockedAccount);
+
+    const spyAccountFindOne = jest
+      .spyOn(AccountModel, 'findOne')
+      .mockReturnValueOnce({
+        lean: () => null,
+      } as any);
+
+    try {
+      await sut.findById('0a2fe1ed-4148-4838-a1f1-18ef13284374');
+    } catch (error) {
+      expect(error).toStrictEqual(
+        new HttpException('Account not found', HttpStatus.NOT_FOUND),
+      );
+    }
+
+    expect(spyAccountFindOne).toBeCalledTimes(10);
+  });
 });
