@@ -162,7 +162,6 @@
       "**/*.(t|j)s"
     ],
     "testPathIgnorePatterns": [
-      ".*\\.spec\\.ts$",
       ".*\\.mock\\.ts$",
       ".*\\.test\\.ts$"
     ],
