@@ -137,7 +137,7 @@ export class OrderService {
     }).lean();
 
     if (!order) {
-      throw new HttpException('Order not found.', HttpStatus.NOT_FOUND);
+      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
     }
 
     return order;
