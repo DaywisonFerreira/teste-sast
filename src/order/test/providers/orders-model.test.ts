@@ -18,6 +18,7 @@ export class OrdersModelMock {
     exec: OrdersModelMock.execList,
     limit: jest.fn().mockReturnValue({
       skip: jest.fn().mockReturnValue({
+        lean: OrdersModelMock.execList,
         sort: jest.fn().mockReturnValue({
           lean: OrdersModelMock.execList,
         }),
