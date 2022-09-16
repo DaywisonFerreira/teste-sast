@@ -157,11 +157,15 @@ export class LogisticInfo {
 
   logisticContract: string;
 
+  lockTTL: string;
+
   price: number;
 
   listPrice: number;
 
   sellingPrice: number;
+
+  deliveryWindow: string;
 
   deliveryCompany: string;
 
@@ -171,11 +175,20 @@ export class LogisticInfo {
 
   deliveryChannel: string;
 
-  deliveryIds: Array<any>;
+  deliveryIds: {
+    _id: string;
+    courierId: string;
+    courierName: string;
+    dockId: string;
+    quantity: number;
+    warehouseId: string;
+  }[];
 }
 
 export class History {
-  dispatchDate: Date;
+  volumeNumber: number;
+
+  dispatchDate?: Date;
 
   estimateDeliveryDateDeliveryCompany: Date;
 
@@ -189,9 +202,11 @@ export class History {
 
   lastOccurrenceMessage: string;
 
+  partnerStatusId: string;
+
   partnerStatus: string;
 
-  orderUpdatedAt: string;
+  orderUpdatedAt: Date;
 
   i18n: string;
 
@@ -199,6 +214,12 @@ export class History {
 }
 
 export class BillingData {
+  pickupInfo: {
+    isReady: boolean;
+  };
+
+  _id: string;
+
   invoiceSerialNumber: string;
 
   invoiceValue: number;
@@ -218,24 +239,26 @@ export class BillingData {
   customerDocument: string;
 
   items: Array<Item>;
+
+  events: any[];
 }
 
 @Schema({ collection: 'orders', timestamps: true })
 export class OrderEntity extends Document {
   @Prop({ type: Types.ObjectId, required: false })
-  orderId?: Types.ObjectId;
+  orderId?: Types.ObjectId | string;
 
   @Prop({ type: String, required: false })
   storeCode?: string;
 
   @Prop({ type: Types.ObjectId, required: false })
-  storeId?: Types.ObjectId;
+  storeId?: Types.ObjectId | string;
 
   @Prop({ type: String, required: false })
   sellerCode?: string;
 
   @Prop({ type: Types.ObjectId, required: false })
-  sellerId?: Types.ObjectId;
+  sellerId?: Types.ObjectId | string;
 
   @Prop({ type: String, required: false })
   internalOrderId?: string;
