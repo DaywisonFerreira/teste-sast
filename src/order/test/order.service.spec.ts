@@ -319,7 +319,7 @@ describe('OrderService', () => {
 
       expect(spyFsExistsSync).toBeCalledTimes(3);
       expect(spyFsExistsSyncFalse).toBeCalledTimes(3);
-      expect(spyFsMkdirSync).toBeCalledTimes(1);
+      expect(spyFsMkdirSync).toBeCalledTimes(2);
       expect(spyXlsxUtilsBookNew).toBeCalledTimes(1);
       expect(spyXlsxUtilsJsonToSheet).toBeCalledTimes(1);
       expect(spyXlsxUtilsBookAppendSheet).toBeCalledTimes(3);
