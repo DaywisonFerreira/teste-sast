@@ -1,18 +1,22 @@
 import { Model } from 'mongoose';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
-
 import { HttpException, HttpStatus } from '@nestjs/common';
+import * as fs from 'fs';
+import * as xlsx from 'xlsx';
+
+import { utils } from 'xlsx';
 import { OrderService } from '../order.service';
 import { OrderDocument, OrderEntity } from '../schemas/order.schema';
 import { ordersEntityMock } from './mocks/orders-entity.mock';
-import { OrdersProvidersMock } from './providers/orders-providers.test';
+import { OrdersProvidersMock } from './providers/orders-providers.mock';
 import { infraLoggerMock } from './mocks/infra-logger.mock';
 import {
   attachmentMock,
   ordersUpdateMappedMock,
 } from './mocks/orders-update.mock';
 import { OrderMapper } from '../mappers/orderMapper';
+import { CsvMapper } from '../mappers/csvMapper';
 
 describe('OrderService', () => {
   let service: OrderService;
@@ -61,6 +65,30 @@ describe('OrderService', () => {
           orderDirection: 'asc',
         }),
       ).toStrictEqual([[ordersEntityMock], 1]);
+
+      try {
+        await service.findAll({
+          ...data,
+          orderCreatedAtTo: '2022-11-15',
+          shippingEstimateDateTo: '2022-09-20',
+          orderDirection: 'asc',
+        });
+      } catch (error) {
+        expect(error).toStrictEqual(
+          new Error('Date difference greater than 2 months'),
+        );
+      }
+
+      try {
+        await service.findAll({
+          ...data,
+          orderCreatedAtTo: '2022-09-10',
+          shippingEstimateDateTo: '2022-09-20',
+          orderDirection: 'asc',
+        });
+      } catch (error) {
+        expect(error).toStrictEqual(new Error('Invalid range of dates'));
+      }
     });
 
     it('Should export data', async () => {
@@ -184,6 +212,101 @@ describe('OrderService', () => {
       ).toStrictEqual(5);
 
       expect((service as any).getStatusScale('canceled')).toStrictEqual(5);
+    });
+
+    it('Should return file xlsx generated', async () => {
+      const spyFsExistsSync = jest
+        .spyOn(fs, 'existsSync')
+        .mockImplementationOnce(() => true);
+
+      const spyFsMkdirSync = jest
+        .spyOn(fs, 'mkdirSync')
+        .mockImplementationOnce(() => null);
+
+      const spyXlsxUtilsBookNew = jest
+        .spyOn(utils, 'book_new')
+        .mockImplementationOnce(() => '' as any);
+
+      const spyXlsxUtilsJsonToSheet = jest
+        .spyOn(utils, 'json_to_sheet')
+        .mockImplementationOnce(() => '' as any);
+
+      const spyXlsxUtilsBookAppendSheet = jest
+        .spyOn(utils, 'book_append_sheet')
+        .mockImplementation(() => null);
+
+      const spyFsWriteFile = jest
+        .spyOn(xlsx, 'writeFile')
+        .mockImplementation(() => null);
+
+      const spyXlsxUtilsSheetAddJson = jest
+        .spyOn(utils, 'sheet_add_json')
+        .mockImplementationOnce(() => null);
+
+      const data = CsvMapper.mapOrderToCsv([ordersEntityMock]);
+      const exportData = {
+        orderCreatedAtFrom: '2022-09-14',
+        orderCreatedAtTo: '2022-09-14',
+        userId: '617c0034876900002773c508',
+        storeCode: 'TEST',
+      };
+
+      const file = {
+        path: '',
+        fileName: '',
+        worksheet: '',
+        workbook: '',
+      };
+
+      const fileName = 'Status_Entregas_TEST_14092022-14092022.xlsx';
+      const directory_path =
+        process.env.NODE_ENV !== 'local'
+          ? `${process.cwd()}/dist/tmp`
+          : `${process.cwd()}/src/tmp`;
+
+      expect(
+        await (service as any).createXlsxLocally(
+          data,
+          exportData,
+          file.fileName,
+          file.workbook,
+          file.worksheet,
+          true,
+        ),
+      ).toStrictEqual({
+        ...file,
+        fileName,
+        path: `${directory_path}/${fileName}`,
+      });
+
+      const spyFsExistsSyncFalse = jest
+        .spyOn(fs, 'existsSync')
+        .mockImplementationOnce(() => false);
+
+      expect(
+        await (service as any).createXlsxLocally(
+          data,
+          exportData,
+          file.fileName,
+          'test',
+          file.worksheet,
+          true,
+        ),
+      ).toStrictEqual({
+        ...file,
+        fileName,
+        workbook: 'test',
+        path: `${directory_path}/${fileName}`,
+      });
+
+      expect(spyFsExistsSync).toBeCalledTimes(2);
+      expect(spyFsExistsSyncFalse).toBeCalledTimes(2);
+      expect(spyFsMkdirSync).toBeCalledTimes(1);
+      expect(spyXlsxUtilsBookNew).toBeCalledTimes(1);
+      expect(spyXlsxUtilsJsonToSheet).toBeCalledTimes(1);
+      expect(spyXlsxUtilsBookAppendSheet).toBeCalledTimes(2);
+      expect(spyFsWriteFile).toBeCalledTimes(2);
+      expect(spyXlsxUtilsSheetAddJson).toBeCalledTimes(1);
     });
 
     it('Should return attachments generated', async () => {
