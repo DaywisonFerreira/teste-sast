@@ -221,7 +221,7 @@ describe('OrderService', () => {
 
       const spyFsMkdirSync = jest
         .spyOn(fs, 'mkdirSync')
-        .mockImplementationOnce(() => null);
+        .mockImplementation(() => null);
 
       const spyXlsxUtilsBookNew = jest
         .spyOn(utils, 'book_new')
