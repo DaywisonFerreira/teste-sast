@@ -61,7 +61,7 @@ export class ConsumerOrderController {
         order.logisticInfo[0].deliveryChannel === 'delivery' &&
         (order.status === 'dispatched' || order.status === 'invoiced')
       ) {
-        logger.log(
+        logger.verbose(
           `${Env.RABBITMQ_ORDER_NOTIFICATION_QUEUE} - iHub order received with orderSale ${order.externalOrderId} order ${order.erpInfo?.externalOrderId} in the integration queue`,
         );
 
