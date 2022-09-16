@@ -6,7 +6,7 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { OrderService } from '../order.service';
 import { OrderDocument, OrderEntity } from '../schemas/order.schema';
 import { ordersEntityMock } from './mocks/orders-entity.mock';
-import { OrdersProvidersMock } from './providers/orders-providers.test';
+import { OrdersProvidersMock } from './providers/orders-providers.mock';
 import { infraLoggerMock } from './mocks/infra-logger.mock';
 import {
   attachmentMock,
