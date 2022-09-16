@@ -7,6 +7,7 @@ import {
   Patch,
   Req,
   Query,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AccountService } from './account.service';
@@ -25,14 +26,8 @@ export class AccountController {
   @Get()
   @ApiOkResponse({ type: PaginateAccountDto })
   async findAll(
-    @Query() filterPaginateDto: FilterPaginateAccountDto,
-    @Req() req: any,
+    @Query(ValidationPipe) filterPaginateDto: FilterPaginateAccountDto,
   ): Promise<PaginateAccountDto> {
-    req.logger.verbose(
-      `A request was received to get accounts with the query: ${JSON.stringify(
-        filterPaginateDto,
-      )}`,
-    );
     const {
       name,
       shipToAddress,

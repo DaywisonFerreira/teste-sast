@@ -23,7 +23,7 @@ export class ConsumerCarrierController {
     offset,
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerCarrierController.name);
-    const data = JSON.parse(value);
+    const { data } = JSON.parse(value);
 
     try {
       logger.log(
@@ -49,13 +49,13 @@ export class ConsumerCarrierController {
     offset,
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerCarrierController.name);
-    const data = JSON.parse(value);
+    const { data } = JSON.parse(value);
 
     try {
       logger.log(
         `${Env.KAFKA_TOPIC_CARRIER_CHANGED} - Carrier consumer was received`,
       );
-      await this.carrierService.updateConsumer(data.data.id, data.data);
+      await this.carrierService.updateConsumer(data.id, data);
     } catch (error) {
       logger.error(error);
     } finally {

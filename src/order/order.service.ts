@@ -137,7 +137,7 @@ export class OrderService {
     }).lean();
 
     if (!order) {
-      throw new HttpException('Order not found.', HttpStatus.NOT_FOUND);
+      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
     }
 
     return order;
@@ -163,8 +163,8 @@ export class OrderService {
     };
 
     if (orderCreatedAtFrom && orderCreatedAtTo) {
-      const dateFrom = new Date(`${orderCreatedAtFrom} 00:00:00-03:00Z`);
-      const dateTo = new Date(`${orderCreatedAtTo} 23:59:59-03:00Z`);
+      const dateFrom = new Date(`${orderCreatedAtFrom} 00:00:00-03:00`);
+      const dateTo = new Date(`${orderCreatedAtTo} 23:59:59-03:00`);
       this.validateRangeOfDates(dateFrom, dateTo);
       conditions.orderCreatedAt = {
         $gte: dateFrom,
