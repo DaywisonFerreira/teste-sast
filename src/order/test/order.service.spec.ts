@@ -8,6 +8,11 @@ import { OrderDocument, OrderEntity } from '../schemas/order.schema';
 import { ordersEntityMock } from './mocks/orders-entity.mock';
 import { OrdersProvidersMock } from './providers/orders-providers.test';
 import { infraLoggerMock } from './mocks/infra-logger.mock';
+import {
+  attachmentMock,
+  ordersUpdateMappedMock,
+} from './mocks/orders-update.mock';
+import { OrderMapper } from '../mappers/orderMapper';
 
 describe('OrderService', () => {
   let service: OrderService;
@@ -139,7 +144,9 @@ describe('OrderService', () => {
       }
       expect(spyOrderFindOne).toBeCalledTimes(3);
     });
+  });
 
+  describe('Supported functions to order service', () => {
     it('Should find by key and orderSale', async () => {
       expect(
         await service.findByKeyAndOrderSale(
@@ -147,6 +154,76 @@ describe('OrderService', () => {
           'TST-1261870112646-02',
         ),
       ).toStrictEqual(ordersEntityMock);
+    });
+
+    it('Should return statusScale given statusCode', async () => {
+      expect(
+        await (service as any).getStatusScale('order-created'),
+      ).toStrictEqual(0);
+
+      expect(await (service as any).getStatusScale('')).toStrictEqual(1);
+
+      expect(
+        await (service as any).getStatusScale('order-dispatched'),
+      ).toStrictEqual(2);
+
+      expect(await (service as any).getStatusScale('in-transit')).toStrictEqual(
+        3,
+      );
+
+      expect(
+        await (service as any).getStatusScale('out-of-delivery'),
+      ).toStrictEqual(4);
+
+      expect(await (service as any).getStatusScale('delivered')).toStrictEqual(
+        5,
+      );
+
+      expect(
+        await (service as any).getStatusScale('delivery-failed'),
+      ).toStrictEqual(5);
+
+      expect((service as any).getStatusScale('canceled')).toStrictEqual(5);
+    });
+
+    it('Should return attachments generated', async () => {
+      const spyOrderMapperMapAttachment = jest
+        .spyOn(OrderMapper, 'mapAttachment')
+        .mockImplementation(() => Promise.resolve(attachmentMock));
+
+      expect(
+        await (service as any).generateAttachments(
+          ordersUpdateMappedMock,
+          true,
+          infraLoggerMock,
+          ordersEntityMock,
+        ),
+      ).toStrictEqual([attachmentMock]);
+
+      const oldAttachment = {
+        ...attachmentMock,
+        originalUrl:
+          'https://s3-storage.intelipost.com.br/17359/file_attachment/b681a175-b701-4174-97d4-e9e1a6f38333/comprovante.jpg',
+      };
+      expect(
+        await (service as any).generateAttachments(
+          ordersUpdateMappedMock,
+          false,
+          infraLoggerMock,
+          { ...ordersEntityMock, attachments: [oldAttachment] },
+        ),
+      ).toStrictEqual([oldAttachment, attachmentMock]);
+
+      expect(
+        await (service as any).generateAttachments(
+          ordersUpdateMappedMock,
+          false,
+          infraLoggerMock,
+          ordersEntityMock,
+        ),
+      ).toStrictEqual([attachmentMock]);
+
+      expect(spyOrderMapperMapAttachment).toBeCalledTimes(2);
     });
   });
 });

@@ -57,7 +57,21 @@ export const ordersEntityMock: LeanDocument<OrderEntity> & {
     micro: 'delivered-success',
     macro: 'delivered',
   },
-  attachments: [],
+  attachments: [
+    {
+      fileName: 'assinatura.jpg',
+      mimeType: 'image/jpg',
+      type: 'POD',
+      additionalInfo: {
+        key1: 'value 1',
+        key2: 'value 2',
+      },
+      url: 'https://s3-storage.intelipost.com.br/17359/file_attachment/b681a175-b701-4174-97d4-e9e1a6f3893e/comprovante.jpg',
+      originalUrl:
+        'https://s3-storage.intelipost.com.br/17359/file_attachment/b681a175-b701-4174-97d4-e9e1a6f3893e/comprovante.jpg',
+      createdAt: '2018-01-15T13:43:38.137-02:00',
+    },
+  ],
   history: [
     {
       volumeNumber: 18701695,
