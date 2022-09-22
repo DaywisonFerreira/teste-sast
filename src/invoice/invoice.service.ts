@@ -102,7 +102,7 @@ export class InvoiceService {
     ftpAccess: any,
     logger: LogProvider,
   ): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       const ftp = new ClientFtp();
       ftp.on('ready', () => {
         ftp.put(file, destPathFtp, () => {
@@ -113,7 +113,7 @@ export class InvoiceService {
       });
       ftp.on('error', err => {
         this.deleteFileLocal(filePathLocal, logger);
-        throw err;
+        reject(err);
       });
       ftp.connect({
         host: ftpAccess.host,
@@ -194,7 +194,7 @@ export class InvoiceService {
           }
         });
       } else {
-        throw new Error('Invalid file download URL');
+        reject(new Error('Invalid file download URL'));
       }
     });
   }
