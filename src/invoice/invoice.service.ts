@@ -151,7 +151,7 @@ export class InvoiceService {
         .catch(err => {
           this.deleteFileLocal(filePathLocal, logger);
           logger.error(err.message);
-          reject();
+          reject(err);
         });
     });
   }
