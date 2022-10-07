@@ -80,6 +80,49 @@ export class ConsumerInvoiceController {
     }
   }
 
+  @SubscribeTopic(Env.KAFKA_TOPIC_INVOICE_INTEGRATED)
+  async integrated({
+    value,
+    partition,
+    offset,
+    headers,
+  }: KafkaResponse<string>) {
+    const logger = new InfraLogger(headers, ConsumerInvoiceController.name);
+    try {
+      const { data } = this.parseValueFromQueue(value);
+      const accountId = headers['X-Tenant-Id'];
+      logger.log(
+        `${Env.KAFKA_TOPIC_INVOICE_INTEGRATED} - Invoice was received with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId} accountId: ${accountId}`,
+      );
+
+      const invoice = await this.invoiceService.findById(data.id);
+      if (!invoice) {
+        throw new Error(`Invoice not found with id ${data.id}`);
+      }
+
+      const newIntegration = {
+        name: data?.integrationName ?? '',
+        status: data?.status ?? 'disabled',
+        errorMessage: data?.errorMessage ?? '',
+      };
+
+      await this.orderService.updateIntegrations(
+        {
+          'invoice.number': String(invoice.number),
+        },
+        newIntegration,
+      );
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      await this.removeFromQueue(
+        Env.KAFKA_TOPIC_INVOICE_INTEGRATED,
+        partition,
+        offset,
+      );
+    }
+  }
+
   private async integrateInvoice(
     data: any,
     accountId: any,

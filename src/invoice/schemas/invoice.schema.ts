@@ -51,6 +51,9 @@ export class InvoiceEntity extends Document {
   @Prop({ type: String, required: true })
   id: string;
 
+  @Prop({ type: Number, required: false })
+  number: number;
+
   @Prop({ type: String, required: true })
   accountId: string;
 

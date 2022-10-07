@@ -87,6 +87,9 @@ export abstract class Env {
   public static readonly KAFKA_TOPIC_INVOICE_CREATED: string =
     process.env.KAFKA_TOPIC_INVOICE_CREATED;
 
+  public static readonly KAFKA_TOPIC_INVOICE_INTEGRATED: string =
+    process.env.KAFKA_TOPIC_INVOICE_INTEGRATED;
+
   public static readonly PROCESS_CHUNK_SIZE_WRITE: string =
     process.env.PROCESS_CHUNK_SIZE_WRITE;
 
