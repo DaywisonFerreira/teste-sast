@@ -85,6 +85,7 @@ export class ConsumerOrderController {
             );
           }),
         );
+
         if (orderToSaves.length) {
           logger.log(
             `OrderSale: ${orderToSaves[0].orderSale} order: ${

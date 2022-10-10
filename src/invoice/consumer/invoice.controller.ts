@@ -96,6 +96,7 @@ export class ConsumerInvoiceController {
       );
 
       const invoice = await this.invoiceService.findById(data.id);
+
       if (!invoice) {
         throw new Error(`Invoice not found with id ${data.id}`);
       }
@@ -108,7 +109,7 @@ export class ConsumerInvoiceController {
 
       await this.orderService.updateIntegrations(
         {
-          'invoice.number': String(invoice.number),
+          'invoice.key': invoice.key,
         },
         newIntegration,
       );

@@ -25,6 +25,7 @@ export const PublicFieldsOrder = {
   'logisticInfo.deliveryCompany': 1,
   'logisticInfo.shippingEstimateDate': 1,
   integrations: 1,
+  invoiceKeys: 1,
 };
 
 export class Total {
