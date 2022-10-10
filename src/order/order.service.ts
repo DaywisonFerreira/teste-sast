@@ -893,4 +893,34 @@ export class OrderService {
     const microStatusCodeFinisher = ['delivered-success'];
     return microStatusCodeFinisher.includes(microStatus);
   }
+
+  public async updateIntegrations(
+    filter: Record<string, any>,
+    newIntegration: { name: string; status: string; errorMessage: string },
+  ): Promise<void> {
+    const order = await this.OrderModel.findOne(filter, {}, { lean: true });
+
+    if (order?.integrations && order?.integrations.length) {
+      const index = order.integrations.findIndex(
+        integration => integration.name === newIntegration.name,
+      );
+      if (index >= 0) {
+        order.integrations.splice(index, 1, newIntegration);
+
+        await this.OrderModel.updateOne(filter, {
+          $set: {
+            integrations: order.integrations,
+          },
+        });
+      } else {
+        await this.OrderModel.updateOne(filter, {
+          $push: { integrations: newIntegration },
+        });
+      }
+    } else {
+      await this.OrderModel.updateOne(filter, {
+        $push: { integrations: newIntegration },
+      });
+    }
+  }
 }

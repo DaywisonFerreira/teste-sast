@@ -24,6 +24,8 @@ export const PublicFieldsOrder = {
   'billingData.trackingUrl': 1,
   'logisticInfo.deliveryCompany': 1,
   'logisticInfo.shippingEstimateDate': 1,
+  integrations: 1,
+  invoiceKeys: 1,
 };
 
 export class Total {
@@ -134,6 +136,14 @@ export class Attachments {
   originalUrl: string;
 
   createdAt: string;
+}
+
+class Integrations {
+  name: string;
+
+  status: string;
+
+  errorMessage: string;
 }
 
 export class PickupStoreInfo {
@@ -401,6 +411,9 @@ export class OrderEntity extends Document {
 
   @Prop({ type: Number, required: false })
   quantityOccurrences?: number; // campo só usado no relatorio
+
+  @Prop({ type: Array, required: false, default: [] })
+  integrations?: Array<Integrations>;
 }
 
 export type OrderDocument = OrderEntity & Document;
