@@ -102,7 +102,7 @@ export class ConsumerInvoiceController {
       }
 
       const newIntegration = {
-        name: data?.integrationName ?? '',
+        name: data?.integrationName.toLowerCase() ?? '',
         status: data?.status ?? 'disabled',
         errorMessage: data?.errorMessage ?? '',
       };
