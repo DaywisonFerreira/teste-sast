@@ -17,6 +17,7 @@ export const PublicFieldsOrder = {
   statusCode: 1,
   history: 1,
   'invoice.number': 1,
+  'invoice.key': 1,
   'invoice.trackingUrl': 1,
   'invoice.customerDocument': 1,
   'billingData.invoiceValue': 1,
@@ -25,7 +26,6 @@ export const PublicFieldsOrder = {
   'logisticInfo.deliveryCompany': 1,
   'logisticInfo.shippingEstimateDate': 1,
   integrations: 1,
-  invoiceKeys: 1,
 };
 
 export class Total {
