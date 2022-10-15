@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { OrderProducer } from 'src/order/producer/order.producer';
 
 import { AccountService } from '../account/account.service';
 import {
@@ -44,6 +45,7 @@ import { IntelipostMapper } from './mappers/intelipostMapper';
   providers: [
     InteliPostService,
     OrderService,
+    OrderProducer,
     IntelipostMapper,
     CarrierService,
     AccountService,

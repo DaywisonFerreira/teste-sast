@@ -38,6 +38,11 @@ export abstract class Env {
     10,
   );
 
+  public static readonly TRACKING_CONNECTORS_ENABLES: string[] = process.env
+    .TRACKING_CONNECTORS_ENABLES
+    ? process.env.TRACKING_CONNECTORS_ENABLES.split(',')
+    : [];
+
   public static readonly AZURE_ACCOUNT_NAME: string = String(
     process.env.AZURE_ACCOUNT_NAME,
   );
@@ -143,4 +148,7 @@ export abstract class Env {
 
   public static readonly RABBITMQ_ORDER_NOTIFICATION_QUEUE: string =
     process.env.RABBITMQ_ORDER_NOTIFICATION_QUEUE;
+
+  public static readonly KAFKA_TOPIC_PARTNER_ORDER_TRACKING: string =
+    process.env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING;
 }

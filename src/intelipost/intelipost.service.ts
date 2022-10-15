@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InfraLogger } from '@infralabs/infra-logger';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 
 import { OrderService } from 'src/order/order.service';
+import { OrderProducer } from 'src/order/producer/order.producer';
 import { OrderMapper } from '../order/mappers/orderMapper';
 import { CreateIntelipost } from './dto/create-intelipost.dto';
 
@@ -10,7 +10,7 @@ import { CreateIntelipost } from './dto/create-intelipost.dto';
 export class InteliPostService {
   constructor(
     private orderService: OrderService,
-    private readonly amqpConnection: AmqpConnection,
+    private orderProducer: OrderProducer,
   ) {}
 
   async intelipost(
@@ -30,11 +30,8 @@ export class InteliPostService {
       }
 
       if (order.statusCode.macro === 'order-dispatched') {
-        order.dispatchDate = order.orderUpdatedAt;
-      }
-
-      if (order.partnerStatus === 'shipped') {
         order.status = 'dispatched';
+        order.dispatchDate = order.orderUpdatedAt;
       }
 
       const { success, order: orderMerged } = await this.orderService.merge(
@@ -52,29 +49,7 @@ export class InteliPostService {
         logger.log(
           `OrderSale: ${orderMerged.orderSale} order: ${orderMerged.partnerOrder} and microStatus: ${orderMerged.statusCode.micro} was saved`,
         );
-      }
-
-      if (
-        success &&
-        orderMerged.storeId &&
-        orderMerged.storeCode &&
-        orderMerged.internalOrderId &&
-        !Number.isNaN(parseInt(orderMerged.internalOrderId, 10))
-      ) {
-        const exchange = 'order';
-        const routeKey = 'orderTrackingUpdated';
-        const exportingOrder: any =
-          OrderMapper.mapPartnerToExportingOrder(orderMerged);
-
-        await this.amqpConnection.publish(exchange, routeKey, exportingOrder);
-
-        logger.log(
-          `OrderSale: ${orderMerged.orderSale} order ${orderMerged.partnerOrder} sent to exchange '${exchange}' and routeKey '${routeKey}' status: ${orderMerged.partnerStatus}`,
-        );
-      } else {
-        logger.log(
-          `OrderSale: ${orderMerged.orderSale} order ${orderMerged.partnerOrder} not sent due to lack of storeId (${orderMerged.storeId}), storeCode (${orderMerged.storeCode}) or internalOrderId (${orderMerged.internalOrderId}) status: ${orderMerged.partnerStatus}`,
-        );
+        await this.orderProducer.sendStatusTrackingToIHub(orderMerged, logger);
       }
     } catch (error) {
       logger.error(error);

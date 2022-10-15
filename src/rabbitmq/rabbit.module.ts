@@ -5,6 +5,7 @@ import {
   AccountEntity,
   AccountSchema,
 } from 'src/account/schemas/account.schema';
+import { OrderProducer } from 'src/order/producer/order.producer';
 
 import { Env } from '../commons/environment/env';
 import { NestjsEventEmitter } from '../commons/providers/event/nestjs-event-emitter';
@@ -39,6 +40,7 @@ import { OrderEntity, OrderSchema } from '../order/schemas/order.schema';
   providers: [
     ConsumerOrderController,
     OrderService,
+    OrderProducer,
     { provide: 'EventProvider', useClass: NestjsEventEmitter },
   ],
   controllers: [],

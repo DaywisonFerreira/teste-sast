@@ -89,13 +89,13 @@ export class ConsumerInvoiceController {
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerInvoiceController.name);
     try {
-      const { data } = this.parseValueFromQueue(value);
+      const { data, metadata } = this.parseValueFromQueue(value);
       const accountId = headers['X-Tenant-Id'];
       logger.log(
-        `${Env.KAFKA_TOPIC_INVOICE_INTEGRATED} - Invoice was received with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId} accountId: ${accountId}`,
+        `${Env.KAFKA_TOPIC_INVOICE_INTEGRATED} - Invoice was received with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId}`,
       );
 
-      const invoice = await this.invoiceService.findById(data.id);
+      const invoice = await this.invoiceService.findById(data.id, accountId);
 
       if (!invoice) {
         throw new Error(`Invoice not found with id ${data.id}`);
@@ -103,15 +103,28 @@ export class ConsumerInvoiceController {
 
       const newIntegration = {
         name: data?.integrationName.toLowerCase() ?? '',
-        status: data?.status ?? 'disabled',
+        status: data?.status,
         errorMessage: data?.errorMessage ?? '',
+        createdAt: new Date(metadata?.createdAt),
       };
 
       await this.orderService.updateIntegrations(
-        {
-          'invoice.key': invoice.key,
-        },
+        { 'invoice.key': invoice.key },
+        invoice,
         newIntegration,
+      );
+
+      let status = null;
+      if (newIntegration.status === 'done') {
+        status = InvoiceStatusEnum.SUCCESS;
+      } else {
+        status = newIntegration.status;
+      }
+
+      await this.invoiceService.updateStatus(
+        invoice.key,
+        data.order.externalOrderId,
+        status,
       );
     } catch (error) {
       logger.error(error);

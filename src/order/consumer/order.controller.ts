@@ -19,6 +19,7 @@ import { OrderService } from '../order.service';
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderMapper } from '../mappers/orderMapper';
 import { EventProvider } from '../../commons/providers/event/nestjs-event-provider.interface';
+import { OrderProducer } from '../producer/order.producer';
 
 @Controller()
 export class ConsumerOrderController {
@@ -27,6 +28,7 @@ export class ConsumerOrderController {
     private readonly orderService: OrderService,
     @Inject('EventProvider')
     private readonly eventEmitter: EventProvider,
+    private orderProducer: OrderProducer,
   ) {}
 
   @RabbitSubscribe({
@@ -149,6 +151,83 @@ export class ConsumerOrderController {
       if (existsSync(file.path)) {
         await this.deleteFileLocally(file.path);
       }
+    }
+  }
+
+  @SubscribeTopic(Env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING)
+  async updateTrackingStatus({
+    value,
+    partition,
+    headers,
+    offset,
+  }: KafkaResponse<string>) {
+    const logger = new InfraLogger(headers, ConsumerOrderController.name);
+    const { data, metadata } = JSON.parse(value);
+
+    try {
+      if (
+        !Env.TRACKING_CONNECTORS_ENABLES.includes(metadata?.integrationName)
+      ) {
+        logger.log(
+          `Integration ${metadata?.integrationName} it's not enable to update tracking`,
+        );
+        return;
+      }
+
+      logger.log(
+        `${Env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING} - New tracking received to invoice key: ${data?.tracking?.sequentialCode} - status: ${data?.tracking?.statusCode?.micro}`,
+      );
+
+      const configPK = {
+        'invoice.key': data?.tracking?.sequentialCode,
+      };
+
+      const dataToMerge: any = {
+        statusCode: data?.tracking?.statusCode ?? {},
+        partnerStatusId: data?.tracking?.provider?.status,
+        partnerMessage: null,
+        partnerStatus:
+          data?.tracking?.provider?.status === 'DISPATCHED'
+            ? 'shipped'
+            : data?.tracking?.provider?.status.toLowerCase(),
+        orderUpdatedAt: new Date(data?.tracking?.eventDate),
+        invoiceKeys: [data?.tracking?.sequentialCode],
+        invoice: {
+          key: data?.tracking?.sequentialCode,
+          trackingUrl: data?.tracking?.provider?.trackingUrlPartner,
+          trackingNumber: data?.tracking?.provider?.trackingCodePartner,
+        },
+      };
+
+      if (dataToMerge.statusCode.macro === 'delivered') {
+        dataToMerge.status = dataToMerge.statusCode.macro;
+        dataToMerge.deliveryDate = dataToMerge.orderUpdatedAt;
+      }
+
+      if (dataToMerge.statusCode.macro === 'order-dispatched') {
+        dataToMerge.status = 'dispatched';
+        dataToMerge.dispatchDate = dataToMerge.orderUpdatedAt;
+      }
+
+      const { success, order } = await this.orderService.merge(
+        headers,
+        configPK,
+        dataToMerge,
+        'freight-connector',
+        logger,
+      );
+
+      if (success) {
+        await this.orderProducer.sendStatusTrackingToIHub(order, logger);
+      }
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      await this.removeFromQueue(
+        Env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING,
+        partition,
+        offset,
+      );
     }
   }
 
