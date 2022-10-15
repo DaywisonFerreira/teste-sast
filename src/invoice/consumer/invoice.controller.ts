@@ -124,7 +124,7 @@ export class ConsumerInvoiceController {
       await this.invoiceService.updateStatus(
         invoice.key,
         data.order.externalOrderId,
-         status,
+        status,
       );
     } catch (error) {
       logger.error(error);

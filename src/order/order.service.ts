@@ -374,12 +374,12 @@ export class OrderService {
         origin === 'intelipost'
           ? OrderMapper.mapPartnerHistoryToOrderHistory(data)
           : {
-            statusCode: data?.statusCode,
-            partnerStatusId: data?.partnerStatusId,
-            partnerStatus: data?.partnerStatus,
-            orderUpdatedAt: data?.orderUpdatedAt,
-            dispatchDate: data?.dispatchDate,
-          };
+              statusCode: data?.statusCode,
+              partnerStatusId: data?.partnerStatusId,
+              partnerStatus: data?.partnerStatus,
+              orderUpdatedAt: data?.orderUpdatedAt,
+              dispatchDate: data?.dispatchDate,
+            };
 
       if (isCreate) {
         return { ignore: false, history: [history] };
@@ -940,18 +940,22 @@ export class OrderService {
         });
       }
     } else if (!order) {
-      await this.OrderModel.updateOne(filter, {
-        $set: {
-          invoiceKeys: [invoice.key],
-          invoice: { key: invoice.key },
-          statusCode: { micro: 'invoiced', macro: 'order-created' },
-          orderSale: invoice.order.externalOrderId,
-          partnerOrder: invoice.order.internalOrderId,
-          integrations: [newIntegration],
+      await this.OrderModel.updateOne(
+        filter,
+        {
+          $set: {
+            invoiceKeys: [invoice.key],
+            invoice: { key: invoice.key },
+            statusCode: { micro: 'invoiced', macro: 'order-created' },
+            orderSale: invoice.order.externalOrderId,
+            partnerOrder: invoice.order.internalOrderId,
+            integrations: [newIntegration],
+          },
         },
-      }, {
-        upsert: true,
-      });
+        {
+          upsert: true,
+        },
+      );
     } else {
       await this.OrderModel.updateOne(filter, {
         $set: {

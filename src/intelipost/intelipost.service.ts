@@ -2,15 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { InfraLogger } from '@infralabs/infra-logger';
 
 import { OrderService } from 'src/order/order.service';
+import { OrderProducer } from 'src/order/producer/order.producer';
 import { OrderMapper } from '../order/mappers/orderMapper';
 import { CreateIntelipost } from './dto/create-intelipost.dto';
-import { OrderProducer } from 'src/order/producer/order.producer';
 
 @Injectable()
 export class InteliPostService {
   constructor(
     private orderService: OrderService,
-    private orderProducer: OrderProducer
+    private orderProducer: OrderProducer,
   ) {}
 
   async intelipost(

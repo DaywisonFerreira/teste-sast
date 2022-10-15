@@ -3,6 +3,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AccountEntity } from 'src/account/schemas/account.schema';
 import { OrderService } from 'src/order/order.service';
+import { OrderProducer } from 'src/order/producer/order.producer';
 import { OrderEntity } from 'src/order/schemas/order.schema';
 import { InteliPostService } from '../intelipost.service';
 
@@ -14,6 +15,7 @@ describe('InteliPostService', () => {
       providers: [
         InteliPostService,
         OrderService,
+        OrderProducer,
         {
           provide: getModelToken(OrderEntity.name),
           useValue: {},

@@ -7,9 +7,7 @@ import { OrderDocument } from '../schemas/order.schema';
 
 @Injectable()
 export class OrderProducer {
-  constructor(
-    private readonly amqpConnection: AmqpConnection,
-  ) {}
+  constructor(private readonly amqpConnection: AmqpConnection) {}
 
   async sendStatusTrackingToIHub(
     order: Partial<OrderDocument>,
@@ -23,8 +21,7 @@ export class OrderProducer {
     ) {
       const exchange = 'order';
       const routeKey = 'orderTrackingUpdated';
-      const exportingOrder: any =
-        OrderMapper.mapPartnerToExportingOrder(order);
+      const exportingOrder: any = OrderMapper.mapPartnerToExportingOrder(order);
 
       await this.amqpConnection.publish(exchange, routeKey, exportingOrder);
 
