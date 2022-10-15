@@ -19,6 +19,7 @@ import { OrderService } from '../order.service';
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderMapper } from '../mappers/orderMapper';
 import { EventProvider } from '../../commons/providers/event/nestjs-event-provider.interface';
+import { OrderProducer } from '../producer/order.producer';
 
 @Controller()
 export class ConsumerOrderController {
@@ -27,6 +28,7 @@ export class ConsumerOrderController {
     private readonly orderService: OrderService,
     @Inject('EventProvider')
     private readonly eventEmitter: EventProvider,
+    private orderProducer: OrderProducer,
   ) {}
 
   @RabbitSubscribe({
@@ -173,7 +175,7 @@ export class ConsumerOrderController {
       }
 
       logger.log(
-        `${Env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING} - New tracking received to invoice key: ${data?.tracking?.sequentialCode} - status: ${data?.tracking?.statusCode?.micro} - trackingCode: ${data?.tracking?.provider?.trackingCodePartner}`,
+        `${Env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING} - New tracking received to invoice key: ${data?.tracking?.sequentialCode} - status: ${data?.tracking?.statusCode?.micro}`,
       );
 
       const configPK = {
@@ -183,7 +185,8 @@ export class ConsumerOrderController {
       const dataToMerge: any = {
         statusCode: data?.tracking?.statusCode ?? {},
         partnerStatusId: data?.tracking?.provider?.status,
-        partnerStatus: data?.tracking?.provider?.status,
+        partnerMessage: null,
+        partnerStatus: data?.tracking?.provider?.status === 'DISPATCHED' ? 'shipped' : data?.tracking?.provider?.status.toLowerCase(),
         orderUpdatedAt: new Date(data?.tracking?.eventDate),
         invoiceKeys: [data?.tracking?.sequentialCode],
         invoice: {
@@ -203,7 +206,7 @@ export class ConsumerOrderController {
         dataToMerge.dispatchDate = dataToMerge.orderUpdatedAt;
       }
 
-      await this.orderService.merge(
+      const { success, order } = await this.orderService.merge(
         headers,
         configPK,
         dataToMerge,
@@ -211,7 +214,9 @@ export class ConsumerOrderController {
         logger,
       );
 
-      // TODO: mandar o status tracking para o ihub, via rabbitmq
+      if (success) {
+        await this.orderProducer.sendStatusTrackingToIHub(order, logger);
+      }
     } catch (error) {
       logger.error(error);
     } finally {
