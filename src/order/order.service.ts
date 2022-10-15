@@ -417,6 +417,11 @@ export class OrderService {
             invoiceKeys: data.invoice.key,
           },
         },
+        {
+          new: true,
+          runValidators: true,
+          useFindAndModify: false,
+        },
       );
     }
 
