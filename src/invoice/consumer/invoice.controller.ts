@@ -105,10 +105,12 @@ export class ConsumerInvoiceController {
         name: data?.integrationName.toLowerCase() ?? '',
         status: data?.status ?? 'disabled',
         errorMessage: data?.errorMessage ?? '',
+        createdAt: new Date(data?.metadata?.createdAt),
       };
 
       await this.orderService.updateIntegrations(
         {
+          orderSale: data.order.externalOrderId,
           'invoice.key': invoice.key,
         },
         newIntegration,

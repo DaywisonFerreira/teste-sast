@@ -369,8 +369,11 @@ export class OrderService {
       return { ignore: true, history: [] };
     }
 
-    if (origin === 'intelipost') {
-      const history = OrderMapper.mapPartnerHistoryToOrderHistory(data);
+    if (origin === 'intelipost' || origin === 'freight-connector') {
+      const history =
+        origin === 'intelipost'
+          ? OrderMapper.mapPartnerHistoryToOrderHistory(data)
+          : { statusCode: '', orderUpdatedAt: '' }; // TODO: fazer mapeamento de quando vier da freight-connector
 
       if (isCreate) {
         return { ignore: false, history: [history] };
@@ -896,9 +899,16 @@ export class OrderService {
 
   public async updateIntegrations(
     filter: Record<string, any>,
-    newIntegration: { name: string; status: string; errorMessage: string },
+    newIntegration: {
+      name: string;
+      status: string;
+      errorMessage: string;
+      createdAt: Date;
+    },
   ): Promise<void> {
-    const order = await this.OrderModel.findOne(filter, {}, { lean: true });
+    const order = await this.OrderModel.findOne(filter, PublicFieldsOrder, {
+      lean: true,
+    });
 
     if (order?.integrations && order?.integrations.length) {
       const index = order.integrations.findIndex(
@@ -918,6 +928,8 @@ export class OrderService {
         });
       }
     } else {
+      // testar caso não exista o pedido ainda na base
+      // testar caso o pedido não tenha a propriedade integrations, vai quebrar??
       await this.OrderModel.updateOne(filter, {
         $push: { integrations: newIntegration },
       });

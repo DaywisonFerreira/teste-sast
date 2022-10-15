@@ -152,6 +152,96 @@ export class ConsumerOrderController {
     }
   }
 
+  @SubscribeTopic(Env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING)
+  async updateTrackingStatus({
+    value,
+    partition,
+    headers,
+    offset,
+  }: KafkaResponse<string>) {
+    const logger = new InfraLogger(headers, ConsumerOrderController.name);
+    const { data } = JSON.parse(value);
+    // {
+    //   "data": {
+    //     "tracking": {
+    //       "sequentialCode": "35220934364408000164550020000144751128245219", //
+    //       "provider": {
+    //         "messages": [],
+    //         "status": "ARQUIVO RECEBIDO", //
+    //         "awb": "TXAZ722781796tx",
+    //         "trackingCodePartner": "TZSL000TXAZ722781796tx", //
+    //         "trackingUrlPartner": ""
+    //         "route": "12-TZS-SP-LOC-[026]"
+    //       },
+    //       "statusCode": {
+    //         "micro": "delivered-test",
+    //         "macro": "dispatched"
+    //       },
+    //       "attachments": [],
+    //       "eventDate": "2022-09-15T15:11:50"
+    //     }
+    //   },
+    //   "metadata": {
+    //         "integrationName": "cainiao",
+    //         "createdAt": "2022-07-18T18:26:45.618Z"
+    //       }
+    // }
+    try {
+      if (
+        !Env.TRACKING_CONNECTORS_ENABLES.includes(
+          data?.metadata?.integrationName,
+        )
+      ) {
+        logger.log(
+          `Integration ${data?.metadata?.integrationName} it's not enable to update tracking`,
+        );
+        return;
+      }
+
+      logger.log(
+        `${Env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING} - New tracking received to invoice key: ${data?.tracking?.sequentialCode} - status: ${data?.tracking?.statusCode?.micro} - trackingCode: ${data?.tracking?.provider?.trackingCodePartner}`,
+      );
+
+      const configPK = {
+        'invoice.key': data?.tracking?.sequentialCode,
+      };
+
+      // { orderSale: undefined, invoice.key: '123123123123' }
+      // { orderSale: undefined, invoice.key: '981234718237' }
+
+      const dataToMerge = {
+        statusCode: data?.tracking?.statusCode ?? {},
+        partnerStatusId: data?.tracking?.provider?.status,
+        partnerStatus: data?.tracking?.provider?.status,
+        orderUpdatedAt: new Date(data?.tracking?.eventDate),
+        invoiceKeys: [data?.tracking?.sequentialCode],
+        invoice: {
+          key: data?.tracking?.sequentialCode,
+          trackingUrl: data?.tracking?.provider?.trackingUrlPartner,
+          trackingNumber: data?.tracking?.provider?.trackingCodePartner,
+        },
+      };
+
+      await this.orderService.merge(
+        headers,
+        configPK,
+        dataToMerge,
+        'freight-connector',
+        logger,
+      );
+
+      // TODO: mandar o status tracking para o ihub, via rabbitmq
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      await this.removeFromQueue(
+        Env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING,
+        partition,
+        offset,
+      );
+    }
+  }
+
   private async deleteFileLocally(path: string) {
     await promises.unlink(path);
   }
