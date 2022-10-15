@@ -46,31 +46,41 @@ export class Item {
   isSubsidized: boolean;
 }
 export class Invoice {
-  serie: string;
+  @Prop({ type: String, required: false })
+  serie?: string;
 
+  @Prop({ type: Number, required: false })
   value?: number;
 
-  number: string;
+  @Prop({ type: String, required: false })
+  number?: string;
 
+  @Prop({ type: String, required: true })
   key: string;
 
+  @Prop({ type: Date, required: false })
   issuanceDate?: Date;
 
+  @Prop({ type: String, required: false })
   carrierName?: string;
 
-  carrierDocument?: any;
+  @Prop({ type: String, required: false })
+  carrierDocument?: string;
 
+  @Prop({ type: String, required: false })
   trackingNumber?: string;
 
+  @Prop({ type: String, required: false })
   trackingUrl?: string;
 
+  @Prop({ type: Array, required: false })
   items?: Array<Item>;
 
+  @Prop({ type: String, required: false })
   customerDocument?: string;
 
+  @Prop({ type: String, required: false })
   deliveryMethod?: string;
-
-  status?: string;
 }
 
 export class Delivery {
@@ -144,6 +154,8 @@ class Integrations {
   status: string;
 
   errorMessage: string;
+
+  createdAt: Date;
 }
 
 export class PickupStoreInfo {
@@ -300,13 +312,13 @@ export class OrderEntity extends Document {
   @Prop({ type: String, required: false })
   deliveryZipCode?: string;
 
-  @Prop({ type: String, required: true, index: true })
-  orderSale: string;
+  @Prop({ type: String, required: false })
+  orderSale?: string;
 
-  @Prop({ type: String, required: false, index: true })
+  @Prop({ type: String, required: false })
   order?: string;
 
-  @Prop({ type: String, required: false, index: true })
+  @Prop({ type: String, required: false })
   partnerOrder?: string;
 
   @Prop({ type: Array, required: false })
@@ -342,8 +354,8 @@ export class OrderEntity extends Document {
   @Prop({ type: Number, required: false })
   value?: number;
 
-  @Prop({ type: Object, required: false })
-  invoice?: Invoice;
+  @Prop({ type: Invoice, required: true })
+  invoice: Invoice;
 
   @Prop({ type: Object, required: false })
   delivery?: Delivery;
@@ -412,14 +424,15 @@ export class OrderEntity extends Document {
   @Prop({ type: Number, required: false })
   quantityOccurrences?: number; // campo só usado no relatorio
 
-  @Prop({ type: Array, required: false, default: [] })
+  @Prop({ type: Array, required: false })
   integrations?: Array<Integrations>;
 }
 
 export type OrderDocument = OrderEntity & Document;
 export const OrderSchema = SchemaFactory.createForClass(OrderEntity);
 
-OrderSchema.index({ orderSale: 1, 'invoice.key': 1 }, { unique: true })
+OrderSchema.index({ 'invoice.key': 1 }, { unique: true })
+  .index({ orderSale: 1, 'invoice.key': 1 }, { unique: false })
   .index({ orderSale: 1, invoiceKeys: 1 }, { unique: false })
   .index({ partnerOrder: 1 }, { unique: false })
   .index({ order: 1 }, { unique: false })
