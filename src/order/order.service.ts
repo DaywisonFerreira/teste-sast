@@ -373,7 +373,13 @@ export class OrderService {
       const history =
         origin === 'intelipost'
           ? OrderMapper.mapPartnerHistoryToOrderHistory(data)
-          : { statusCode: '', orderUpdatedAt: '' }; // TODO: fazer mapeamento de quando vier da freight-connector
+          : {
+            statusCode: data?.statusCode,
+            partnerStatusId: data?.partnerStatusId,
+            partnerStatus: data?.partnerStatus,
+            orderUpdatedAt: data?.orderUpdatedAt,
+            dispatchDate: data?.dispatchDate,
+          };
 
       if (isCreate) {
         return { ignore: false, history: [history] };
@@ -904,6 +910,7 @@ export class OrderService {
 
   public async updateIntegrations(
     filter: Record<string, any>,
+    invoice: any,
     newIntegration: {
       name: string;
       status: string;
@@ -932,11 +939,24 @@ export class OrderService {
           $push: { integrations: newIntegration },
         });
       }
-    } else {
-      // testar caso não exista o pedido ainda na base
-      // testar caso o pedido não tenha a propriedade integrations, vai quebrar??
+    } else if (!order) {
       await this.OrderModel.updateOne(filter, {
-        $push: { integrations: newIntegration },
+        $set: {
+          invoiceKeys: [invoice.key],
+          invoice: { key: invoice.key },
+          statusCode: { micro: 'invoiced', macro: 'order-created' },
+          orderSale: invoice.order.externalOrderId,
+          partnerOrder: invoice.order.internalOrderId,
+          integrations: [newIntegration],
+        },
+      }, {
+        upsert: true,
+      });
+    } else {
+      await this.OrderModel.updateOne(filter, {
+        $set: {
+          integrations: [newIntegration],
+        },
       });
     }
   }

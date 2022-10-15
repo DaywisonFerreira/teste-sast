@@ -161,31 +161,7 @@ export class ConsumerOrderController {
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerOrderController.name);
     const { data, metadata } = JSON.parse(value);
-    // {
-    //   "data": {
-    //     "tracking": {
-    //       "sequentialCode": "35220934364408000164550020000144751128245219", //
-    //       "provider": {
-    //         "messages": [],
-    //         "status": "ARQUIVO RECEBIDO", //
-    //         "awb": "TXAZ722781796tx",
-    //         "trackingCodePartner": "TZSL000TXAZ722781796tx", //
-    //         "trackingUrlPartner": ""
-    //         "route": "12-TZS-SP-LOC-[026]"
-    //       },
-    //       "statusCode": {
-    //         "micro": "delivered-test",
-    //         "macro": "dispatched"
-    //       },
-    //       "attachments": [],
-    //       "eventDate": "2022-09-15T15:11:50"
-    //     }
-    //   },
-    //   "metadata": {
-    //         "integrationName": "cainiao",
-    //         "createdAt": "2022-07-18T18:26:45.618Z"
-    //       }
-    // }
+
     try {
       if (
         !Env.TRACKING_CONNECTORS_ENABLES.includes(metadata?.integrationName)
@@ -203,9 +179,6 @@ export class ConsumerOrderController {
       const configPK = {
         'invoice.key': data?.tracking?.sequentialCode,
       };
-
-      // { orderSale: undefined, invoice.key: '123123123123' }
-      // { orderSale: undefined, invoice.key: '981234718237' }
 
       const dataToMerge: any = {
         statusCode: data?.tracking?.statusCode ?? {},
