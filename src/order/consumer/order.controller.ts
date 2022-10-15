@@ -160,7 +160,7 @@ export class ConsumerOrderController {
     offset,
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerOrderController.name);
-    const { data } = JSON.parse(value);
+    const { data, metadata } = JSON.parse(value);
     // {
     //   "data": {
     //     "tracking": {
@@ -188,12 +188,10 @@ export class ConsumerOrderController {
     // }
     try {
       if (
-        !Env.TRACKING_CONNECTORS_ENABLES.includes(
-          data?.metadata?.integrationName,
-        )
+        !Env.TRACKING_CONNECTORS_ENABLES.includes(metadata?.integrationName)
       ) {
         logger.log(
-          `Integration ${data?.metadata?.integrationName} it's not enable to update tracking`,
+          `Integration ${metadata?.integrationName} it's not enable to update tracking`,
         );
         return;
       }
