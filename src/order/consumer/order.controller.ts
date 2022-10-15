@@ -207,7 +207,7 @@ export class ConsumerOrderController {
       // { orderSale: undefined, invoice.key: '123123123123' }
       // { orderSale: undefined, invoice.key: '981234718237' }
 
-      const dataToMerge = {
+      const dataToMerge: any = {
         statusCode: data?.tracking?.statusCode ?? {},
         partnerStatusId: data?.tracking?.provider?.status,
         partnerStatus: data?.tracking?.provider?.status,
@@ -219,6 +219,16 @@ export class ConsumerOrderController {
           trackingNumber: data?.tracking?.provider?.trackingCodePartner,
         },
       };
+
+      if (dataToMerge.statusCode.macro === 'delivered') {
+        dataToMerge.status = dataToMerge.statusCode.macro;
+        dataToMerge.deliveryDate = dataToMerge.orderUpdatedAt;
+      }
+
+      if (dataToMerge.statusCode.macro === 'order-dispatched') {
+        dataToMerge.status = 'dispatched';
+        dataToMerge.dispatchDate = dataToMerge.orderUpdatedAt;
+      }
 
       await this.orderService.merge(
         headers,

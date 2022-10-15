@@ -30,11 +30,8 @@ export class InteliPostService {
       }
 
       if (order.statusCode.macro === 'order-dispatched') {
-        order.dispatchDate = order.orderUpdatedAt;
-      }
-
-      if (order.partnerStatus === 'shipped') {
         order.status = 'dispatched';
+        order.dispatchDate = order.orderUpdatedAt;
       }
 
       const { success, order: orderMerged } = await this.orderService.merge(
