@@ -50,7 +50,7 @@ export const MessageOrderNotified = content => {
 
   orderMapper.deliveryDate = payload.deliveryDate;
   orderMapper.accountName = account?.name || '';
-  orderMapper.accountId = account?.id || '';
+  orderMapper.accountId = String(account?.id || '');
 
   if (payload.customer) {
     orderMapper.customer = {

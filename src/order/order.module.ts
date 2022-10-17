@@ -15,6 +15,7 @@ import { UpdateHistoryOrders } from './scripts/update-history-orders.service';
 import { HandleStatusCode } from './scripts/handle-status-code.service';
 import { RabbitMqModule } from '../rabbitmq/rabbit.module';
 import { NestjsEventEmitter } from '../commons/providers/event/nestjs-event-emitter';
+import { OrderProducer } from './producer/order.producer';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { NestjsEventEmitter } from '../commons/providers/event/nestjs-event-emit
   controllers: [OrderController, ConsumerOrderController],
   providers: [
     OrderService,
+    OrderProducer,
     UpdateStructureOrder,
     UpdateDuplicatedOrders,
     UpdateHistoryOrders,

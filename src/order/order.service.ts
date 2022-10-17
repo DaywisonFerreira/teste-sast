@@ -369,8 +369,17 @@ export class OrderService {
       return { ignore: true, history: [] };
     }
 
-    if (origin === 'intelipost') {
-      const history = OrderMapper.mapPartnerHistoryToOrderHistory(data);
+    if (origin === 'intelipost' || origin === 'freight-connector') {
+      const history =
+        origin === 'intelipost'
+          ? OrderMapper.mapPartnerHistoryToOrderHistory(data)
+          : {
+              statusCode: data?.statusCode,
+              partnerStatusId: data?.partnerStatusId,
+              partnerStatus: data?.partnerStatus,
+              orderUpdatedAt: data?.orderUpdatedAt,
+              dispatchDate: data?.dispatchDate,
+            };
 
       if (isCreate) {
         return { ignore: false, history: [history] };
@@ -413,6 +422,11 @@ export class OrderService {
           $push: {
             invoiceKeys: data.invoice.key,
           },
+        },
+        {
+          new: true,
+          runValidators: true,
+          useFindAndModify: false,
         },
       );
     }
@@ -892,5 +906,62 @@ export class OrderService {
   private checkIfOrderAlreadyFinished(microStatus: string): boolean {
     const microStatusCodeFinisher = ['delivered-success'];
     return microStatusCodeFinisher.includes(microStatus);
+  }
+
+  public async updateIntegrations(
+    filter: Record<string, any>,
+    invoice: any,
+    newIntegration: {
+      name: string;
+      status: string;
+      errorMessage: string;
+      createdAt: Date;
+    },
+  ): Promise<void> {
+    const order = await this.OrderModel.findOne(filter, PublicFieldsOrder, {
+      lean: true,
+    });
+
+    if (order?.integrations && order?.integrations.length) {
+      const index = order.integrations.findIndex(
+        integration => integration.name === newIntegration.name,
+      );
+      if (index >= 0) {
+        order.integrations.splice(index, 1, newIntegration);
+
+        await this.OrderModel.updateOne(filter, {
+          $set: {
+            integrations: order.integrations,
+          },
+        });
+      } else {
+        await this.OrderModel.updateOne(filter, {
+          $push: { integrations: newIntegration },
+        });
+      }
+    } else if (!order) {
+      await this.OrderModel.updateOne(
+        filter,
+        {
+          $set: {
+            invoiceKeys: [invoice.key],
+            invoice: { key: invoice.key },
+            statusCode: { micro: 'invoiced', macro: 'order-created' },
+            orderSale: invoice.order.externalOrderId,
+            partnerOrder: invoice.order.internalOrderId,
+            integrations: [newIntegration],
+          },
+        },
+        {
+          upsert: true,
+        },
+      );
+    } else {
+      await this.OrderModel.updateOne(filter, {
+        $set: {
+          integrations: [newIntegration],
+        },
+      });
+    }
   }
 }

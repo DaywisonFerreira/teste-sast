@@ -210,6 +210,14 @@ export class InvoiceService {
     );
   }
 
+  public findById(id: string, accountId: string) {
+    return this.InvoiceModel.findOne(
+      { id, accountId },
+      { key: 1, order: 1 },
+      { lean: true },
+    );
+  }
+
   async findByStatus(status: string[]): Promise<LeanDocument<InvoiceEntity[]>> {
     return this.InvoiceModel.find({
       status: { $in: status },

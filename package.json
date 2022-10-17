@@ -1,6 +1,6 @@
 {
   "name": "ifc.freight.api.orders",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Freight API Orders",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
@@ -160,10 +160,6 @@
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
-    ],
-    "testPathIgnorePatterns": [
-      ".*\\.mock\\.ts$",
-      ".*\\.test\\.ts$"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",

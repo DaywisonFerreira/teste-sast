@@ -38,6 +38,11 @@ export abstract class Env {
     10,
   );
 
+  public static readonly TRACKING_CONNECTORS_ENABLES: string[] = process.env
+    .TRACKING_CONNECTORS_ENABLES
+    ? process.env.TRACKING_CONNECTORS_ENABLES.split(',')
+    : [];
+
   public static readonly AZURE_ACCOUNT_NAME: string = String(
     process.env.AZURE_ACCOUNT_NAME,
   );
@@ -86,6 +91,9 @@ export abstract class Env {
 
   public static readonly KAFKA_TOPIC_INVOICE_CREATED: string =
     process.env.KAFKA_TOPIC_INVOICE_CREATED;
+
+  public static readonly KAFKA_TOPIC_INVOICE_INTEGRATED: string =
+    process.env.KAFKA_TOPIC_INVOICE_INTEGRATED;
 
   public static readonly PROCESS_CHUNK_SIZE_WRITE: string =
     process.env.PROCESS_CHUNK_SIZE_WRITE;
@@ -140,4 +148,7 @@ export abstract class Env {
 
   public static readonly RABBITMQ_ORDER_NOTIFICATION_QUEUE: string =
     process.env.RABBITMQ_ORDER_NOTIFICATION_QUEUE;
+
+  public static readonly KAFKA_TOPIC_PARTNER_ORDER_TRACKING: string =
+    process.env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING;
 }
