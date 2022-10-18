@@ -42,6 +42,8 @@ export class IntelipostMapper {
       };
     });
 
+    const isCompany = data.receiver.documentType.toUpperCase() !== 'CPF';
+
     const dataFormatted = {
       delivery_method_id: data.carrier.externalDeliveryMethodId,
       customer_shipping_costs: data.total.freightValue,
@@ -52,8 +54,9 @@ export class IntelipostMapper {
         email: data.receiver.email || '',
         phone: data.receiver.phone,
         cellphone: data.receiver.phone,
-        is_company: data.receiver.documentType.toUpperCase() !== 'CPF',
+        is_company: isCompany,
         federal_tax_payer_id: data.receiver.document,
+        state_tax_payer_id: isCompany ? data.receiver.stateInscription : null,
         shipping_address: data.receiver.address.street,
         shipping_number: data.receiver.address.number,
         shipping_additional: data.receiver.address.complement,
