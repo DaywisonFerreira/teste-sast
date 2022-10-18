@@ -41,6 +41,8 @@ export class ER {
 
   documentType: string;
 
+  stateInscription: string;
+
   phone: string;
 
   address: Address;
