@@ -1,2 +1,2 @@
-@infralabs:registry=https://gitlab.com/api/v4/packages/npm/
-//gitlab.com/api/v4/packages/npm/:_authToken="<YOUR_PERSONAL_ACCESS_TOKEN>"
+@infralabs:registry=https://git.ifcshop.net/api/v4/packages/npm/
+//git.ifcshop.net/api/v4/packages/npm/:_authToken="<YOUR_PERSONAL_ACCESS_TOKEN>"

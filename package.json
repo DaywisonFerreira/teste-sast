@@ -5,11 +5,11 @@
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
   "private": true,
-  "author": "Robson Durval<robson.ferreira.ext@infracommerce.com.br>",
+  "author": "Pedro Pereira <pedro.pereira.ext@infracommerce.com.br>",
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git@gitlab.com:infralabs/cxaas/sourcecode/freight/ifc.freight.api.orders.git"
+    "url": "git@git.ifcshop.net:infralabs/infra-shop/cxaas/sourcecode/freight/ifc.freight.api.orders.git"
   },
   "keywords": [
     "nodejs",
@@ -46,8 +46,8 @@
   "dependencies": {
     "@azure/storage-blob": "^12.11.0",
     "@golevelup/nestjs-rabbitmq": "^1.19.0",
-    "@infralabs/infra-logger": "^2.2.8",
-    "@infralabs/infra-nestjs-kafka": "^1.5.0",
+    "@infralabs/infra-logger": "^2.3.0",
+    "@infralabs/infra-nestjs-kafka": "^1.6.1",
     "@nestjs/common": "^8.0.6",
     "@nestjs/config": "^1.0.1",
     "@nestjs/core": "^8.0.6",
