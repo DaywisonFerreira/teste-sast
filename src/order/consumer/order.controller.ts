@@ -194,8 +194,9 @@ export class ConsumerOrderController {
         invoiceKeys: [data?.tracking?.sequentialCode],
         invoice: {
           key: data?.tracking?.sequentialCode,
-          trackingUrl: data?.tracking?.provider?.trackingUrlPartner,
-          trackingNumber: data?.tracking?.provider?.trackingCodePartner,
+          trackingUrl: data?.tracking?.provider?.trackingUrl,
+          trackingNumber: data?.tracking?.provider?.trackingCode,
+          carrierName: data?.tracking?.provider?.name,
         },
       };
 
