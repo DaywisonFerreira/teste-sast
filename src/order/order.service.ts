@@ -542,7 +542,7 @@ export class OrderService {
       return { success: false, order: oldOrder };
     }
 
-    const shouldUpdateSourceOfOrder = this.shouldUpdateSourceOfOrder(
+    let shouldUpdateSourceOfOrder = this.shouldUpdateSourceOfOrder(
       data.statusCode.macro,
       oldOrder.statusCode.macro,
     );
@@ -560,16 +560,40 @@ export class OrderService {
         ? await this.generateAttachments(data, false, logger, oldOrder)
         : [];
 
+    const newDataToSave = { ...data };
+
+    if (!shouldUpdateSourceOfOrder && origin === 'ihub') {
+      shouldUpdateSourceOfOrder = true;
+      newDataToSave.statusCode = oldOrder.statusCode;
+      newDataToSave.orderUpdatedAt = oldOrder.orderUpdatedAt;
+      if (oldOrder.status) newDataToSave.status = oldOrder.status;
+      if (oldOrder.partnerStatus)
+        newDataToSave.partnerStatus = oldOrder.partnerStatus;
+      if (oldOrder.dispatchDate)
+        newDataToSave.dispatchDate = oldOrder.dispatchDate;
+      if (oldOrder.deliveryDate)
+        newDataToSave.deliveryDate = oldOrder.deliveryDate;
+    }
+
     // repensar em como ignorar um historico novo, porém tbm não enviar para o IHUB
     const newContent = {
-      ...(shouldUpdateSourceOfOrder ? data : {}),
+      ...(shouldUpdateSourceOfOrder ? newDataToSave : {}),
       invoice: {
-        ...data.invoice,
+        ...newDataToSave.invoice,
         ...oldOrder.invoice,
       },
-      invoiceKeys: [...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys])],
+      invoiceKeys: [
+        ...new Set([...newDataToSave.invoiceKeys, ...oldOrder.invoiceKeys]),
+      ],
       ...(ignore ? {} : { history }),
       attachments,
+      // Task code: C30F-1788
+      ...(newDataToSave.status && !oldOrder.status
+        ? { status: newDataToSave.status }
+        : {}),
+      ...(newDataToSave.dispatchDate && !oldOrder.dispatchDate
+        ? { dispatchDate: newDataToSave.dispatchDate }
+        : {}),
     };
     const order = await this.OrderModel.findOneAndUpdate(
       configPK,
