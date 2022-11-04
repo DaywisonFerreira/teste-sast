@@ -73,6 +73,8 @@ export class OrderService {
           },
         },
         { 'invoice.number': { $regex: `${search}.*`, $options: 'i' } },
+        { 'invoice.key': { $regex: `${search}.*`, $options: 'i' } },
+        { 'invoice.trackingNumber': { $regex: `${search}.*`, $options: 'i' } },
         {
           'logisticInfo.deliveryCompany': {
             $regex: `${search}.*`,
