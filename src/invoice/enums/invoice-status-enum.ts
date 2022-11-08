@@ -3,4 +3,5 @@ export enum InvoiceStatusEnum {
   PENDING = 'pending',
   ERROR = 'error',
   DISABLED = 'disabled',
+  CREATED = 'created',
 }
