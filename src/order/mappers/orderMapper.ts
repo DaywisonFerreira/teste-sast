@@ -457,15 +457,6 @@ export class OrderMapper {
   }
 
   static mapPartnerHistoryToOrderHistory(payload: Partial<OrderDocument>): any {
-    const statusCode = this.mapStatusCode({
-      history: {
-        shipment_volume_micro_state: {
-          id: payload.partnerStatusId,
-          shipment_order_volume_state_id: payload.partnerMacroStatusId,
-        },
-      },
-    });
-
     return {
       volumeNumber: payload.volumeNumber,
       dispatchDate: payload.dispatchDate,
@@ -478,7 +469,7 @@ export class OrderMapper {
       lastOccurrenceMessage: payload.lastOccurrenceMessage,
       partnerStatusId: payload.partnerStatusId,
       partnerStatus: payload.partnerStatus,
-      statusCode,
+      statusCode: payload.statusCode,
       orderUpdatedAt: payload.orderUpdatedAt,
       i18n: payload.i18n,
     };

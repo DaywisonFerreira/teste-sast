@@ -14,7 +14,7 @@ Detalhamento de comunicação com filas do tipo "fanout":
     - queue;
   - Atribuir este decorator na função que irá lidar com a mensagem recebida.
 
-### Exemplo de implementação
+## Exemplo de implementação
 ```
 // message.module.ts
 @Module({
