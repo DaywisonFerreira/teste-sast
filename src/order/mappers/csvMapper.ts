@@ -20,12 +20,12 @@ export class CsvMapper {
         paymentDate,
         dispatchDate,
         estimateDeliveryDateDeliveryCompany,
+        estimateDeliveryDate,
         partnerStatus,
         orderSale,
         order,
         receiverPhones,
-        logisticInfo,
-        billingData,
+        invoice,
         partnerMessage,
         numberVolumes,
         originZipCode,
@@ -77,6 +77,15 @@ export class CsvMapper {
         statusCode = data.statusCode.micro;
       }
 
+      let estimateDeliveryDateClient = '';
+
+      if (estimateDeliveryDate) {
+        estimateDeliveryDateClient = estimateDeliveryDate.toISOString();
+      } else if (estimateDeliveryDateDeliveryCompany) {
+        estimateDeliveryDateClient =
+          estimateDeliveryDateDeliveryCompany?.toISOString();
+      }
+
       const histories = Object.keys(statusMapper).reduce((acc, status) => {
         const matchHistory = history?.find(h => h.statusCode?.micro === status);
         return {
@@ -95,51 +104,43 @@ export class CsvMapper {
         'CEP do destinatário': deliveryZipCode,
         'Pedido de Venda': orderSale,
         Pedido: order,
-        'Código de rastreio': billingData
-          .map(
-            ({ trackingNumber }: { trackingNumber: string }) => trackingNumber,
-          )
-          .join(', '),
-        'Serie Nota': billingData
-          .map(
-            ({ invoiceSerialNumber }: { invoiceSerialNumber: string }) =>
-              invoiceSerialNumber,
-          )
-          .join(', '),
-        'Nota Fiscal': billingData
-          .map(({ invoiceNumber }: { invoiceNumber: string }) => invoiceNumber)
-          .join(', '),
-        'Método de envio': billingData
-          .map(({ carrierName }: { carrierName: string }) => carrierName)
-          .join(', '),
-        Transportadora: logisticInfo && logisticInfo[0].deliveryCompany,
+        'Código de rastreio': invoice.trackingNumber,
+        'Serie Nota': invoice.serie,
+        'Nota Fiscal': invoice.number,
+        'Método de envio': invoice.carrierName,
+        Transportadora: invoice.carrierName,
         'Data Despacho': dispatchDate ? dispatchDate?.toISOString() : '',
         'Status Transportador': statusCode,
         'Data do último status': orderUpdatedAt
           ? orderUpdatedAt?.toISOString()
           : '',
         'Data Entrega': deliveryDate ? deliveryDate?.toISOString() : '',
-        'Previsão Entrega Cliente':
-          logisticInfo && logisticInfo[0].shippingEstimateDate,
+        'Previsão Entrega Cliente': estimateDeliveryDateClient,
         'Previsão Entrega Transp.': estimateDeliveryDateDeliveryCompany
           ? estimateDeliveryDateDeliveryCompany?.toISOString()
           : '',
         'Mensagem Intelipost': partnerMessage,
-        'Preço Frete': totals.find(total => total?.id === 'Shipping')?.value,
+        'Preço Frete': totals
+          .find(total => total?.id === 'Shipping')
+          ?.value.toLocaleString('pt-br', {
+            style: 'currency',
+            currency: 'BRL',
+          }),
         'No Volumes': numberVolumes,
         'Data Criação Pedido': orderCreatedAt
           ? orderCreatedAt?.toISOString()
           : '',
         MicroStatus: partnerStatus,
-        'Pagina Rastreamento': billingData
-          .map(({ trackingUrl }: { trackingUrl: string }) => trackingUrl)
-          .join(', '),
+        'Pagina Rastreamento': invoice.trackingUrl,
         'CEP origem': originZipCode,
-        'Valor da Nota': billingData
-          .map(({ invoiceValue }: { invoiceValue: string }) => invoiceValue)
-          .join(', '),
+        'Valor da Nota': invoice.value.toLocaleString('pt-br', {
+          style: 'currency',
+          currency: 'BRL',
+        }),
         Praça: square,
-        'Tipo de Entrega': logisticInfo && logisticInfo[0].logisticContract,
+        'Tipo de Entrega': invoice?.deliveryMethod
+          ? invoice?.deliveryMethod
+          : '',
         'Peso fisico': physicalWeight,
         'e-mail Destinatário': receiverEmail,
         'Celular Destinatário': receiverPhones.reduce(
@@ -148,9 +149,7 @@ export class CsvMapper {
           },
           '',
         ),
-        'Chave da Nota': billingData
-          .map(({ invoiceKey }: { invoiceKey: string }) => invoiceKey)
-          .join(', '),
+        'Chave da Nota': invoice.key,
         'Última Ocorrência (Macro)': lastOccurrenceMacro,
         'Última Ocorrência (Micro)': lastOccurrenceMicro,
         'Última Ocorrência (Mensagem)': lastOccurrenceMessage,

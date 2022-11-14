@@ -10,6 +10,7 @@ export const PublicFieldsOrder = {
   'customer.lastName': 1,
   orderUpdatedAt: 1,
   estimateDeliveryDateDeliveryCompany: 1,
+  estimateDeliveryDate: 1,
   orderSale: 1,
   order: 1,
   status: 1,
@@ -322,9 +323,11 @@ export class OrderEntity extends Document {
   @Prop({ type: String, required: false })
   partnerOrder?: string;
 
+  // @deprecated
   @Prop({ type: Array, required: false })
   billingData?: Array<BillingData>;
 
+  // @deprecated
   @Prop({ type: Array, required: false })
   logisticInfo?: Array<LogisticInfo>;
 
@@ -369,6 +372,9 @@ export class OrderEntity extends Document {
 
   @Prop({ type: Date, required: false })
   estimateDeliveryDateDeliveryCompany?: Date;
+
+  @Prop({ type: Date, required: false })
+  estimateDeliveryDate?: Date;
 
   @Prop({ type: String, required: false })
   partnerMessage?: string;
