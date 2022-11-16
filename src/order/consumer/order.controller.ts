@@ -1,13 +1,13 @@
 import {
   BlobServiceClient,
-  StorageSharedKeyCredential,
+  StorageSharedKeyCredential
 } from '@azure/storage-blob';
 import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
 import { InfraLogger } from '@infralabs/infra-logger';
 import {
   KafkaResponse,
   KafkaService,
-  SubscribeTopic,
+  SubscribeTopic
 } from '@infralabs/infra-nestjs-kafka';
 import { Controller, Inject } from '@nestjs/common';
 import { Channel } from 'amqplib';
@@ -29,7 +29,7 @@ export class ConsumerOrderController {
     @Inject('EventProvider')
     private readonly eventEmitter: EventProvider,
     private orderProducer: OrderProducer,
-  ) {}
+  ) { }
 
   @RabbitSubscribe({
     exchange: Env.RABBITMQ_ORDER_NOTIFICATION_EXCHANGE,
@@ -90,8 +90,7 @@ export class ConsumerOrderController {
 
         if (orderToSaves.length) {
           logger.log(
-            `OrderSale: ${orderToSaves[0].orderSale} order: ${
-              orderToSaves[0].order
+            `OrderSale: ${orderToSaves[0].orderSale} order: ${orderToSaves[0].order
             } with invoiceKeys ${orderToSaves[0].invoiceKeys.join(
               ',',
             )} was saved`,
@@ -151,7 +150,7 @@ export class ConsumerOrderController {
           },
         );
       } else {
-        logger.log('Não foram encontrados registros para essa conta.');
+        logger.log('No records found for this account.');
       }
     } catch (error) {
       logger.error(error);
