@@ -184,7 +184,7 @@ export class OrderService {
       workbook: '',
     };
 
-    const pages = Math.ceil(countOrders / chunkSize);
+    const pages = Math.ceil(countOrders / chunkSize); // 2000
 
     // eslint-disable-next-line no-plusplus
     for (let page = 0; page < pages; page++) {
@@ -876,13 +876,16 @@ export class OrderService {
       file || `Status_Entregas_${filter.storeCode || ''}_${from}-${to}.xlsx`;
 
     const skipHeader = !!file;
+
     if (!wb && !ws) {
       workbook = utils.book_new();
       worksheet = utils.json_to_sheet(data, { skipHeader });
+
       if (last) {
         utils.book_append_sheet(workbook, worksheet);
         writeFile(workbook, `${directory_path}/${fileName}`);
       }
+
       return {
         path: `${directory_path}/${fileName}`,
         fileName,
@@ -890,6 +893,7 @@ export class OrderService {
         workbook,
       };
     }
+
     utils.sheet_add_json(ws, data, { skipHeader, origin: -1 });
 
     if (last) {
