@@ -1,25 +1,10 @@
 import { Injectable } from '@nestjs/common';
+
 import { CreateInvoiceDto } from '../../invoice/dto/create-invoice.dto';
-import { CarrierService } from '../../carrier/carrier.service';
-import { AccountService } from '../../account/account.service';
 
 @Injectable()
 export class IntelipostMapper {
-  constructor(
-    private readonly carrierService: CarrierService,
-    private readonly accountService: AccountService,
-  ) {}
-
-  async mapInvoiceToIntelipost(data: CreateInvoiceDto, accountId: string) {
-    const location = await this.accountService.findOneLocationByDocument(
-      data.emitter.document,
-      accountId,
-    );
-
-    const carrier = await this.carrierService.findByDocument(
-      data.carrier.document,
-    );
-
+  async mapInvoiceToIntelipost(data: CreateInvoiceDto, location: any) {
     const shipmentOrderVolumeArray = data.packages.map((item, index) => {
       return {
         shipment_order_volume_number: index + 1,
@@ -76,7 +61,8 @@ export class IntelipostMapper {
       scheduled: false,
       shipment_order_type: 'NORMAL',
     };
-    return { carrier, dataFormatted };
+
+    return dataFormatted;
   }
 
   mapResponseIntelipostToDeliveryHub(
