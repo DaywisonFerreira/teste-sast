@@ -12,6 +12,8 @@ import { ApiGateway } from '../../commons/providers/api/api-gateway.interface';
 import { IntelipostApiGatewayResponse } from '../../commons/providers/api/intelipost-api-gateway';
 import { InvoiceStatusEnum } from '../../invoice/enums/invoice-status-enum';
 import { InvoiceService } from '../../invoice/invoice.service';
+import { CarrierService } from '../../carrier/carrier.service';
+import { AccountService } from '../../account/account.service';
 import { InteliPostService } from '../intelipost.service';
 import { IntelipostMapper } from '../mappers/intelipostMapper';
 
@@ -21,6 +23,8 @@ export class OnEventIntelipostController {
     private readonly intelipostService: InteliPostService,
     private readonly intelipostMapper: IntelipostMapper,
     private readonly invoiceService: InvoiceService,
+    private readonly carrierService: CarrierService,
+    private readonly accountService: AccountService,
     @Inject('ApiGateway')
     private readonly intelipostApiGateway: ApiGateway,
   ) {}
@@ -30,8 +34,26 @@ export class OnEventIntelipostController {
     const logger = new InfraLogger(headers, OnEventIntelipostController.name);
 
     try {
-      const { carrier, dataFormatted: intelipostData } =
-        await this.intelipostMapper.mapInvoiceToIntelipost(data, account.id);
+      const location = await this.accountService.findOneLocationByDocument(
+        data.emitter.document,
+        account.id,
+      );
+
+      if (
+        !location.externalWarehouseCode ||
+        location.externalWarehouseCode === ''
+      ) {
+        throw new Error('Location is not configured');
+      }
+
+      const carrier = await this.carrierService.findByDocument(
+        data.carrier.document,
+      );
+
+      const intelipostData = await this.intelipostMapper.mapInvoiceToIntelipost(
+        data,
+        location,
+      );
 
       let response: IntelipostApiGatewayResponse<any>;
 
