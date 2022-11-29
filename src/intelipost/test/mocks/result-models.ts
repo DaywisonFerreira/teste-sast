@@ -43,6 +43,7 @@ export const location = {
   updatedAt: { $date: '2022-01-27T17:40:28.347Z' },
   document: '51.671.398/0001-29',
   zipCode: '04548-005',
+  externalWarehouseCode: '120',
   __v: 0,
 };
 
