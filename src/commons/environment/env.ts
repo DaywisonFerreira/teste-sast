@@ -38,6 +38,11 @@ export abstract class Env {
     10,
   );
 
+  public static readonly LIMIT_LINES_XLSX_FILE: number = parseInt(
+    process.env.LIMIT_LINES_XLSX_FILE,
+    10,
+  );
+
   public static readonly TRACKING_CONNECTORS_ENABLES: string[] = process.env
     .TRACKING_CONNECTORS_ENABLES
     ? process.env.TRACKING_CONNECTORS_ENABLES.split(',')
@@ -94,9 +99,6 @@ export abstract class Env {
 
   public static readonly KAFKA_TOPIC_INVOICE_INTEGRATED: string =
     process.env.KAFKA_TOPIC_INVOICE_INTEGRATED;
-
-  public static readonly PROCESS_CHUNK_SIZE_WRITE: string =
-    process.env.PROCESS_CHUNK_SIZE_WRITE;
 
   public static readonly PROCESS_CHUNK_SIZE_READ: string =
     process.env.PROCESS_CHUNK_SIZE_READ;
