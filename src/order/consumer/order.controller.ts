@@ -148,8 +148,8 @@ export class ConsumerOrderController {
     } catch (error) {
       logger.error(error);
     } finally {
-      if (existsSync(file.path)) {
-        await this.deleteFileLocally(file.path);
+      if (existsSync(file?.path)) {
+        await this.deleteFileLocally(file?.path);
       }
     }
   }
