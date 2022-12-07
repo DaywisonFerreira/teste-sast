@@ -1,24 +1,24 @@
+import {
+  BlobServiceClient,
+  StorageSharedKeyCredential,
+} from '@azure/storage-blob';
 import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
-import { Channel } from 'amqplib';
+import { InfraLogger } from '@infralabs/infra-logger';
 import {
   KafkaResponse,
   KafkaService,
   SubscribeTopic,
 } from '@infralabs/infra-nestjs-kafka';
-import {
-  BlobServiceClient,
-  StorageSharedKeyCredential,
-} from '@azure/storage-blob';
 import { Controller, Inject } from '@nestjs/common';
-import { InfraLogger } from '@infralabs/infra-logger';
+import { Channel } from 'amqplib';
 import { existsSync, promises } from 'fs';
-import { v4 as uuidV4 } from 'uuid';
 import { NotificationTypes } from 'src/commons/enums/notification.enum';
+import { v4 as uuidV4 } from 'uuid';
 import { Env } from '../../commons/environment/env';
-import { OrderService } from '../order.service';
+import { EventProvider } from '../../commons/providers/event/nestjs-event-provider.interface';
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderMapper } from '../mappers/orderMapper';
-import { EventProvider } from '../../commons/providers/event/nestjs-event-provider.interface';
+import { OrderService } from '../order.service';
 import { OrderProducer } from '../producer/order.producer';
 
 @Controller()
@@ -129,27 +129,35 @@ export class ConsumerOrderController {
     );
     try {
       file = await this.orderService.exportData(data, user.id, logger);
-      const urlFile = await this.uploadFile(file, headers);
 
-      await this.kafkaProducer.send(Env.KAFKA_TOPIC_NOTIFY_MESSAGE_WEBSOCKET, {
-        headers: {
-          'X-Correlation-Id': headers['X-Correlation-Id'] || uuidV4(),
-          'X-Version': '1.0',
-        },
-        value: {
-          data: {
-            to: user.id,
-            origin: Env.APPLICATION_NAME,
-            type: NotificationTypes.OrdersExport,
-            payload: { urlFile },
+      if (file) {
+        const urlFile = await this.uploadFile(file, headers);
+
+        await this.kafkaProducer.send(
+          Env.KAFKA_TOPIC_NOTIFY_MESSAGE_WEBSOCKET,
+          {
+            headers: {
+              'X-Correlation-Id': headers['X-Correlation-Id'] || uuidV4(),
+              'X-Version': '1.0',
+            },
+            value: {
+              data: {
+                to: user.id,
+                origin: Env.APPLICATION_NAME,
+                type: NotificationTypes.OrdersExport,
+                payload: { urlFile },
+              },
+            },
           },
-        },
-      });
+        );
+      } else {
+        logger.log('No records found for this account.');
+      }
     } catch (error) {
       logger.error(error);
     } finally {
-      if (existsSync(file?.path)) {
-        await this.deleteFileLocally(file?.path);
+      if (file && existsSync(file.path)) {
+        await this.deleteFileLocally(file.path);
       }
     }
   }

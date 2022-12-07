@@ -1,10 +1,10 @@
+import { KafkaService } from '@infralabs/infra-nestjs-kafka';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { appendFileSync } from 'graceful-fs';
 import { InjectModel } from '@nestjs/mongoose';
 import { differenceInDays, isBefore, lightFormat } from 'date-fns';
-import { LeanDocument, Model, Types } from 'mongoose';
+import { appendFileSync } from 'graceful-fs';
 import * as moment from 'moment';
-import { KafkaService } from '@infralabs/infra-nestjs-kafka';
+import { LeanDocument, Model, Types } from 'mongoose';
 import {
   AccountDocument,
   AccountEntity,
@@ -17,13 +17,13 @@ import { existsSync, mkdirSync } from 'fs';
 import { utils } from 'xlsx';
 
 import { CsvMapper } from './mappers/csvMapper';
+import { OrderMapper } from './mappers/orderMapper';
 import {
+  Attachments,
   OrderDocument,
   OrderEntity,
   PublicFieldsOrder,
-  Attachments,
 } from './schemas/order.schema';
-import { OrderMapper } from './mappers/orderMapper';
 
 interface xlsxWriteMetadata {
   filename: string;
@@ -219,6 +219,7 @@ export class OrderService {
         partnerStatus: 1,
         orderSale: 1,
         order: 1,
+        invoice: 1,
         receiverPhones: 1,
         logisticInfo: 1,
         billingData: 1,

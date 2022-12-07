@@ -15,5 +15,5 @@ export const OrdersProvidersMock = [
     provide: getModelToken(AccountEntity.name),
     useValue: {},
   },
-  { provide: 'KafkaService', useValue: {} },
+  { provide: 'KafkaService', useValue: { send: () => null } },
 ];
