@@ -123,7 +123,11 @@ export class OrderController {
   ) {
     const { userId, userName, email, logger } = request;
     try {
-      const { orderCreatedAtFrom, orderCreatedAtTo, type } = exportOrdersDto;
+      const {
+        orderCreatedAtFrom,
+        orderCreatedAtTo,
+        type = 'csv',
+      } = exportOrdersDto;
 
       const filter = {
         orderCreatedAtFrom,
