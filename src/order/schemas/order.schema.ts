@@ -22,6 +22,8 @@ export const PublicFieldsOrder = {
   'invoice.trackingNumber': 1,
   'invoice.trackingUrl': 1,
   'invoice.customerDocument': 1,
+  'invoice.carrierName': 1,
+  'invoice.deliveryCompany': 1,
   'billingData.invoiceValue': 1,
   'billingData.customerDocument': 1,
   'billingData.trackingUrl': 1,
@@ -83,6 +85,9 @@ export class Invoice {
 
   @Prop({ type: String, required: false })
   deliveryMethod?: string;
+
+  @Prop({ type: String, required: false })
+  deliveryCompany?: string;
 }
 
 export class Delivery {

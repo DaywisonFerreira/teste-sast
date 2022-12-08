@@ -113,7 +113,9 @@ export class CsvMapper {
         'Serie Nota': invoice.serie,
         'Nota Fiscal': invoice.number,
         'Método de envio': invoice.carrierName,
-        Transportadora: invoice.carrierName,
+        Transportadora: invoice.deliveryCompany
+          ? invoice.deliveryCompany
+          : invoice.carrierName,
         'Data Despacho':
           dispatchDate && dispatchDate instanceof Date
             ? dispatchDate?.toISOString()

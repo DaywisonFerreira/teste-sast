@@ -629,6 +629,7 @@ export class OrderMapper {
         items: billingData.items,
         customerDocument: billingData.customerDocument,
         deliveryMethod: logisticInfo[0]?.logisticContract,
+        deliveryCompany: logisticInfo[0]?.deliveryCompany,
       },
       delivery: {
         receiverName: deliveryAddress.receiverName,
