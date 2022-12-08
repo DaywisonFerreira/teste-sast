@@ -215,6 +215,7 @@ export class OrderService {
         paymentDate: 1,
         dispatchDate: 1,
         estimateDeliveryDateDeliveryCompany: 1,
+        estimateDeliveryDate: 1,
         status: 1,
         partnerStatus: 1,
         orderSale: 1,
