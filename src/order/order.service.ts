@@ -1,28 +1,37 @@
+import { KafkaService } from '@infralabs/infra-nestjs-kafka';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { appendFileSync } from 'graceful-fs';
 import { InjectModel } from '@nestjs/mongoose';
 import { differenceInDays, isBefore, lightFormat } from 'date-fns';
-import { LeanDocument, Model, Types } from 'mongoose';
+import { appendFileSync } from 'graceful-fs';
 import * as moment from 'moment';
-import { KafkaService } from '@infralabs/infra-nestjs-kafka';
+import { LeanDocument, Model, Types } from 'mongoose';
 import {
   AccountDocument,
   AccountEntity,
 } from 'src/account/schemas/account.schema';
 import { Env } from 'src/commons/environment/env';
 import { MessageOrderNotified } from 'src/intelipost/factories';
+import { stream } from 'exceljs';
 
 import { existsSync, mkdirSync } from 'fs';
-import { utils, writeFile } from 'xlsx';
+import { utils } from 'xlsx';
 
 import { CsvMapper } from './mappers/csvMapper';
+import { OrderMapper } from './mappers/orderMapper';
 import {
+  Attachments,
   OrderDocument,
   OrderEntity,
   PublicFieldsOrder,
-  Attachments,
 } from './schemas/order.schema';
-import { OrderMapper } from './mappers/orderMapper';
+
+interface xlsxWriteMetadata {
+  filename: string;
+  useStyles: boolean;
+  useSharedStrings: boolean;
+  columns: Array<string>;
+  content: Array<any>;
+}
 
 @Injectable()
 export class OrderService {
@@ -186,8 +195,11 @@ export class OrderService {
       workbook: '',
     };
 
-    const pages = Math.ceil(countOrders / chunkSize);
+    const pages = Math.ceil(countOrders / chunkSize); // 2000
 
+    let workBook;
+    let totalRowCount = 0;
+    let sheetPosition = 1;
     // eslint-disable-next-line no-plusplus
     for (let page = 0; page < pages; page++) {
       // eslint-disable-next-line no-await-in-loop
@@ -207,6 +219,7 @@ export class OrderService {
         partnerStatus: 1,
         orderSale: 1,
         order: 1,
+        invoice: 1,
         receiverPhones: 1,
         logisticInfo: 1,
         billingData: 1,
@@ -234,8 +247,6 @@ export class OrderService {
         } records`,
       );
 
-      // eslint-disable-next-line no-await-in-loop
-
       const dataFormatted = CsvMapper.mapOrderToCsv(result);
 
       if (type === 'csv') {
@@ -252,19 +263,50 @@ export class OrderService {
       }
 
       if (type === 'xlsx') {
-        file = this.createXlsxLocally(
-          dataFormatted,
-          {
-            orderCreatedAtFrom,
-            orderCreatedAtTo,
-            userId,
-            storeCode: result[0]?.storeCode,
-          },
-          file.fileName,
-          file.workbook,
-          file.worksheet,
-          page + 1 === pages,
+        const from = lightFormat(
+          new Date(`${orderCreatedAtFrom}T00:00:00`),
+          'ddMMyyyy',
         );
+        const to = lightFormat(
+          new Date(`${orderCreatedAtTo}T23:59:59`),
+          'ddMMyyyy',
+        );
+
+        const storeCode = result[0]?.storeCode;
+
+        const folder = Env.NODE_ENV !== 'local' ? 'dist' : 'src';
+        const path = `${process.cwd()}/${folder}/tmp`;
+
+        const fileName = `Status_Entregas_${
+          storeCode || ''
+        }_${from}-${to}.xlsx`;
+
+        const columns = Object.keys(dataFormatted[0]) || [];
+
+        const { filename, workBookWriter, rowCount, sheetIndex } =
+          await this.createXlsxLocally(
+            {
+              filename: `${path}/${fileName}`,
+              useStyles: true,
+              useSharedStrings: true,
+              columns,
+              content: dataFormatted,
+            },
+            {
+              firstPage: page === 0,
+              lastPage: page === pages - 1,
+              sheetIndex: sheetPosition,
+            },
+            totalRowCount,
+            workBook,
+          );
+
+        workBook = workBookWriter;
+        sheetPosition = sheetIndex;
+        totalRowCount = rowCount;
+
+        file.fileName = fileName;
+        file.path = filename;
       }
     }
     return file;
@@ -845,68 +887,82 @@ export class OrderService {
     };
   }
 
-  private createXlsxLocally(
-    data: unknown[],
-    filter: any,
-    file?: string,
-    wb?: any,
-    ws?: any,
-    last?: boolean,
+  private async createXlsxLocally(
+    metadata: xlsxWriteMetadata = {
+      filename: '',
+      useStyles: true,
+      useSharedStrings: true,
+      columns: [],
+      content: [],
+    },
+    paginationInfo: {
+      firstPage: boolean;
+      lastPage: boolean;
+      sheetIndex: number;
+    },
+    rowCount: number,
+    workBook?: stream.xlsx.WorkbookWriter,
   ) {
-    let workbook: any;
-    let worksheet: any;
+    let count = rowCount;
 
-    const directory_path =
-      process.env.NODE_ENV !== 'local'
-        ? `${process.cwd()}/dist/tmp`
-        : `${process.cwd()}/src/tmp`;
+    let sheetPosition = paginationInfo.sheetIndex;
 
-    if (!existsSync(directory_path)) {
-      mkdirSync(directory_path);
+    const workbookWriter = paginationInfo.firstPage
+      ? new stream.xlsx.WorkbookWriter(metadata)
+      : workBook;
+
+    const columns = [];
+
+    if (paginationInfo.firstPage) {
+      metadata.columns.forEach(column => {
+        columns.push({
+          header: column,
+          key: column,
+          width: 15,
+        });
+      });
+      workbookWriter.addWorksheet(`Sheet ${sheetPosition}`).columns = columns;
     }
 
-    const from = lightFormat(
-      new Date(`${filter.orderCreatedAtFrom}T00:00:00`),
-      'ddMMyyyy',
-    );
-    const to = lightFormat(
-      new Date(`${filter.orderCreatedAtTo}T23:59:59`),
-      'ddMMyyyy',
-    );
-
-    const fileName =
-      file || `Status_Entregas_${filter.storeCode || ''}_${from}-${to}.xlsx`;
-
-    const skipHeader = !!file;
-    if (!wb && !ws) {
-      workbook = utils.book_new();
-      worksheet = utils.json_to_sheet(data, { skipHeader });
-      if (last) {
-        utils.book_append_sheet(workbook, worksheet);
-        writeFile(workbook, `${directory_path}/${fileName}`);
-      }
-      return {
-        path: `${directory_path}/${fileName}`,
-        fileName,
-        worksheet,
-        workbook,
-      };
-    }
-    utils.sheet_add_json(ws, data, { skipHeader, origin: -1 });
-
-    if (last) {
-      utils.book_append_sheet(wb, ws);
-      writeFile(wb, `${directory_path}/${fileName}`);
+    if (count === Env.LIMIT_LINES_XLSX_FILE) {
+      count = 0;
+      sheetPosition += 1;
+      metadata.columns.forEach(column => {
+        columns.push({
+          header: column,
+          key: column,
+          width: 15,
+        });
+      });
+      workbookWriter.addWorksheet(`Sheet ${sheetPosition}`).columns = columns;
     }
 
-    worksheet = ws;
-    workbook = wb;
+    for (const content of metadata.content) {
+      const row = Object.keys(content).reduce((acc, next) => {
+        return {
+          ...acc,
+          [next]: content[next],
+        };
+      }, {});
+      // eslint-disable-next-line no-plusplus
+      workbookWriter
+        .getWorksheet(`Sheet ${sheetPosition}`)
+        .addRow(row)
+        .commit();
+    }
+
+    count += metadata.content.length;
+
+    if (paginationInfo.lastPage) {
+      workbookWriter.getWorksheet(`Sheet ${sheetPosition}`).commit();
+      await workbookWriter.commit();
+    }
 
     return {
-      path: `${directory_path}/${fileName}`,
-      fileName,
-      worksheet,
-      workbook,
+      filename: metadata.filename,
+      workBookWriter: workbookWriter,
+      rowCount: count,
+      sheetIndex: sheetPosition,
     };
   }
 
