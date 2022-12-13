@@ -4,6 +4,7 @@ import { KafkaModule } from '@infralabs/infra-nestjs-kafka';
 
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_FILTER } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { Env } from './commons/environment/env';
 import { OrderModule } from './order/order.module';
@@ -13,9 +14,11 @@ import { AccountModule } from './account/account.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { DefaultExceptionsFilter } from './commons/filters/default-exception.filter';
 import { StatusCodeModule } from './status-code/status-code.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     MongooseModule.forRoot(Env.DATABASE_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -46,6 +49,7 @@ import { StatusCodeModule } from './status-code/status-code.module';
     AccountModule,
     InvoiceModule,
     StatusCodeModule,
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [
