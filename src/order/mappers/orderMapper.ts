@@ -1,16 +1,16 @@
-import { Types } from 'mongoose';
 import { InfraLogger } from '@infralabs/infra-logger';
 import axios from 'axios';
-import { promises, createWriteStream } from 'fs';
+import { createWriteStream, promises } from 'fs';
+import { Types } from 'mongoose';
 
-import { CreateIntelipost } from 'src/intelipost/dto/create-intelipost.dto';
 import {
   BlobServiceClient,
   StorageSharedKeyCredential,
 } from '@azure/storage-blob';
+import { CreateIntelipost } from 'src/intelipost/dto/create-intelipost.dto';
+import { Env } from '../../commons/environment/env';
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderDocument } from '../schemas/order.schema';
-import { Env } from '../../commons/environment/env';
 
 export class OrderMapper {
   static mapPartnerToOrder(
@@ -607,6 +607,10 @@ export class OrderMapper {
       estimateDeliveryDateDeliveryCompany: logisticInfo?.length
         ? new Date(logisticInfo[0].shippingEstimateDate)
         : null,
+      estimateDeliveryDate: logisticInfo?.length
+        ? new Date(logisticInfo[0].shippingEstimateDate)
+        : null,
+
       totals: totals.map(total => ({
         id: total.id,
         name: total.name,
@@ -625,6 +629,7 @@ export class OrderMapper {
         items: billingData.items,
         customerDocument: billingData.customerDocument,
         deliveryMethod: logisticInfo[0]?.logisticContract,
+        deliveryCompany: logisticInfo[0]?.deliveryCompany,
       },
       delivery: {
         receiverName: deliveryAddress.receiverName,

@@ -237,6 +237,7 @@ export class ConsumerInvoiceController {
           logger.log(
             `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId}`,
           );
+          logger.error(error);
         }
       }
     } catch (error) {

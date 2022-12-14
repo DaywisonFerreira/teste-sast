@@ -10,6 +10,7 @@ export const PublicFieldsOrder = {
   'customer.lastName': 1,
   orderUpdatedAt: 1,
   estimateDeliveryDateDeliveryCompany: 1,
+  estimateDeliveryDate: 1,
   orderSale: 1,
   order: 1,
   status: 1,
@@ -18,8 +19,11 @@ export const PublicFieldsOrder = {
   history: 1,
   'invoice.number': 1,
   'invoice.key': 1,
+  'invoice.trackingNumber': 1,
   'invoice.trackingUrl': 1,
   'invoice.customerDocument': 1,
+  'invoice.carrierName': 1,
+  'invoice.deliveryCompany': 1,
   'billingData.invoiceValue': 1,
   'billingData.customerDocument': 1,
   'billingData.trackingUrl': 1,
@@ -81,6 +85,9 @@ export class Invoice {
 
   @Prop({ type: String, required: false })
   deliveryMethod?: string;
+
+  @Prop({ type: String, required: false })
+  deliveryCompany?: string;
 }
 
 export class Delivery {
@@ -321,9 +328,11 @@ export class OrderEntity extends Document {
   @Prop({ type: String, required: false })
   partnerOrder?: string;
 
+  // @deprecated
   @Prop({ type: Array, required: false })
   billingData?: Array<BillingData>;
 
+  // @deprecated
   @Prop({ type: Array, required: false })
   logisticInfo?: Array<LogisticInfo>;
 
@@ -368,6 +377,9 @@ export class OrderEntity extends Document {
 
   @Prop({ type: Date, required: false })
   estimateDeliveryDateDeliveryCompany?: Date;
+
+  @Prop({ type: Date, required: false })
+  estimateDeliveryDate?: Date;
 
   @Prop({ type: String, required: false })
   partnerMessage?: string;
@@ -464,6 +476,8 @@ OrderSchema.index({ 'invoice.key': 1 }, { unique: true })
       'customer.firstName': 1,
       'customer.fullName': 1,
       'invoice.number': 1,
+      'invoice.key': 1,
+      'invoice.trackingNumber': 1,
       'invoice.customerDocument': 1,
       'logisticInfo.deliveryCompany': 1,
     },
