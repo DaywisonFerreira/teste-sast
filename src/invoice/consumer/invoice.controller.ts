@@ -55,6 +55,7 @@ export class ConsumerInvoiceController {
         data.carrier.externalDeliveryMethodId =
           carrier.externalDeliveryMethodId;
       }
+
       const externalDeliveryMethodId = await this.getDeliveryMethodFromOrder(
         deliveryMethods,
         data,
@@ -170,22 +171,38 @@ export class ConsumerInvoiceController {
       );
 
     const intelipostIntegrationIsOk =
-      order && deliveryMethodEnableToIntelipost && accountEnableToIntelipost;
+      order &&
+      deliveryMethodEnableToIntelipost &&
+      deliveryMethodEnableToIntelipost?.externalDeliveryMethodId &&
+      accountEnableToIntelipost;
+
+    const invoiceData = {
+      ...data,
+      carrier: {
+        ...data.carrier,
+        externalDeliveryMethodId:
+          deliveryMethodEnableToIntelipost?.externalDeliveryMethodId,
+      },
+    };
 
     if (!intelipostIntegrationIsOk) {
       logger.log(
-        `Order ${data.order.internalOrderId} orderSale ${data.order.externalOrderId} externalDeliveryMethodId or externalDeliveryMethods not found`,
+        `Order ${invoiceData.order.internalOrderId} orderSale ${invoiceData.order.externalOrderId} externalDeliveryMethodId or externalDeliveryMethods not found`,
       );
       if (!order) {
-        await this.setInvoiceStatusPending(data);
+        await this.setInvoiceStatusPending(invoiceData);
       } else {
-        await this.setInvoiceStatusError(data);
+        await this.setInvoiceStatusError(invoiceData);
       }
       return;
     }
 
     if (intelipostIntegrationIsOk) {
-      this.eventEmitter.emit('intelipost.sent', { headers, data, account });
+      this.eventEmitter.emit('intelipost.sent', {
+        headers,
+        data: invoiceData,
+        account,
+      });
     }
   }
 
@@ -299,7 +316,7 @@ export class ConsumerInvoiceController {
       const deliveryMethod = deliveryMethods.find(
         item =>
           order.invoice?.deliveryMethod.toLowerCase() ===
-            item.deliveryModeName.toLowerCase() && item?.active,
+          item.deliveryModeName.toLowerCase(),
       );
       if (!deliveryMethod) {
         await this.setInvoiceStatusError(data);
@@ -332,9 +349,7 @@ export class ConsumerInvoiceController {
     accountId: string,
     accounts: Account[],
   ): DeliveryMethods[] {
-    const account = accounts.find(
-      account => account.id === accountId && account.integrateIntelipost,
-    );
+    const account = accounts.find(account => account.id === accountId);
     if (account) {
       return (
         account?.externalDeliveryMethods.filter(
