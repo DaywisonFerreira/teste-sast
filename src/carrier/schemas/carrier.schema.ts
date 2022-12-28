@@ -18,11 +18,17 @@ class Integration {
 export class DeliveryMethods {
   deliveryModeName: string;
 
+  active: boolean;
+
   externalDeliveryMethodId: string;
 }
 
 export class Account {
   id: string;
+
+  name: string;
+
+  integrateIntelipost: boolean;
 
   externalDeliveryMethods: DeliveryMethods[];
 }

@@ -1,11 +1,20 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsString, ValidateNested } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
 class DeliveryMethods {
   @IsString()
   @IsNotEmpty()
   deliveryModeName: string;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  active: boolean;
 
   @IsString()
   @IsNotEmpty()
@@ -15,6 +24,14 @@ class Account {
   @IsString()
   @IsNotEmpty()
   id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  integrateIntelipost: boolean;
 
   @ValidateNested({ each: true })
   @Type(() => DeliveryMethods)

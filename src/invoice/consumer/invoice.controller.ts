@@ -43,12 +43,14 @@ export class ConsumerInvoiceController {
         data.carrier.document,
       );
 
-      const partnersAccounts = carrier?.partners?.intelipost?.accounts || [];
+      const partnersIntelipostAccounts =
+        carrier?.partners?.intelipost?.accounts || [];
 
       const deliveryMethods = this.getDeliveryMethodsFromAccount(
         accountId,
-        partnersAccounts,
+        partnersIntelipostAccounts,
       );
+
       if (!deliveryMethods.length) {
         data.carrier.externalDeliveryMethodId =
           carrier.externalDeliveryMethodId;
@@ -57,6 +59,7 @@ export class ConsumerInvoiceController {
         deliveryMethods,
         data,
       );
+
       if (externalDeliveryMethodId) {
         data.carrier.externalDeliveryMethodId = externalDeliveryMethodId;
       }
@@ -153,10 +156,21 @@ export class ConsumerInvoiceController {
       data.key,
       data.order.externalOrderId,
     );
+
+    const deliveryMethodEnableToIntelipost = externalDeliveryMethods.find(
+      deliveryMethod =>
+        order.invoice?.deliveryMethod.toLowerCase() ===
+          deliveryMethod.deliveryModeName.toLowerCase() &&
+        deliveryMethod?.active,
+    );
+
+    const accountEnableToIntelipost =
+      carrier?.partners?.intelipost?.accounts.find(
+        account => account.id === accountId && account.integrateIntelipost,
+      );
+
     const intelipostIntegrationIsOk =
-      order &&
-      account.integrateIntelipost &&
-      (carrier?.externalDeliveryMethodId || externalDeliveryMethods.length);
+      order && deliveryMethodEnableToIntelipost && accountEnableToIntelipost;
 
     if (!intelipostIntegrationIsOk) {
       logger.log(
@@ -208,12 +222,12 @@ export class ConsumerInvoiceController {
             invoice.carrier.document,
           );
 
-          const partnersAccounts =
+          const partnersIntelipostAccounts =
             carrier?.partners?.intelipost?.accounts || [];
 
           const deliveryMethods = this.getDeliveryMethodsFromAccount(
             invoice.accountId,
-            partnersAccounts,
+            partnersIntelipostAccounts,
           );
           if (!deliveryMethods.length) {
             invoice.carrier.externalDeliveryMethodId =
@@ -274,24 +288,26 @@ export class ConsumerInvoiceController {
         data.key,
         data.order.externalOrderId,
       );
+
       if (!order) {
         await this.setInvoiceStatusPending(data);
         throw new Error(
           `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Order not found filter: key: ${data.key}, OrderSale: ${data.order.externalOrderId} invoice ${InvoiceStatusEnum.PENDING}.`,
         );
       }
-      if (deliveryMethods?.length) {
-        const deliveryMethod = deliveryMethods.find(
-          item => order.invoice?.deliveryMethod === item.deliveryModeName,
+
+      const deliveryMethod = deliveryMethods.find(
+        item =>
+          order.invoice?.deliveryMethod.toLowerCase() ===
+            item.deliveryModeName.toLowerCase() && item?.active,
+      );
+      if (!deliveryMethod) {
+        await this.setInvoiceStatusError(data);
+        throw new Error(
+          `${Env.KAFKA_TOPIC_INVOICE_CREATED} - DeliveryMethod not found ${order.invoice?.deliveryMethod} in carrier with document: ${data.carrier.document} invoice ${InvoiceStatusEnum.ERROR}.`,
         );
-        if (!deliveryMethod) {
-          await this.setInvoiceStatusError(data);
-          throw new Error(
-            `${Env.KAFKA_TOPIC_INVOICE_CREATED} - DeliveryMethod not found ${order.invoice?.deliveryMethod} in carrier with document: ${data.carrier.document} invoice ${InvoiceStatusEnum.ERROR}.`,
-          );
-        }
-        return deliveryMethod.externalDeliveryMethodId;
       }
+      return deliveryMethod.externalDeliveryMethodId;
     }
     return null;
   }
@@ -316,8 +332,16 @@ export class ConsumerInvoiceController {
     accountId: string,
     accounts: Account[],
   ): DeliveryMethods[] {
-    const account = accounts.find(account => account.id === accountId);
-    if (account) return account?.externalDeliveryMethods || [];
+    const account = accounts.find(
+      account => account.id === accountId && account.integrateIntelipost,
+    );
+    if (account) {
+      return (
+        account?.externalDeliveryMethods.filter(
+          deliveryMethod => deliveryMethod?.active,
+        ) || []
+      );
+    }
     return [];
   }
 }
