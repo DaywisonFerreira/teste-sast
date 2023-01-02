@@ -3,8 +3,7 @@ import { v4 as uuidV4 } from 'uuid';
 export const MessageOrderCreated = content => {
   const { data, accountId, headers } = content;
   const { id } = data;
-  const { deliveryModeName } = data.carrier;
-  const { externalDeliveryMethodId } = data.carrier;
+  const { deliveryModeName, externalDeliveryMethodId } = data.carrier;
 
   delete data.carrier.externalDeliveryMethodId;
   delete data.carrier.deliveryModeName;
