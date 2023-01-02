@@ -51,8 +51,8 @@ export class OrderMapper {
         trackingNumber: payload.tracking_code,
       },
       estimateDeliveryDateDeliveryCompany: payload?.estimated_delivery_date
-        ?.client
-        ? new Date(payload.estimated_delivery_date.client.current_iso)
+        ?.client?.current_iso
+        ? new Date(payload.estimated_delivery_date?.client?.current_iso)
         : null,
       partnerMessage: payload.history.provider_message,
       partnerStatusId: `${payload.history.shipment_volume_micro_state.id}`,
