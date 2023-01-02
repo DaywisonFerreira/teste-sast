@@ -16,6 +16,7 @@ import { NestjsEventEmitter } from '../../commons/providers/event/nestjs-event-e
 import { OrderService } from '../../order/order.service';
 import { InvoiceStatusEnum } from '../enums/invoice-status-enum';
 import { InvoiceService } from '../invoice.service';
+import { MessageOrderCreated } from '../factories';
 
 @Controller()
 export class ConsumerInvoiceController {
@@ -53,12 +54,15 @@ export class ConsumerInvoiceController {
         data.carrier.externalDeliveryMethodId =
           carrier.externalDeliveryMethodId;
       }
-      const externalDeliveryMethodId = await this.getDeliveryMethodFromOrder(
-        deliveryMethods,
-        data,
-      );
+      const { externalDeliveryMethodId, deliveryModeName } =
+        await this.getDeliveryMethodFromOrder(deliveryMethods, data);
+
       if (externalDeliveryMethodId) {
         data.carrier.externalDeliveryMethodId = externalDeliveryMethodId;
+      }
+
+      if (deliveryModeName) {
+        data.carrier.deliveryModeName = deliveryModeName;
       }
 
       await this.integrateInvoice(
@@ -170,6 +174,11 @@ export class ConsumerInvoiceController {
       return;
     }
 
+    await this.kafkaProducer.send(
+      Env.KAFKA_TOPIC_ORDER_CREATED,
+      MessageOrderCreated({ data, accountId, headers }),
+    );
+
     if (intelipostIntegrationIsOk) {
       this.eventEmitter.emit('intelipost.sent', { headers, data, account });
     }
@@ -217,12 +226,17 @@ export class ConsumerInvoiceController {
           );
           if (!deliveryMethods.length) {
             invoice.carrier.externalDeliveryMethodId =
-              carrier.externalDeliveryMethodId;
+              carrier?.externalDeliveryMethodId;
           }
-          const externalDeliveryMethodId =
+          const { externalDeliveryMethodId, deliveryModeName } =
             await this.getDeliveryMethodFromOrder(deliveryMethods, invoice);
+
           if (externalDeliveryMethodId) {
             invoice.carrier.externalDeliveryMethodId = externalDeliveryMethodId;
+          }
+
+          if (deliveryModeName) {
+            invoice.carrier.deliveryModeName = deliveryModeName;
           }
 
           await this.integrateInvoice(
@@ -268,7 +282,7 @@ export class ConsumerInvoiceController {
   private async getDeliveryMethodFromOrder(
     deliveryMethods: DeliveryMethods[],
     data: any,
-  ): Promise<string | null> {
+  ): Promise<any | null> {
     if (deliveryMethods?.length) {
       const order = await this.orderService.findByKeyAndOrderSale(
         data.key,
@@ -290,7 +304,7 @@ export class ConsumerInvoiceController {
             `${Env.KAFKA_TOPIC_INVOICE_CREATED} - DeliveryMethod not found ${order.invoice?.deliveryMethod} in carrier with document: ${data.carrier.document} invoice ${InvoiceStatusEnum.ERROR}.`,
           );
         }
-        return deliveryMethod.externalDeliveryMethodId;
+        return deliveryMethod;
       }
     }
     return null;
