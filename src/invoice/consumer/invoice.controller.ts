@@ -16,6 +16,7 @@ import { NestjsEventEmitter } from '../../commons/providers/event/nestjs-event-e
 import { OrderService } from '../../order/order.service';
 import { InvoiceStatusEnum } from '../enums/invoice-status-enum';
 import { InvoiceService } from '../invoice.service';
+import { MessageOrderCreated } from '../factories';
 
 @Controller()
 export class ConsumerInvoiceController {
@@ -43,26 +44,25 @@ export class ConsumerInvoiceController {
         data.carrier.document,
       );
 
-      const partnersIntelipostAccounts =
-        carrier?.partners?.intelipost?.accounts || [];
+      const partnersAccounts = carrier?.partners?.intelipost?.accounts || [];
 
       const deliveryMethods = this.getDeliveryMethodsFromAccount(
         accountId,
-        partnersIntelipostAccounts,
+        partnersAccounts,
       );
-
       if (!deliveryMethods.length) {
         data.carrier.externalDeliveryMethodId =
           carrier.externalDeliveryMethodId;
       }
-
-      const externalDeliveryMethodId = await this.getDeliveryMethodFromOrder(
-        deliveryMethods,
-        data,
-      );
+      const { externalDeliveryMethodId, deliveryModeName } =
+        await this.getDeliveryMethodFromOrder(deliveryMethods, data);
 
       if (externalDeliveryMethodId) {
         data.carrier.externalDeliveryMethodId = externalDeliveryMethodId;
+      }
+
+      if (deliveryModeName) {
+        data.carrier.deliveryModeName = deliveryModeName;
       }
 
       await this.integrateInvoice(
@@ -157,52 +157,30 @@ export class ConsumerInvoiceController {
       data.key,
       data.order.externalOrderId,
     );
-
-    const deliveryMethodEnableToIntelipost = externalDeliveryMethods.find(
-      deliveryMethod =>
-        order.invoice?.deliveryMethod.toLowerCase() ===
-          deliveryMethod.deliveryModeName.toLowerCase() &&
-        deliveryMethod?.active,
-    );
-
-    const accountEnableToIntelipost =
-      carrier?.partners?.intelipost?.accounts.find(
-        account => account.id === accountId && account.integrateIntelipost,
-      );
-
     const intelipostIntegrationIsOk =
       order &&
-      deliveryMethodEnableToIntelipost &&
-      deliveryMethodEnableToIntelipost?.externalDeliveryMethodId &&
-      accountEnableToIntelipost;
-
-    const invoiceData = {
-      ...data,
-      carrier: {
-        ...data.carrier,
-        externalDeliveryMethodId:
-          deliveryMethodEnableToIntelipost?.externalDeliveryMethodId,
-      },
-    };
+      account.integrateIntelipost &&
+      (carrier?.externalDeliveryMethodId || externalDeliveryMethods.length);
 
     if (!intelipostIntegrationIsOk) {
       logger.log(
-        `Order ${invoiceData.order.internalOrderId} orderSale ${invoiceData.order.externalOrderId} externalDeliveryMethodId or externalDeliveryMethods not found`,
+        `Order ${data.order.internalOrderId} orderSale ${data.order.externalOrderId} externalDeliveryMethodId or externalDeliveryMethods not found`,
       );
       if (!order) {
-        await this.setInvoiceStatusPending(invoiceData);
+        await this.setInvoiceStatusPending(data);
       } else {
-        await this.setInvoiceStatusError(invoiceData);
+        await this.setInvoiceStatusError(data);
       }
       return;
     }
 
+    await this.kafkaProducer.send(
+      Env.KAFKA_TOPIC_ORDER_CREATED,
+      MessageOrderCreated({ data, accountId, headers }),
+    );
+
     if (intelipostIntegrationIsOk) {
-      this.eventEmitter.emit('intelipost.sent', {
-        headers,
-        data: invoiceData,
-        account,
-      });
+      this.eventEmitter.emit('intelipost.sent', { headers, data, account });
     }
   }
 
@@ -239,21 +217,26 @@ export class ConsumerInvoiceController {
             invoice.carrier.document,
           );
 
-          const partnersIntelipostAccounts =
+          const partnersAccounts =
             carrier?.partners?.intelipost?.accounts || [];
 
           const deliveryMethods = this.getDeliveryMethodsFromAccount(
             invoice.accountId,
-            partnersIntelipostAccounts,
+            partnersAccounts,
           );
           if (!deliveryMethods.length) {
             invoice.carrier.externalDeliveryMethodId =
-              carrier.externalDeliveryMethodId;
+              carrier?.externalDeliveryMethodId;
           }
-          const externalDeliveryMethodId =
+          const { externalDeliveryMethodId, deliveryModeName } =
             await this.getDeliveryMethodFromOrder(deliveryMethods, invoice);
+
           if (externalDeliveryMethodId) {
             invoice.carrier.externalDeliveryMethodId = externalDeliveryMethodId;
+          }
+
+          if (deliveryModeName) {
+            invoice.carrier.deliveryModeName = deliveryModeName;
           }
 
           await this.integrateInvoice(
@@ -299,32 +282,30 @@ export class ConsumerInvoiceController {
   private async getDeliveryMethodFromOrder(
     deliveryMethods: DeliveryMethods[],
     data: any,
-  ): Promise<string | null> {
+  ): Promise<any | null> {
     if (deliveryMethods?.length) {
       const order = await this.orderService.findByKeyAndOrderSale(
         data.key,
         data.order.externalOrderId,
       );
-
       if (!order) {
         await this.setInvoiceStatusPending(data);
         throw new Error(
           `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Order not found filter: key: ${data.key}, OrderSale: ${data.order.externalOrderId} invoice ${InvoiceStatusEnum.PENDING}.`,
         );
       }
-
-      const deliveryMethod = deliveryMethods.find(
-        item =>
-          order.invoice?.deliveryMethod.toLowerCase() ===
-          item.deliveryModeName.toLowerCase(),
-      );
-      if (!deliveryMethod) {
-        await this.setInvoiceStatusError(data);
-        throw new Error(
-          `${Env.KAFKA_TOPIC_INVOICE_CREATED} - DeliveryMethod not found ${order.invoice?.deliveryMethod} in carrier with document: ${data.carrier.document} invoice ${InvoiceStatusEnum.ERROR}.`,
+      if (deliveryMethods?.length) {
+        const deliveryMethod = deliveryMethods.find(
+          item => order.invoice?.deliveryMethod === item.deliveryModeName,
         );
+        if (!deliveryMethod) {
+          await this.setInvoiceStatusError(data);
+          throw new Error(
+            `${Env.KAFKA_TOPIC_INVOICE_CREATED} - DeliveryMethod not found ${order.invoice?.deliveryMethod} in carrier with document: ${data.carrier.document} invoice ${InvoiceStatusEnum.ERROR}.`,
+          );
+        }
+        return deliveryMethod;
       }
-      return deliveryMethod.externalDeliveryMethodId;
     }
     return null;
   }
@@ -350,13 +331,7 @@ export class ConsumerInvoiceController {
     accounts: Account[],
   ): DeliveryMethods[] {
     const account = accounts.find(account => account.id === accountId);
-    if (account) {
-      return (
-        account?.externalDeliveryMethods.filter(
-          deliveryMethod => deliveryMethod?.active,
-        ) || []
-      );
-    }
+    if (account) return account?.externalDeliveryMethods || [];
     return [];
   }
 }
