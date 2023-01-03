@@ -30,24 +30,29 @@ export class ConsumerIntelipostController {
     offset,
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerIntelipostController.name);
-    const { data }: { data: CreateIntelipost } = JSON.parse(value);
 
-    logger.verbose(
-      `${Env.KAFKA_TOPIC_INTELIPOST_CREATED} - Intelipost tracking received for orderSale: ${data.sales_order_number} order: ${data.order_number} in the integration queue`,
-    );
+    try {
+      const { data }: { data: CreateIntelipost } = JSON.parse(value);
 
-    await this.kafkaProducer.commitOffsets([
-      {
-        topic: Env.KAFKA_TOPIC_INTELIPOST_CREATED,
-        partition,
-        offset: String(offset + 1),
-      },
-    ]);
+      logger.verbose(
+        `${Env.KAFKA_TOPIC_INTELIPOST_CREATED} - Intelipost tracking received for orderSale: ${data?.sales_order_number} order: ${data?.order_number} in the integration queue`,
+      );
 
-    await this.inteliPostService.intelipost(
-      data,
-      new InfraLogger(headers),
-      headers,
-    );
+      await this.inteliPostService.intelipost(
+        data,
+        new InfraLogger(headers),
+        headers,
+      );
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      await this.kafkaProducer.commitOffsets([
+        {
+          topic: Env.KAFKA_TOPIC_INTELIPOST_CREATED,
+          partition,
+          offset: String(offset + 1),
+        },
+      ]);
+    }
   }
 }
