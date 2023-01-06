@@ -157,10 +157,21 @@ export class ConsumerInvoiceController {
       data.key,
       data.order.externalOrderId,
     );
+
+    const deliveryMethodEnableToIntelipost = externalDeliveryMethods.find(
+      deliveryMethod =>
+        order.invoice?.deliveryMethod.toLowerCase() ===
+          deliveryMethod.deliveryModeName.toLowerCase() &&
+        deliveryMethod?.active,
+    );
+
+    const accountEnableToIntelipost =
+      carrier?.partners?.intelipost?.accounts.find(
+        acc => acc.id === accountId && acc.integrateIntelipost,
+      );
+
     const intelipostIntegrationIsOk =
-      order &&
-      account.integrateIntelipost &&
-      (carrier?.externalDeliveryMethodId || externalDeliveryMethods.length);
+      order && deliveryMethodEnableToIntelipost && accountEnableToIntelipost;
 
     if (!intelipostIntegrationIsOk) {
       logger.log(
@@ -174,13 +185,27 @@ export class ConsumerInvoiceController {
       return;
     }
 
+    const payload = {
+      ...data,
+      carrier: {
+        ...data.carrier,
+        externalDeliveryMethodId:
+          deliveryMethodEnableToIntelipost?.externalDeliveryMethodId,
+        deliveryModeName: deliveryMethodEnableToIntelipost?.deliveryModeName,
+      },
+    };
+
     await this.kafkaProducer.send(
       Env.KAFKA_TOPIC_ORDER_CREATED,
-      MessageOrderCreated({ data, accountId, headers }),
+      MessageOrderCreated({ data: payload, accountId, headers }),
     );
 
     if (intelipostIntegrationIsOk) {
-      this.eventEmitter.emit('intelipost.sent', { headers, data, account });
+      this.eventEmitter.emit('intelipost.sent', {
+        headers,
+        data: payload,
+        account,
+      });
     }
   }
 
