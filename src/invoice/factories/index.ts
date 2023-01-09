@@ -5,9 +5,9 @@ export const MessageOrderCreated = content => {
   const { id } = data;
   const { deliveryModeName, externalDeliveryMethodId } = data.carrier;
 
-  delete data.carrier.externalDeliveryMethodId;
-  delete data.carrier.deliveryModeName;
-  delete data.carrier.id;
+  // delete data.carrier.externalDeliveryMethodId;
+  // delete data.carrier.deliveryModeName;
+  // delete data.carrier.id;
 
   return {
     headers: {
