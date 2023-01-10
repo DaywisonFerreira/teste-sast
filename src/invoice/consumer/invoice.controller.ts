@@ -134,10 +134,7 @@ export class ConsumerInvoiceController {
       );
     } catch (error) {
       logger.log(
-        JSON.stringify({
-          message: `Error integrated invoice - orderSale: ${data.order.externalOrderId}, order: ${data.order.internalOrderId}, invoiceKey: ${invoice.key}`,
-          error,
-        }),
+        `Error integrated invoice - orderSale: ${data.order.externalOrderId}, order: ${data.order.internalOrderId}, invoiceKey: ${invoice.key}. ${error}`,
       );
     } finally {
       await this.removeFromQueue(
@@ -284,10 +281,7 @@ export class ConsumerInvoiceController {
           );
         } catch (error) {
           logger.log(
-            JSON.stringify({
-              message: `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId}`,
-              error,
-            }),
+            `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId}. ${error}`,
           );
         }
       }
