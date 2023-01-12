@@ -4,6 +4,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { existsSync, mkdirSync } from 'fs';
 import { readdir, stat, unlink } from 'fs/promises';
 import { isAfter } from 'date-fns';
+import { NestjsEventEmitter } from 'src/commons/providers/event/nestjs-event-emitter';
 import { Env } from '../commons/environment/env';
 
 @Injectable()
@@ -15,8 +16,21 @@ export class SchedulerService {
       ? `${process.cwd()}/dist/tmp`
       : `${process.cwd()}/src/tmp`;
 
-  constructor() {
+  constructor(private readonly eventEmitter: NestjsEventEmitter) {
     if (!existsSync(this.tmp_path)) mkdirSync(this.tmp_path);
+  }
+
+  @Cron(CronExpression[Env.CRON_TIME_REPROCESS_INVOICES_ERROR_STATUS])
+  async reprocessInvoices(): Promise<void> {
+    try {
+      this.logger.log(
+        `${SchedulerService.name}: Starting Cron to Reprocess invoices with error ...`,
+      );
+      return this.eventEmitter.emit('invoice.reprocess', null);
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
   @Cron(
