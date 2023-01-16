@@ -154,6 +154,26 @@ export class OrderService {
     return order;
   }
 
+  async updateOrderInvoiceData(
+    key: string,
+    orderSale: string,
+    trackingUrl: string,
+    carrierName: string,
+  ): Promise<LeanDocument<OrderEntity>> {
+    return this.OrderModel.updateOne(
+      {
+        orderSale,
+        'invoice.key': key,
+      },
+      {
+        $set: {
+          'invoice.trackingUrl': trackingUrl,
+          'invoice.carrierName': carrierName,
+        },
+      },
+    ).lean();
+  }
+
   async findByKeyAndOrderSale(
     key: string,
     orderSale: string,
@@ -560,6 +580,10 @@ export class OrderService {
           }
         : {}),
       invoiceKeys: [...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys])],
+      invoice: {
+        ...data.invoice,
+        ...oldOrder.invoice,
+      },
       ...(ignore ? {} : { history }),
       attachments,
     };

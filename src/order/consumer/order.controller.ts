@@ -29,7 +29,7 @@ export class ConsumerOrderController {
     @Inject('EventProvider')
     private readonly eventEmitter: EventProvider,
     private orderProducer: OrderProducer,
-  ) { }
+  ) {}
 
   @RabbitSubscribe({
     exchange: Env.RABBITMQ_ORDER_NOTIFICATION_EXCHANGE,
@@ -90,7 +90,8 @@ export class ConsumerOrderController {
 
         if (orderToSaves.length) {
           logger.log(
-            `OrderSale: ${orderToSaves[0].orderSale} order: ${orderToSaves[0].order
+            `OrderSale: ${orderToSaves[0].orderSale} order: ${
+              orderToSaves[0].order
             } with invoiceKeys ${orderToSaves[0].invoiceKeys.join(
               ',',
             )} was saved`,
@@ -169,7 +170,7 @@ export class ConsumerOrderController {
     offset,
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerOrderController.name);
-    const { data, metadata } = JSON.parse(value);
+    const { data } = JSON.parse(value);
 
     try {
       // if (
@@ -201,11 +202,22 @@ export class ConsumerOrderController {
         invoiceKeys: [data?.tracking?.sequentialCode],
         invoice: {
           key: data?.tracking?.sequentialCode,
-          trackingUrl: data?.tracking?.provider?.trackingUrl,
           trackingNumber: data?.tracking?.provider?.trackingCode,
-          carrierName: data?.tracking?.provider?.name,
         },
       };
+
+      if (
+        data?.tracking?.provider?.trackingUrl !== undefined &&
+        data?.tracking?.provider?.trackingUrl !== null
+      ) {
+        dataToMerge.invoice.trackingUrl = data?.tracking?.provider?.trackingUrl;
+      }
+      if (
+        data?.tracking?.provider?.carrierName !== undefined &&
+        data?.tracking?.provider?.carrierName !== null
+      ) {
+        dataToMerge.invoice.carrierName = data?.tracking?.provider?.carrierName;
+      }
 
       if (dataToMerge.statusCode.macro === 'delivered') {
         dataToMerge.status = dataToMerge.statusCode.macro;
