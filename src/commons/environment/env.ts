@@ -156,4 +156,10 @@ export abstract class Env {
 
   public static readonly KAFKA_TOPIC_PARTNER_ORDER_TRACKING: string =
     process.env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING;
+
+  public static readonly CRON_TIME_REPROCESS_INVOICES_ERROR_STATUS: string =
+    process.env.CRON_TIME_REPROCESS_INVOICES_ERROR_STATUS;
+
+  public static readonly LIMIT_QUERY_ORDERS: number =
+    Number.parseInt(process.env.LIMIT_QUERY_ORDERS, 10) || 100;
 }

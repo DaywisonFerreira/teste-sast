@@ -7,6 +7,7 @@ import * as ClientFtpSSH from 'ssh2-sftp-client';
 import { LogProvider } from '@infralabs/infra-logger';
 import { InjectModel } from '@nestjs/mongoose';
 import { LeanDocument, Model } from 'mongoose';
+import { Env } from 'src/commons/environment/env';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { CarrierService } from '../carrier/carrier.service';
 import { InvoiceDocument, InvoiceEntity } from './schemas/invoice.schema';
@@ -221,7 +222,10 @@ export class InvoiceService {
   async findByStatus(status: string[]): Promise<LeanDocument<InvoiceEntity[]>> {
     return this.InvoiceModel.find({
       status: { $in: status },
-    }).lean();
+    })
+      .sort({ updatedAt: 1 })
+      .limit(Env.LIMIT_QUERY_ORDERS)
+      .lean();
   }
 
   async findByStatusAndOrderFilter(
@@ -232,6 +236,9 @@ export class InvoiceService {
       status: { $in: status },
       key,
       'order.externalOrderId': externalOrderId,
-    }).lean();
+    })
+      .sort({ updatedAt: 1 })
+      .limit(Env.LIMIT_QUERY_ORDERS)
+      .lean();
   }
 }
