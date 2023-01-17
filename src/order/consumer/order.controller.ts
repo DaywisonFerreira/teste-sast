@@ -197,9 +197,9 @@ export class ConsumerOrderController {
         partnerStatusId: data?.tracking?.provider?.status,
         partnerMessage: data?.tracking?.provider?.messages.join(','),
         partnerStatus:
-          data?.tracking?.statusCode?.micro.toLowerCase() === 'dispatched'
+          data?.tracking?.provider?.status.toLowerCase() === 'dispatched'
             ? 'shipped'
-            : data?.tracking?.statusCode?.micro.toLowerCase(),
+            : data?.tracking?.provider?.status.toLowerCase(),
         orderUpdatedAt: new Date(data?.tracking?.eventDate),
         invoiceKeys: [data?.tracking?.sequentialCode],
         invoice: {

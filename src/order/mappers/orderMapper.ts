@@ -477,12 +477,8 @@ export class OrderMapper {
 
   static mapPartnerToExportingOrder(payload: Partial<OrderDocument>): any {
     const MAP_STATUS_TO_IHUB = {
-      cancelled: 'canceled',
-      'delivered-success': 'delivered',
+      'order-dispatched': 'shipped',
     };
-
-    const partnerStatus =
-      MAP_STATUS_TO_IHUB[payload.partnerStatus] || payload.partnerStatus;
 
     const i18nName =
       typeof payload.i18n === 'string'
@@ -502,9 +498,11 @@ export class OrderMapper {
       occurrenceMacro: payload.lastOccurrenceMacro,
       occurrenceMicro: payload.lastOccurrenceMicro,
       occurrenceMessage: payload.lastOccurrenceMessage,
-      partnerStatus,
+      partnerStatus: payload.partnerStatus,
       i18nName: i18nName === 'cancelled' ? 'canceled' : i18nName,
-      status: partnerStatus,
+      status:
+        MAP_STATUS_TO_IHUB[payload.statusCode.macro] ||
+        payload.statusCode.macro,
       invoiceNumber: payload.invoice.number,
       trackingNumber: payload.invoice.trackingNumber,
       trackingUrl: payload.invoice.trackingUrl,
