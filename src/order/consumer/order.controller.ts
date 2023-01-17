@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
   BlobServiceClient,
   StorageSharedKeyCredential,
@@ -29,7 +31,7 @@ export class ConsumerOrderController {
     @Inject('EventProvider')
     private readonly eventEmitter: EventProvider,
     private orderProducer: OrderProducer,
-  ) { }
+  ) {}
 
   @RabbitSubscribe({
     exchange: Env.RABBITMQ_ORDER_NOTIFICATION_EXCHANGE,
@@ -90,7 +92,8 @@ export class ConsumerOrderController {
 
         if (orderToSaves.length) {
           logger.log(
-            `OrderSale: ${orderToSaves[0].orderSale} order: ${orderToSaves[0].order
+            `OrderSale: ${orderToSaves[0].orderSale} order: ${
+              orderToSaves[0].order
             } with invoiceKeys ${orderToSaves[0].invoiceKeys.join(
               ',',
             )} was saved`,
@@ -194,9 +197,9 @@ export class ConsumerOrderController {
         partnerStatusId: data?.tracking?.provider?.status,
         partnerMessage: data?.tracking?.provider?.messages.join(','),
         partnerStatus:
-          data?.tracking?.provider?.status.toLowerCase() === 'dispatched'
+          data?.tracking?.statusCode?.micro.toLowerCase() === 'dispatched'
             ? 'shipped'
-            : data?.tracking?.provider?.status.toLowerCase(),
+            : data?.tracking?.statusCode?.micro.toLowerCase(),
         orderUpdatedAt: new Date(data?.tracking?.eventDate),
         invoiceKeys: [data?.tracking?.sequentialCode],
         invoice: {
