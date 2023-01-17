@@ -165,8 +165,8 @@ export class ConsumerInvoiceController {
     await this.orderService.updateOrderInvoiceData(
       data.key,
       data.order.externalOrderId,
-      data.invoice.trackingUrl,
-      data.invoice.carrierName,
+      data.trackingUrl,
+      data.carrier.name,
     );
 
     const deliveryMethodEnableToIntelipost = externalDeliveryMethods.find(
