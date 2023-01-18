@@ -197,11 +197,11 @@ export class ConsumerOrderController {
         partnerStatusId: data?.tracking?.provider?.status,
         partnerMessage: data?.tracking?.provider?.status,
         numberVolumes: 1,
-        i18nName: data?.tracking?.statusCode.macro,
+        i18n: data?.tracking?.statusCode.macro,
         microStatus: data?.tracking?.provider?.status,
-        occurrenceMacro: data?.tracking?.statusCode?.macro,
-        occurrenceMicro: data?.tracking?.statusCode?.micro,
-        occurrenceMessage: data?.tracking?.provider?.status,
+        lastOccurrenceMacro: data?.tracking?.statusCode?.macro,
+        lastOccurrenceMicro: data?.tracking?.statusCode?.micro,
+        lastOccurrenceMessage: data?.tracking?.provider?.status,
         partnerStatus:
           data?.tracking?.provider?.status.toLowerCase() === 'dispatched'
             ? 'shipped'
