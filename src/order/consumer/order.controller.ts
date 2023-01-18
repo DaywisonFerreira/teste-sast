@@ -172,7 +172,7 @@ export class ConsumerOrderController {
     offset,
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerOrderController.name);
-    const { data, metadata } = JSON.parse(value);
+    const { data } = JSON.parse(value);
 
     try {
       // if (
@@ -210,11 +210,22 @@ export class ConsumerOrderController {
         invoiceKeys: [data?.tracking?.sequentialCode],
         invoice: {
           key: data?.tracking?.sequentialCode,
-          trackingUrl: data?.tracking?.provider?.trackingUrl,
           trackingNumber: data?.tracking?.provider?.trackingCode,
-          carrierName: data?.tracking?.provider?.name,
         },
       };
+
+      if (
+        data?.tracking?.provider?.trackingUrl !== undefined &&
+        data?.tracking?.provider?.trackingUrl !== null
+      ) {
+        dataToMerge.invoice.trackingUrl = data?.tracking?.provider?.trackingUrl;
+      }
+      if (
+        data?.tracking?.provider?.carrierName !== undefined &&
+        data?.tracking?.provider?.carrierName !== null
+      ) {
+        dataToMerge.invoice.carrierName = data?.tracking?.provider?.carrierName;
+      }
 
       if (dataToMerge.statusCode.macro === 'delivered') {
         dataToMerge.status = dataToMerge.statusCode.macro;
