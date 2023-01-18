@@ -167,6 +167,7 @@ export class ConsumerInvoiceController {
       data.order.externalOrderId,
       data.trackingUrl,
       data.carrier.name,
+      data.packages[0].trackingCode,
     );
 
     const deliveryMethodEnableToIntelipost = externalDeliveryMethods.find(

@@ -159,6 +159,7 @@ export class OrderService {
     orderSale: string,
     trackingUrl: string,
     carrierName: string,
+    trackingNumber: string,
   ): Promise<LeanDocument<OrderEntity>> {
     return this.OrderModel.updateOne(
       {
@@ -169,6 +170,7 @@ export class OrderService {
         $set: {
           'invoice.trackingUrl': trackingUrl,
           'invoice.carrierName': carrierName,
+          'invoice.trackingNumber': trackingNumber,
         },
       },
     ).lean();
