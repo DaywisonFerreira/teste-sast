@@ -195,7 +195,13 @@ export class ConsumerOrderController {
       const dataToMerge: any = {
         statusCode: data?.tracking?.statusCode ?? {},
         partnerStatusId: data?.tracking?.provider?.status,
-        partnerMessage: data?.tracking?.provider?.messages.join(','),
+        partnerMessage: data?.tracking?.provider?.status,
+        numberVolumes: 1,
+        i18nName: data?.tracking?.statusCode.macro,
+        microStatus: data?.tracking?.provider?.status,
+        occurrenceMacro: data?.tracking?.statusCode?.macro,
+        occurrenceMicro: data?.tracking?.statusCode?.micro,
+        occurrenceMessage: data?.tracking?.provider?.status,
         partnerStatus:
           data?.tracking?.provider?.status.toLowerCase() === 'dispatched'
             ? 'shipped'
