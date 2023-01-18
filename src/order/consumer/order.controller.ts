@@ -215,6 +215,14 @@ export class ConsumerOrderController {
       };
 
       if (
+        data?.tracking?.provider?.trackingCode !== undefined &&
+        data?.tracking?.provider?.trackingCode !== null
+      ) {
+        dataToMerge.invoice.trackingNumber =
+          data?.tracking?.provider?.trackingCode;
+      }
+
+      if (
         data?.tracking?.provider?.trackingUrl !== undefined &&
         data?.tracking?.provider?.trackingUrl !== null
       ) {
