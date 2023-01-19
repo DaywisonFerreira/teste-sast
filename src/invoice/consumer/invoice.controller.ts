@@ -134,7 +134,7 @@ export class ConsumerInvoiceController {
       );
     } catch (error) {
       logger.log(
-        `Error integrated invoice - orderSale: ${data.order.externalOrderId}, order: ${data.order.internalOrderId}, ${error}`,
+        `Error integrated invoice - orderSale: ${data.order.externalOrderId}, order: ${data.order.internalOrderId}, invoice key: ${data.invoice.key} ${error}`,
       );
     } finally {
       await this.removeFromQueue(
