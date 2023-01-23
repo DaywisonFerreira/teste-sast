@@ -13,9 +13,11 @@ import { Env } from 'src/commons/environment/env';
 import { MessageOrderNotified } from 'src/intelipost/factories';
 import { stream } from 'exceljs';
 
-import { existsSync, mkdirSync } from 'fs';
+import { createWriteStream, existsSync, mkdirSync } from 'fs';
 import { utils } from 'xlsx';
 
+import { Readable } from 'stream';
+import { pipeline } from 'stream/promises';
 import { CsvMapper } from './mappers/csvMapper';
 import { OrderMapper } from './mappers/orderMapper';
 import {
@@ -31,6 +33,27 @@ interface xlsxWriteMetadata {
   useSharedStrings: boolean;
   columns: Array<string>;
   content: Array<any>;
+}
+
+async function* getDataAsStream(filter, collection) {
+  const PAGE_SIZE = Env.CHUNK_SIZE_WRITE;
+  let page = 1;
+
+  while (true) {
+    const data = await collection
+      .find()
+      .limit(PAGE_SIZE)
+      .skip((page - 1) * PAGE_SIZE);
+
+    if (data.length === 0) break;
+
+    const adaptedData = CsvMapper.mapOrderToCsv(data);
+
+    for (const item of adaptedData) {
+      yield item;
+    }
+    page += 1;
+  }
 }
 
 @Injectable()
@@ -184,6 +207,56 @@ export class OrderService {
       orderSale,
       'invoice.key': key,
     }).lean();
+  }
+
+  async createReportConsolidated({
+    orderCreatedAtFrom,
+    orderCreatedAtTo,
+    tenants,
+  }) {
+    const filter = {
+      storeId: { $in: tenants.map(tenant => new Types.ObjectId(tenant)) },
+      orderCreatedAt: {
+        $gte: new Date(`${orderCreatedAtFrom} 00:00:00-03:00`),
+        $lte: new Date(`${orderCreatedAtTo} 23:59:59-03:00`),
+      },
+    };
+
+    const directory_path =
+      process.env.NODE_ENV !== 'local'
+        ? `${process.cwd()}/dist/tmp`
+        : `${process.cwd()}/src/tmp`;
+
+    if (!existsSync(directory_path)) {
+      mkdirSync(directory_path);
+    }
+
+    const fileName = `relatorio_consolidadoDH_${lightFormat(
+      new Date(`${orderCreatedAtFrom}T00:00:00`),
+      'ddMMyyyy',
+    )}-${lightFormat(
+      new Date(`${orderCreatedAtTo}T23:59:59`),
+      'ddMMyyyy',
+    )}.csv`;
+
+    const stream = Readable.from(getDataAsStream(filter, this.OrderModel));
+    await pipeline(
+      stream,
+      // eslint-disable-next-line func-names
+      async function* (source) {
+        for await (const order of source) {
+          yield JSON.stringify(order).concat('\n');
+        }
+      },
+      createWriteStream(`${directory_path}/${fileName}`, {
+        flags: 'a',
+        encoding: null,
+      }),
+    );
+    return {
+      path: `${directory_path}/${fileName}`,
+      fileName,
+    };
   }
 
   async exportData(
