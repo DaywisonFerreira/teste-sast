@@ -41,7 +41,7 @@ async function* getDataAsStream(filter, collection) {
 
   while (true) {
     const data = await collection
-      .find()
+      .find(filter)
       .limit(PAGE_SIZE)
       .skip((page - 1) * PAGE_SIZE);
 
