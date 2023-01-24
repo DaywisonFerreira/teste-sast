@@ -19,6 +19,14 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Env } from 'src/commons/environment/env';
 import { RequestDto } from 'src/commons/dtos/request.dto';
 import { JWTGuard } from 'src/commons/guards/jwt.guard';
+import { OnEvent } from '@nestjs/event-emitter';
+import { InfraLogger } from '@infralabs/infra-logger';
+import {
+  BlobServiceClient,
+  StorageSharedKeyCredential,
+} from '@azure/storage-blob';
+import { existsSync, promises } from 'fs';
+import { differenceInDays, isBefore } from 'date-fns';
 import { FilterPaginateOrderDto } from './dto/filter-paginate-order.dto';
 import { PaginateOrderDto } from './dto/paginate-order.dto';
 import { OrderService } from './order.service';
@@ -27,6 +35,11 @@ import {
   HeadersExportOrdersDto,
 } from './dto/export-order.dto';
 import { GetOrderDto } from './dto/get-order.dto';
+import {
+  ConsolidatedReportOrdersDTO,
+  HeadersConsolidatedReportOrdersDTO,
+} from './dto/consolidated-report-orders.dto';
+import { NotificationTypes } from '../commons/enums/notification.enum';
 
 @Controller('orders')
 @ApiTags('Orders')
@@ -157,5 +170,140 @@ export class OrderController {
       logger.error(error);
       throw error;
     }
+  }
+
+  @Post('/consolidated-report')
+  @UseGuards(JWTGuard)
+  async consolidatedReportOrders(
+    @Body() reportDTO: ConsolidatedReportOrdersDTO,
+    @Request() request: RequestDto,
+    @Headers() headers: HeadersConsolidatedReportOrdersDTO,
+  ) {
+    const { userId, userName, email, logger } = request;
+    try {
+      const { orderCreatedAtFrom, orderCreatedAtTo, tenants } = reportDTO;
+
+      if (
+        isBefore(
+          new Date(`${orderCreatedAtTo} 23:59:59-03:00`),
+          new Date(`${orderCreatedAtFrom} 00:00:00-03:00`),
+        )
+      ) {
+        throw new Error('Invalid range of dates');
+      }
+
+      if (
+        differenceInDays(
+          new Date(`${orderCreatedAtTo} 23:59:59-03:00`),
+          new Date(`${orderCreatedAtFrom} 00:00:00-03:00`),
+        ) > 120
+      ) {
+        throw new Error('Date difference greater than 4 months');
+      }
+
+      const filter = {
+        orderCreatedAtFrom,
+        orderCreatedAtTo,
+        tenants,
+      };
+
+      await this.kafkaProducer.send(
+        Env.KAFKA_TOPIC_FREIGHT_CONSOLIDATED_REPORT_ORDERS,
+        {
+          headers: {
+            'X-Correlation-Id': headers['x-correlation-id'] || uuidV4(),
+            'X-Version': '1.0',
+          },
+          key: uuidV4(),
+          value: JSON.stringify({
+            data: {
+              ...filter,
+            },
+            user: {
+              id: userId,
+              name: userName,
+              email,
+            },
+          }),
+        },
+      );
+    } catch (error) {
+      logger.error(error);
+      throw error;
+    }
+  }
+
+  @OnEvent('create.report.consolidated', { async: true })
+  async createReportConsolidated({ data, headers, user, logger }) {
+    let reportFilePath: { path: string; fileName: string };
+    logger.log(
+      `${Env.KAFKA_TOPIC_FREIGHT_CONSOLIDATED_REPORT_ORDERS} - Report consolidated request by user ${user.id} was received - From ${data.orderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
+    );
+    try {
+      reportFilePath = await this.orderService.createReportConsolidated(data);
+      if (reportFilePath) {
+        const urlFile = await this.uploadFile(reportFilePath, headers);
+
+        await this.kafkaProducer.send(
+          Env.KAFKA_TOPIC_NOTIFY_MESSAGE_WEBSOCKET,
+          {
+            headers: {
+              'X-Correlation-Id': headers['X-Correlation-Id'] || uuidV4(),
+              'X-Version': '1.0',
+            },
+            value: {
+              data: {
+                to: user.id,
+                origin: Env.APPLICATION_NAME,
+                type: NotificationTypes.OrdersExport,
+                payload: { urlFile },
+              },
+            },
+          },
+        );
+      } else {
+        logger.log('No records found for this account.');
+      }
+    } catch (error) {
+      logger.error(error);
+    } finally {
+      if (reportFilePath && existsSync(reportFilePath.path)) {
+        await this.deleteFileLocally(reportFilePath.path);
+      }
+    }
+  }
+
+  private async uploadFile(fileLocally: any, headers: any) {
+    const logger = new InfraLogger(headers, OrderController.name);
+    try {
+      logger.log(`Starting file upload (${fileLocally.fileName})`);
+      const credentials = new StorageSharedKeyCredential(
+        Env.AZURE_ACCOUNT_NAME,
+        Env.AZURE_ACCOUNT_KEY,
+      );
+      const blobServiceClient = new BlobServiceClient(
+        Env.AZURE_BS_STORAGE_URL,
+        credentials,
+      );
+      const containerClient = blobServiceClient.getContainerClient(
+        Env.AZURE_BS_CONTAINER_NAME,
+      );
+      const blockBlobClient = containerClient.getBlockBlobClient(
+        fileLocally.fileName,
+      );
+      await blockBlobClient.uploadFile(fileLocally.path);
+
+      logger.log(`Finish file upload (${fileLocally.fileName})`);
+      return `${String(Env.AZURE_BS_STORAGE_URL)}/${String(
+        Env.AZURE_BS_CONTAINER_NAME,
+      )}/${fileLocally.fileName}`;
+    } catch (error) {
+      logger.error(error);
+      throw error;
+    }
+  }
+
+  private async deleteFileLocally(path: string) {
+    await promises.unlink(path);
   }
 }

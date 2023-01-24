@@ -267,6 +267,29 @@ export class ConsumerOrderController {
     }
   }
 
+  @SubscribeTopic(Env.KAFKA_TOPIC_FREIGHT_CONSOLIDATED_REPORT_ORDERS)
+  async consumerReportConsolidated({
+    value,
+    partition,
+    headers,
+    offset,
+  }: KafkaResponse<string>) {
+    await this.removeFromQueue(
+      Env.KAFKA_TOPIC_FREIGHT_CONSOLIDATED_REPORT_ORDERS,
+      partition,
+      offset,
+    );
+    const { data, user } = JSON.parse(value);
+
+    const logger = new InfraLogger(headers, ConsumerOrderController.name);
+    this.eventEmitter.emit('create.report.consolidated', {
+      data,
+      headers,
+      user,
+      logger,
+    });
+  }
+
   private async deleteFileLocally(path: string) {
     await promises.unlink(path);
   }
