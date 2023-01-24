@@ -38,6 +38,11 @@ export abstract class Env {
     10,
   );
 
+  public static readonly LIMIT_CSV_REPORT_SIZE: number = parseInt(
+    process.env.LIMIT_CSV_REPORT_SIZE,
+    10,
+  );
+
   public static readonly LIMIT_LINES_XLSX_FILE: number = parseInt(
     process.env.LIMIT_LINES_XLSX_FILE,
     10,

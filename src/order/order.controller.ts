@@ -26,6 +26,7 @@ import {
   StorageSharedKeyCredential,
 } from '@azure/storage-blob';
 import { existsSync, promises } from 'fs';
+import { differenceInDays, isBefore } from 'date-fns';
 import { FilterPaginateOrderDto } from './dto/filter-paginate-order.dto';
 import { PaginateOrderDto } from './dto/paginate-order.dto';
 import { OrderService } from './order.service';
@@ -182,6 +183,24 @@ export class OrderController {
     try {
       const { orderCreatedAtFrom, orderCreatedAtTo, tenants } = reportDTO;
 
+      if (
+        isBefore(
+          new Date(`${orderCreatedAtTo} 23:59:59-03:00`),
+          new Date(`${orderCreatedAtFrom} 00:00:00-03:00`),
+        )
+      ) {
+        throw new Error('Invalid range of dates');
+      }
+
+      if (
+        differenceInDays(
+          new Date(`${orderCreatedAtTo} 23:59:59-03:00`),
+          new Date(`${orderCreatedAtFrom} 00:00:00-03:00`),
+        ) > 120
+      ) {
+        throw new Error('Date difference greater than 4 months');
+      }
+
       const filter = {
         orderCreatedAtFrom,
         orderCreatedAtTo,
@@ -216,7 +235,7 @@ export class OrderController {
 
   @OnEvent('create.report.consolidated', { async: true })
   async createReportConsolidated({ data, headers, user, logger }) {
-    let reportFilePath: any;
+    let reportFilePath: { path: string; fileName: string };
     logger.log(
       `${Env.KAFKA_TOPIC_FREIGHT_CONSOLIDATED_REPORT_ORDERS} - Report consolidated request by user ${user.id} was received - From ${data.orderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
     );

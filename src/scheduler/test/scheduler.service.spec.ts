@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Test, TestingModule } from '@nestjs/testing';
 import * as fs from 'fs/promises';
+import { NestjsEventEmitter } from '../../commons/providers/event/nestjs-event-emitter';
 import { SchedulerService } from '../scheduler.service';
 
 describe('Scheduler Service Tests', () => {
@@ -8,7 +9,15 @@ describe('Scheduler Service Tests', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [SchedulerService],
+      providers: [
+        SchedulerService,
+        {
+          provide: NestjsEventEmitter,
+          useValue: {
+            emit: () => null,
+          },
+        },
+      ],
     }).compile();
 
     service = await module.resolve(SchedulerService);

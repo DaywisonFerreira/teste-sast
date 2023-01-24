@@ -38,6 +38,7 @@ interface xlsxWriteMetadata {
 async function* getDataAsStream(filter, collection) {
   const PAGE_SIZE = Env.CHUNK_SIZE_WRITE;
   let page = 1;
+  let countDocuments = 0;
 
   while (true) {
     const data = await collection
@@ -53,6 +54,12 @@ async function* getDataAsStream(filter, collection) {
       yield item;
     }
     page += 1;
+    countDocuments += adaptedData.length;
+
+    if (countDocuments >= Env.LIMIT_CSV_REPORT_SIZE) {
+      yield 'Limite de pedidos atingido. Ainda há pedidos não listados';
+      break;
+    }
   }
 }
 
