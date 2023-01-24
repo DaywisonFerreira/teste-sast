@@ -7,6 +7,10 @@
   "private": true,
   "author": "Pedro Pereira <pedro.pereira.ext@infracommerce.com.br>",
   "license": "ISC",
+  "engine": {
+    "node": "^18.7.0",
+    "npm": "^8.18.0"
+  },
   "repository": {
     "type": "git",
     "url": "git@git.ifcshop.net:infralabs/infra-shop/cxaas/sourcecode/freight/ifc.freight.api.orders.git"

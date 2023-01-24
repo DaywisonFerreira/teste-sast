@@ -1,29 +1,35 @@
-FROM node:14.19-alpine as build
+# syntax=docker/dockerfile:1
 
+FROM node:18.7-alpine AS base
+ENV CI=true
+RUN apk --no-cache add libc6-compat
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+  npm install -g pnpm@7
+RUN pnpm config set auto-install-peers true
+
+FROM base as deps
 WORKDIR /app
+COPY pnpm-lock.yaml .npmrc ./
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+  pnpm fetch \
+  | grep -v "cross-device link not permitted\|Falling back to copying packages from store"
 
-COPY package.json package-lock.json .npmrc ./
-
-RUN npm ci --ignore-scripts
-
+FROM deps as build
+WORKDIR /app
+COPY package.json ./
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+  pnpm install --offline \
+  | grep -v "cross-device link not permitted\|Falling back to copying packages from store"
 COPY . .
+RUN pnpm build
 
-RUN npm run build
-
-FROM node:14.19-alpine
-
+FROM deps
 ENV NODE_ENV production
-
 WORKDIR /app
-
 COPY --from=build /app/dist ./dist
-
-COPY --from=build /app/package.json /app/package-lock.json /app/.env /app/.npmrc ./
-
-RUN npm ci --production --ignore-scripts
-
-RUN rm -rf /app/.npmrc
-
+COPY --from=build /app/package.json ./
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+  pnpm install --prod --offline \
+  | grep -v "cross-device link not permitted\|Falling back to copying packages from store"
 EXPOSE 3000
-
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/main"]
