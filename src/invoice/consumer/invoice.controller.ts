@@ -3,7 +3,7 @@ import {
   KafkaService,
   SubscribeTopic,
 } from '@infralabs/infra-nestjs-kafka';
-import { Controller, Inject } from '@nestjs/common';
+import { Controller, Header, Inject } from '@nestjs/common';
 
 import { InfraLogger } from '@infralabs/infra-logger';
 import { OnEvent } from '@nestjs/event-emitter';
@@ -120,6 +120,9 @@ export class ConsumerInvoiceController {
     carrier: any,
     externalDeliveryMethods: DeliveryMethods[],
   ): Promise<void> {
+    logger.log(
+      `Integrate invoice with key: ${data.key} and orderSale: ${data.order.externalOrderId}`,
+    );
     try {
       if (data.notfisFile && data.notfisFileName) {
         await this.invoiceService.sendFtp(data, accountId, logger);
@@ -155,14 +158,16 @@ export class ConsumerInvoiceController {
         },
       };
 
-      if (order.invoice?.deliveryMethod) {
-        data.carrier.deliveryModeName = order.invoice?.deliveryMethod;
-      }
+      if (order) {
+        if (order.invoice?.deliveryMethod) {
+          data.carrier.deliveryModeName = order.invoice?.deliveryMethod;
+        }
 
-      await this.kafkaProducer.send(
-        Env.KAFKA_TOPIC_ORDER_CREATED,
-        MessageOrderCreated({ data, accountId, headers }),
-      );
+        await this.kafkaProducer.send(
+          Env.KAFKA_TOPIC_ORDER_CREATED,
+          MessageOrderCreated({ data, accountId, headers }),
+        );
+      }
 
       if (!intelipostIntegrationIsOk) {
         logger.log(
@@ -184,6 +189,7 @@ export class ConsumerInvoiceController {
         });
       }
     } catch (error) {
+      error.message = `Error integrate invoice with key ${data.key} and orderSale: ${data.order.externalOrderId} -- ${error}`;
       logger.error(error);
     }
   }
@@ -326,6 +332,10 @@ export class ConsumerInvoiceController {
   }
 
   private async setInvoiceStatusError(data: any): Promise<void> {
+    const logger = new InfraLogger({}, ConsumerInvoiceController.name);
+    logger.log(
+      `setInvoiceStatusError - key: ${data.key} orderSale: ${data.order.externalOrderId}`,
+    );
     await this.invoiceService.updateStatus(
       data.key,
       data.order.externalOrderId,
@@ -334,6 +344,10 @@ export class ConsumerInvoiceController {
   }
 
   private async setInvoiceStatusPending(data: any): Promise<void> {
+    const logger = new InfraLogger({}, ConsumerInvoiceController.name);
+    logger.log(
+      `setInvoiceStatusPending - key: ${data.key} orderSale: ${data.order.externalOrderId}`,
+    );
     await this.invoiceService.updateStatus(
       data.key,
       data.order.externalOrderId,
