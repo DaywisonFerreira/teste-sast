@@ -1,3 +1,6 @@
+variables:
+  DOCKER_BUILDKIT: 1
+
 include:
   - project: 'infralabs/infra-shop/cxaas/sourcecode/commontools/devops'
     file: '/api_node_aks_cicd.yaml'
