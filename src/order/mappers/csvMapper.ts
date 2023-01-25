@@ -137,8 +137,8 @@ export class CsvMapper {
             : '',
         'Mensagem Intelipost': partnerMessage,
         'Preço Frete': totals
-          .find(total => total?.id === 'Shipping')
-          ?.value.toLocaleString('pt-br', {
+          ?.find(total => total?.id === 'Shipping')
+          ?.value?.toLocaleString('pt-br', {
             style: 'currency',
             currency: 'BRL',
           }),
@@ -150,7 +150,7 @@ export class CsvMapper {
         MicroStatus: partnerStatus,
         'Pagina Rastreamento': invoice.trackingUrl,
         'CEP origem': originZipCode,
-        'Valor da Nota': invoice.value.toLocaleString('pt-br', {
+        'Valor da Nota': invoice?.value?.toLocaleString('pt-br', {
           style: 'currency',
           currency: 'BRL',
         }),
@@ -160,7 +160,7 @@ export class CsvMapper {
           : '',
         'Peso fisico': physicalWeight,
         'e-mail Destinatário': receiverEmail,
-        'Celular Destinatário': receiverPhones.reduce(
+        'Celular Destinatário': receiverPhones?.reduce(
           (tels: string, { phone, type }: IReceiverPhones) => {
             return (tels += `${type}:${phone} `);
           },

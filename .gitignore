@@ -37,6 +37,8 @@ tmp
 
 .env.*
 
+package-lock.json
+yarn.lock
 .docker/
 ormconfig.json
 output/

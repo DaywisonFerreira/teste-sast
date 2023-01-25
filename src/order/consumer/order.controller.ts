@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
   BlobServiceClient,
   StorageSharedKeyCredential,
@@ -170,17 +172,17 @@ export class ConsumerOrderController {
     offset,
   }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerOrderController.name);
-    const { data, metadata } = JSON.parse(value);
+    const { data } = JSON.parse(value);
 
     try {
-      if (
-        !Env.TRACKING_CONNECTORS_ENABLES.includes(metadata?.integrationName)
-      ) {
-        logger.log(
-          `Integration ${metadata?.integrationName} it's not enable to update tracking`,
-        );
-        return;
-      }
+      // if (
+      //   !Env.TRACKING_CONNECTORS_ENABLES.includes(metadata?.integrationName)
+      // ) {
+      //   logger.log(
+      //     `Integration ${metadata?.integrationName} it's not enable to update tracking`,
+      //   );
+      //   return;
+      // }
 
       logger.log(
         `${Env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING} - New tracking received to invoice key: ${data?.tracking?.sequentialCode} - status: ${data?.tracking?.statusCode?.micro}`,
@@ -193,7 +195,13 @@ export class ConsumerOrderController {
       const dataToMerge: any = {
         statusCode: data?.tracking?.statusCode ?? {},
         partnerStatusId: data?.tracking?.provider?.status,
-        partnerMessage: data?.tracking?.provider?.messages.join(','),
+        partnerMessage: data?.tracking?.provider?.status,
+        numberVolumes: 1,
+        i18n: data?.tracking?.statusCode.macro,
+        microStatus: data?.tracking?.provider?.status,
+        lastOccurrenceMacro: data?.tracking?.statusCode?.macro,
+        lastOccurrenceMicro: data?.tracking?.statusCode?.micro,
+        lastOccurrenceMessage: data?.tracking?.provider?.status,
         partnerStatus:
           data?.tracking?.provider?.status.toLowerCase() === 'dispatched'
             ? 'shipped'
@@ -202,11 +210,30 @@ export class ConsumerOrderController {
         invoiceKeys: [data?.tracking?.sequentialCode],
         invoice: {
           key: data?.tracking?.sequentialCode,
-          trackingUrl: data?.tracking?.provider?.trackingUrl,
           trackingNumber: data?.tracking?.provider?.trackingCode,
-          carrierName: data?.tracking?.provider?.name,
         },
       };
+
+      if (
+        data?.tracking?.provider?.trackingCode !== undefined &&
+        data?.tracking?.provider?.trackingCode !== null
+      ) {
+        dataToMerge.invoice.trackingNumber =
+          data?.tracking?.provider?.trackingCode;
+      }
+
+      if (
+        data?.tracking?.provider?.trackingUrl !== undefined &&
+        data?.tracking?.provider?.trackingUrl !== null
+      ) {
+        dataToMerge.invoice.trackingUrl = data?.tracking?.provider?.trackingUrl;
+      }
+      if (
+        data?.tracking?.provider?.carrierName !== undefined &&
+        data?.tracking?.provider?.carrierName !== null
+      ) {
+        dataToMerge.invoice.carrierName = data?.tracking?.provider?.carrierName;
+      }
 
       if (dataToMerge.statusCode.macro === 'delivered') {
         dataToMerge.status = dataToMerge.statusCode.macro;
@@ -238,6 +265,29 @@ export class ConsumerOrderController {
         offset,
       );
     }
+  }
+
+  @SubscribeTopic(Env.KAFKA_TOPIC_FREIGHT_CONSOLIDATED_REPORT_ORDERS)
+  async consumerReportConsolidated({
+    value,
+    partition,
+    headers,
+    offset,
+  }: KafkaResponse<string>) {
+    await this.removeFromQueue(
+      Env.KAFKA_TOPIC_FREIGHT_CONSOLIDATED_REPORT_ORDERS,
+      partition,
+      offset,
+    );
+    const { data, user } = JSON.parse(value);
+
+    const logger = new InfraLogger(headers, ConsumerOrderController.name);
+    this.eventEmitter.emit('create.report.consolidated', {
+      data,
+      headers,
+      user,
+      logger,
+    });
   }
 
   private async deleteFileLocally(path: string) {

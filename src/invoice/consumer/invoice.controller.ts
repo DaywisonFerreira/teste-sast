@@ -3,7 +3,7 @@ import {
   KafkaService,
   SubscribeTopic,
 } from '@infralabs/infra-nestjs-kafka';
-import { Controller, Inject } from '@nestjs/common';
+import { Controller, Header, Inject } from '@nestjs/common';
 
 import { InfraLogger } from '@infralabs/infra-logger';
 import { OnEvent } from '@nestjs/event-emitter';
@@ -32,51 +32,18 @@ export class ConsumerInvoiceController {
   @SubscribeTopic(Env.KAFKA_TOPIC_INVOICE_CREATED)
   async create({ value, partition, offset, headers }: KafkaResponse<string>) {
     const logger = new InfraLogger(headers, ConsumerInvoiceController.name);
+    const { data } = this.parseValueFromQueue(value);
     try {
-      const { data } = this.parseValueFromQueue(value);
       const accountId = headers['X-Tenant-Id'];
 
       logger.log(
         `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Invoice was received with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId}`,
       );
 
-      const carrier = await this.carrierService.findByDocument(
-        data.carrier.document,
-      );
-
-      const partnersAccounts = carrier?.partners?.intelipost?.accounts || [];
-
-      const deliveryMethods = this.getDeliveryMethodsFromAccount(
-        accountId,
-        partnersAccounts,
-      );
-      if (!deliveryMethods.length) {
-        data.carrier.externalDeliveryMethodId =
-          carrier.externalDeliveryMethodId;
-      }
-      const deliveryMode = await this.getDeliveryMethodFromOrder(
-        deliveryMethods,
-        data,
-      );
-
-      if (deliveryMode?.externalDeliveryMethodId) {
-        data.carrier.externalDeliveryMethodId =
-          deliveryMode.externalDeliveryMethodId;
-      }
-
-      if (deliveryMode?.deliveryModeName) {
-        data.carrier.deliveryModeName = deliveryMode.deliveryModeName;
-      }
-
-      await this.integrateInvoice(
-        data,
-        accountId,
-        logger,
-        headers,
-        carrier,
-        deliveryMethods,
-      );
+      await this.generateIntegration(data, accountId, headers);
     } catch (error) {
+      await this.setInvoiceStatusError(data);
+      error.message = `Error Invoice with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId} key: ${data.key} -- ${error}`;
       logger.error(error);
     } finally {
       await this.removeFromQueue(
@@ -133,9 +100,9 @@ export class ConsumerInvoiceController {
         status,
       );
     } catch (error) {
-      logger.log(
-        `Error integrated invoice - orderSale: ${data.order.externalOrderId}, order: ${data.order.internalOrderId}, invoiceKey: ${invoice.key}. ${error}`,
-      );
+      await this.setInvoiceStatusError(invoice);
+      error.message = `Error integrated invoice - orderSale: ${data.order.externalOrderId}, order: ${data.order.internalOrderId}, invoiceKey: ${invoice.key} -- ${error}`;
+      logger.error(error);
     } finally {
       await this.removeFromQueue(
         Env.KAFKA_TOPIC_INVOICE_INTEGRATED,
@@ -153,63 +120,77 @@ export class ConsumerInvoiceController {
     carrier: any,
     externalDeliveryMethods: DeliveryMethods[],
   ): Promise<void> {
-    if (data.notfisFile && data.notfisFileName) {
-      await this.invoiceService.sendFtp(data, accountId, logger);
-    }
-    const account = await this.accountService.findById(accountId);
-    const order = await this.orderService.findByKeyAndOrderSale(
-      data.key,
-      data.order.externalOrderId,
+    logger.log(
+      `Integrate invoice with key: ${data.key} and orderSale: ${data.order.externalOrderId}`,
     );
-
-    const deliveryMethodEnableToIntelipost = externalDeliveryMethods.find(
-      deliveryMethod =>
-        order.invoice?.deliveryMethod.toLowerCase() ===
-          deliveryMethod.deliveryModeName.toLowerCase() &&
-        deliveryMethod?.active,
-    );
-
-    const accountEnableToIntelipost =
-      carrier?.partners?.intelipost?.accounts.find(
-        acc => acc.id === accountId && acc.integrateIntelipost,
-      );
-
-    const intelipostIntegrationIsOk =
-      order && deliveryMethodEnableToIntelipost && accountEnableToIntelipost;
-
-    const payload = {
-      ...data,
-      carrier: {
-        ...data.carrier,
-        externalDeliveryMethodId:
-          deliveryMethodEnableToIntelipost?.externalDeliveryMethodId,
-        deliveryModeName: deliveryMethodEnableToIntelipost?.deliveryModeName,
-      },
-    };
-
-    await this.kafkaProducer.send(
-      Env.KAFKA_TOPIC_ORDER_CREATED,
-      MessageOrderCreated({ data, accountId, headers }),
-    );
-
-    if (!intelipostIntegrationIsOk) {
-      logger.log(
-        `Order ${data.order.internalOrderId} orderSale ${data.order.externalOrderId} externalDeliveryMethodId or externalDeliveryMethods not found`,
-      );
-      if (!order) {
-        await this.setInvoiceStatusPending(data);
-      } else {
-        await this.setInvoiceStatusError(data);
+    try {
+      if (data.notfisFile && data.notfisFileName) {
+        await this.invoiceService.sendFtp(data, accountId, logger);
       }
-      return;
-    }
+      const account = await this.accountService.findById(accountId);
+      const order = await this.orderService.findByKeyAndOrderSale(
+        data.key,
+        data.order.externalOrderId,
+      );
 
-    if (intelipostIntegrationIsOk) {
-      this.eventEmitter.emit('intelipost.sent', {
-        headers,
-        data: payload,
-        account,
-      });
+      const deliveryMethodEnableToIntelipost = externalDeliveryMethods.find(
+        deliveryMethod =>
+          order.invoice?.deliveryMethod.toLowerCase() ===
+            deliveryMethod.deliveryModeName.toLowerCase() &&
+          deliveryMethod?.active,
+      );
+
+      const accountEnableToIntelipost =
+        carrier?.partners?.intelipost?.accounts.find(
+          acc => acc.id === accountId && acc.integrateIntelipost,
+        );
+
+      const intelipostIntegrationIsOk =
+        order && deliveryMethodEnableToIntelipost && accountEnableToIntelipost;
+
+      const payload = {
+        ...data,
+        carrier: {
+          ...data.carrier,
+          externalDeliveryMethodId:
+            deliveryMethodEnableToIntelipost?.externalDeliveryMethodId,
+          deliveryModeName: deliveryMethodEnableToIntelipost?.deliveryModeName,
+        },
+      };
+
+      if (order) {
+        if (order.invoice?.deliveryMethod) {
+          data.carrier.deliveryModeName = order.invoice?.deliveryMethod;
+        }
+
+        await this.kafkaProducer.send(
+          Env.KAFKA_TOPIC_ORDER_CREATED,
+          MessageOrderCreated({ data, accountId, headers }),
+        );
+      }
+
+      if (!intelipostIntegrationIsOk) {
+        logger.log(
+          `Order ${data.order.internalOrderId} orderSale ${data.order.externalOrderId} externalDeliveryMethodId or externalDeliveryMethods not found`,
+        );
+        if (!order) {
+          await this.setInvoiceStatusPending(data);
+        } else {
+          await this.setInvoiceStatusError(data);
+        }
+        return;
+      }
+
+      if (intelipostIntegrationIsOk) {
+        this.eventEmitter.emit('intelipost.sent', {
+          headers,
+          data: payload,
+          account,
+        });
+      }
+    } catch (error) {
+      error.message = `Error integrate invoice with key ${data.key} and orderSale: ${data.order.externalOrderId} -- ${error}`;
+      logger.error(error);
     }
   }
 
@@ -242,50 +223,59 @@ export class ConsumerInvoiceController {
           `reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId} status: ${invoice.status}`,
         );
         try {
-          const carrier = await this.carrierService.findByDocument(
-            invoice.carrier.document,
-          );
-
-          const partnersAccounts =
-            carrier?.partners?.intelipost?.accounts || [];
-
-          const deliveryMethods = this.getDeliveryMethodsFromAccount(
-            invoice.accountId,
-            partnersAccounts,
-          );
-          if (!deliveryMethods.length) {
-            invoice.carrier.externalDeliveryMethodId =
-              carrier?.externalDeliveryMethodId;
-          }
-          const deliveryMode = await this.getDeliveryMethodFromOrder(
-            deliveryMethods,
-            invoice,
-          );
-
-          if (deliveryMode?.externalDeliveryMethodId) {
-            invoice.carrier.externalDeliveryMethodId =
-              deliveryMode.externalDeliveryMethodId;
-          }
-
-          if (deliveryMode?.deliveryModeName) {
-            invoice.carrier.deliveryModeName = deliveryMode.deliveryModeName;
-          }
-
-          await this.integrateInvoice(
-            invoice,
-            invoice.accountId,
-            logger,
-            headers,
-            carrier,
-            deliveryMethods,
-          );
+          await this.generateIntegration(invoice, invoice.accountId, headers);
         } catch (error) {
-          logger.log(
-            `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId}. ${error}`,
-          );
+          error.message = `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId} -- ${error}`;
+          logger.error(error);
         }
       }
     } catch (error) {
+      logger.error(error);
+    }
+  }
+
+  private async generateIntegration(data, accountId, headers) {
+    const logger = new InfraLogger(headers, ConsumerInvoiceController.name);
+
+    logger.log(
+      `Generate integration - key: ${data.key} orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId}`,
+    );
+
+    try {
+      const carrier = await this.carrierService.findByDocument(
+        data.carrier.document,
+      );
+
+      const partnersAccounts = carrier?.partners?.intelipost?.accounts || [];
+
+      const deliveryMethods = this.getDeliveryMethodsFromAccount(
+        accountId,
+        partnersAccounts,
+      );
+      if (!deliveryMethods.length) {
+        data.carrier.externalDeliveryMethodId =
+          carrier.externalDeliveryMethodId;
+      }
+
+      const externalDeliveryMethodId = await this.getDeliveryMethodFromOrder(
+        deliveryMethods,
+        data,
+      );
+
+      if (externalDeliveryMethodId) {
+        data.carrier.externalDeliveryMethodId = externalDeliveryMethodId;
+      }
+
+      await this.integrateInvoice(
+        data,
+        accountId,
+        logger,
+        headers,
+        carrier,
+        deliveryMethods,
+      );
+    } catch (error) {
+      error.message = `Error generate integration - key: ${data.key} orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId} -- ${error}`;
       logger.error(error);
     }
   }
@@ -313,7 +303,7 @@ export class ConsumerInvoiceController {
   private async getDeliveryMethodFromOrder(
     deliveryMethods: DeliveryMethods[],
     data: any,
-  ): Promise<any | null> {
+  ): Promise<string | null> {
     if (deliveryMethods?.length) {
       const order = await this.orderService.findByKeyAndOrderSale(
         data.key,
@@ -335,13 +325,17 @@ export class ConsumerInvoiceController {
             `${Env.KAFKA_TOPIC_INVOICE_CREATED} - DeliveryMethod not found ${order.invoice?.deliveryMethod} in carrier with document: ${data.carrier.document} invoice ${InvoiceStatusEnum.ERROR}.`,
           );
         }
-        return deliveryMethod;
+        return deliveryMethod.externalDeliveryMethodId;
       }
     }
     return null;
   }
 
   private async setInvoiceStatusError(data: any): Promise<void> {
+    const logger = new InfraLogger({}, ConsumerInvoiceController.name);
+    logger.log(
+      `setInvoiceStatusError - key: ${data.key} orderSale: ${data.order.externalOrderId}`,
+    );
     await this.invoiceService.updateStatus(
       data.key,
       data.order.externalOrderId,
@@ -350,6 +344,10 @@ export class ConsumerInvoiceController {
   }
 
   private async setInvoiceStatusPending(data: any): Promise<void> {
+    const logger = new InfraLogger({}, ConsumerInvoiceController.name);
+    logger.log(
+      `setInvoiceStatusPending - key: ${data.key} orderSale: ${data.order.externalOrderId}`,
+    );
     await this.invoiceService.updateStatus(
       data.key,
       data.order.externalOrderId,
