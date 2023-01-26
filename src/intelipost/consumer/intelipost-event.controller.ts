@@ -131,6 +131,7 @@ export class OnEventIntelipostController {
           data.key,
           data.order.externalOrderId,
           InvoiceStatusEnum.SUCCESS,
+          '',
         );
         return;
       }
