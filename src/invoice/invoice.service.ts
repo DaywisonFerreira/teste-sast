@@ -204,10 +204,11 @@ export class InvoiceService {
     key: string,
     externalOrderId: string,
     status: string,
+    errorLog: string = null,
   ): Promise<void> {
     await this.InvoiceModel.updateOne(
       { key, 'order.externalOrderId': externalOrderId },
-      { $set: { status } },
+      { $set: { status, errorLog } },
     );
   }
 
