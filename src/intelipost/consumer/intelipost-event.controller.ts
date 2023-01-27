@@ -131,7 +131,7 @@ export class OnEventIntelipostController {
           data.key,
           data.order.externalOrderId,
           InvoiceStatusEnum.SUCCESS,
-          '',
+          null,
         );
         return;
       }
@@ -147,6 +147,7 @@ export class OnEventIntelipostController {
         data.key,
         data.order.externalOrderId,
         InvoiceStatusEnum.ERROR,
+        null,
       );
     }
   }

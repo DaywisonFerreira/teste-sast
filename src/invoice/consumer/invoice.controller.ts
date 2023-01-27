@@ -101,7 +101,7 @@ export class ConsumerInvoiceController {
         invoice.key,
         data.order.externalOrderId,
         status,
-        '',
+        null,
       );
     } catch (error) {
       await this.setInvoiceStatusError(invoice, error);
