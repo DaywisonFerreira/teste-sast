@@ -42,9 +42,12 @@ export class ConsumerInvoiceController {
 
       await this.generateIntegration(data, accountId, headers);
     } catch (error) {
-      await this.setInvoiceStatusError(data);
-      error.message = `Error Invoice with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId} key: ${data.key} -- ${error}`;
-      logger.error(error);
+      await this.setInvoiceStatusError(data, error);
+      logger.error(
+        new Error(
+          `Error Invoice with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId} key: ${data.key}`,
+        ),
+      );
     } finally {
       await this.removeFromQueue(
         Env.KAFKA_TOPIC_INVOICE_CREATED,
@@ -98,11 +101,15 @@ export class ConsumerInvoiceController {
         invoice.key,
         data.order.externalOrderId,
         status,
+        null,
       );
     } catch (error) {
-      await this.setInvoiceStatusError(invoice);
-      error.message = `Error integrated invoice - orderSale: ${data.order.externalOrderId}, order: ${data.order.internalOrderId}, invoiceKey: ${invoice.key} -- ${error}`;
-      logger.error(error);
+      await this.setInvoiceStatusError(invoice, error);
+      logger.error(
+        new Error(
+          `Error integrated invoice - orderSale: ${data.order.externalOrderId}, order: ${data.order.internalOrderId}, invoiceKey: ${invoice.key}`,
+        ),
+      );
     } finally {
       await this.removeFromQueue(
         Env.KAFKA_TOPIC_INVOICE_INTEGRATED,
@@ -170,13 +177,12 @@ export class ConsumerInvoiceController {
       }
 
       if (!intelipostIntegrationIsOk) {
-        logger.log(
-          `Order ${data.order.internalOrderId} orderSale ${data.order.externalOrderId} externalDeliveryMethodId or externalDeliveryMethods not found`,
-        );
+        const errorLog = `Order ${data.order.internalOrderId} orderSale ${data.order.externalOrderId} externalDeliveryMethodId or externalDeliveryMethods not found`;
+        logger.log(errorLog);
         if (!order) {
           await this.setInvoiceStatusPending(data);
         } else {
-          await this.setInvoiceStatusError(data);
+          await this.setInvoiceStatusError(data, errorLog);
         }
         return;
       }
@@ -189,8 +195,11 @@ export class ConsumerInvoiceController {
         });
       }
     } catch (error) {
-      error.message = `Error integrate invoice with key ${data.key} and orderSale: ${data.order.externalOrderId} -- ${error}`;
-      logger.error(error);
+      logger.error(
+        new Error(
+          `Error integrate invoice with key ${data.key} and orderSale: ${data.order.externalOrderId}`,
+        ),
+      );
     }
   }
 
@@ -225,8 +234,12 @@ export class ConsumerInvoiceController {
         try {
           await this.generateIntegration(invoice, invoice.accountId, headers);
         } catch (error) {
-          error.message = `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId} -- ${error}`;
-          logger.error(error);
+          await this.setInvoiceStatusError(invoice, error);
+          logger.error(
+            new Error(
+              `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId}`,
+            ),
+          );
         }
       }
     } catch (error) {
@@ -275,8 +288,11 @@ export class ConsumerInvoiceController {
         deliveryMethods,
       );
     } catch (error) {
-      error.message = `Error generate integration - key: ${data.key} orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId} -- ${error}`;
-      logger.error(error);
+      logger.error(
+        new Error(
+          `Error generate integration - key: ${data.key} orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId}`,
+        ),
+      );
     }
   }
 
@@ -320,10 +336,9 @@ export class ConsumerInvoiceController {
           item => order.invoice?.deliveryMethod === item.deliveryModeName,
         );
         if (!deliveryMethod) {
-          await this.setInvoiceStatusError(data);
-          throw new Error(
-            `${Env.KAFKA_TOPIC_INVOICE_CREATED} - DeliveryMethod not found ${order.invoice?.deliveryMethod} in carrier with document: ${data.carrier.document} invoice ${InvoiceStatusEnum.ERROR}.`,
-          );
+          const errorLog = `${Env.KAFKA_TOPIC_INVOICE_CREATED} - DeliveryMethod not found ${order.invoice?.deliveryMethod} in carrier with document: ${data.carrier.document} invoice ${InvoiceStatusEnum.ERROR}.`;
+          await this.setInvoiceStatusError(data, errorLog);
+          throw new Error(errorLog);
         }
         return deliveryMethod.externalDeliveryMethodId;
       }
@@ -331,7 +346,10 @@ export class ConsumerInvoiceController {
     return null;
   }
 
-  private async setInvoiceStatusError(data: any): Promise<void> {
+  private async setInvoiceStatusError(
+    data: any,
+    errorLog: any = null,
+  ): Promise<void> {
     const logger = new InfraLogger({}, ConsumerInvoiceController.name);
     logger.log(
       `setInvoiceStatusError - key: ${data.key} orderSale: ${data.order.externalOrderId}`,
@@ -340,6 +358,7 @@ export class ConsumerInvoiceController {
       data.key,
       data.order.externalOrderId,
       InvoiceStatusEnum.ERROR,
+      errorLog,
     );
   }
 

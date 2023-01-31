@@ -66,6 +66,9 @@ export class InvoiceEntity extends Document {
   @Prop({ type: String, required: false })
   status: string;
 
+  @Prop({ type: String, required: false })
+  errorLog?: string;
+
   @Prop({ type: CarrierData, required: true })
   carrier: CarrierData;
 }
