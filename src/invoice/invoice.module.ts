@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { AccountService } from 'src/account/account.service';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { NestjsEventEmitter } from '../commons/providers/event/nestjs-event-emitter';
 
 import {
@@ -32,6 +33,10 @@ import { InvoiceController } from './invoice.controller';
   ],
   controllers: [ConsumerInvoiceController, InvoiceController],
   providers: [
+    {
+      provide: 'LogProvider',
+      useClass: InfraLogger,
+    },
     NestjsEventEmitter,
     InvoiceService,
     CarrierService,

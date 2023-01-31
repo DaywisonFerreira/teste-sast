@@ -5,6 +5,7 @@ import {
   AccountEntity,
   AccountSchema,
 } from 'src/account/schemas/account.schema';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { OrderProducer } from 'src/order/producer/order.producer';
 
 import { Env } from '../commons/environment/env';
@@ -42,6 +43,10 @@ import { OrderEntity, OrderSchema } from '../order/schemas/order.schema';
     OrderService,
     OrderProducer,
     { provide: 'EventProvider', useClass: NestjsEventEmitter },
+    {
+      provide: 'LogProvider',
+      useClass: InfraLogger,
+    },
   ],
   controllers: [],
   exports: [RabbitMQModule],

@@ -1,5 +1,6 @@
 import { MongooseModule } from '@nestjs/mongoose';
 import { Module } from '@nestjs/common';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { StatusCodeService } from './status-code.service';
 import { StatusCodeController } from './status-code.controller';
 import {
@@ -17,7 +18,13 @@ import {
     ]),
   ],
   controllers: [StatusCodeController],
-  providers: [StatusCodeService],
+  providers: [
+    StatusCodeService,
+    {
+      provide: 'LogProvider',
+      useClass: InfraLogger,
+    },
+  ],
   exports: [
     MongooseModule.forFeature([
       {

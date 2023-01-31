@@ -3,13 +3,12 @@ import {
   KafkaService,
   SubscribeTopic,
 } from '@infralabs/infra-nestjs-kafka';
-import { Controller, Header, Inject } from '@nestjs/common';
-
-import { InfraLogger } from '@infralabs/infra-logger';
+import { Controller, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { AccountService } from 'src/account/account.service';
 import { Account, DeliveryMethods } from 'src/carrier/schemas/carrier.schema';
 import { v4 as uuidV4 } from 'uuid';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { CarrierService } from '../../carrier/carrier.service';
 import { Env } from '../../commons/environment/env';
 import { NestjsEventEmitter } from '../../commons/providers/event/nestjs-event-emitter';
@@ -27,23 +26,30 @@ export class ConsumerInvoiceController {
     private readonly orderService: OrderService,
     private readonly carrierService: CarrierService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
-  ) {}
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
+  ) {
+    this.logger.instanceLogger(ConsumerInvoiceController.name);
+  }
 
   @SubscribeTopic(Env.KAFKA_TOPIC_INVOICE_CREATED)
   async create({ value, partition, offset, headers }: KafkaResponse<string>) {
-    const logger = new InfraLogger(headers, ConsumerInvoiceController.name);
     const { data } = this.parseValueFromQueue(value);
     try {
       const accountId = headers['X-Tenant-Id'];
 
-      logger.log(
-        `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Invoice was received with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId}`,
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.consumer-invoice-controller.create',
+          message: `${Env.KAFKA_TOPIC_INVOICE_CREATED} - Invoice was received with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId}`,
+        },
+        {},
       );
 
       await this.generateIntegration(data, accountId, headers);
     } catch (error) {
       await this.setInvoiceStatusError(data, error);
-      logger.error(
+      this.logger.error(
         new Error(
           `Error Invoice with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId} key: ${data.key}`,
         ),
@@ -64,13 +70,16 @@ export class ConsumerInvoiceController {
     offset,
     headers,
   }: KafkaResponse<string>) {
-    const logger = new InfraLogger(headers, ConsumerInvoiceController.name);
     const { data, metadata } = this.parseValueFromQueue(value);
     const accountId = headers['X-Tenant-Id'];
     const invoice = await this.invoiceService.findById(data.id, accountId);
     try {
-      logger.log(
-        `${Env.KAFKA_TOPIC_INVOICE_INTEGRATED} - Invoice was received with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId}`,
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.consumer-invoice-controller.integrated',
+          message: `${Env.KAFKA_TOPIC_INVOICE_INTEGRATED} - Invoice was received with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId}`,
+        },
+        {},
       );
 
       if (!invoice) {
@@ -105,7 +114,7 @@ export class ConsumerInvoiceController {
       );
     } catch (error) {
       await this.setInvoiceStatusError(invoice, error);
-      logger.error(
+      this.logger.error(
         new Error(
           `Error integrated invoice - orderSale: ${data.order.externalOrderId}, order: ${data.order.internalOrderId}, invoiceKey: ${invoice.key}`,
         ),
@@ -122,17 +131,20 @@ export class ConsumerInvoiceController {
   private async integrateInvoice(
     data: any,
     accountId: any,
-    logger: InfraLogger,
     headers: { [key: string]: any },
     carrier: any,
     externalDeliveryMethods: DeliveryMethods[],
   ): Promise<void> {
-    logger.log(
-      `Integrate invoice with key: ${data.key} and orderSale: ${data.order.externalOrderId}`,
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.consumer-invoice-controller.create',
+        message: `Integrate invoice with key: ${data.key} and orderSale: ${data.order.externalOrderId}`,
+      },
+      {},
     );
     try {
       if (data.notfisFile && data.notfisFileName) {
-        await this.invoiceService.sendFtp(data, accountId, logger);
+        await this.invoiceService.sendFtp(data, accountId);
       }
       const account = await this.accountService.findById(accountId);
       const order = await this.orderService.findByKeyAndOrderSale(
@@ -178,7 +190,13 @@ export class ConsumerInvoiceController {
 
       if (!intelipostIntegrationIsOk) {
         const errorLog = `Order ${data.order.internalOrderId} orderSale ${data.order.externalOrderId} externalDeliveryMethodId or externalDeliveryMethods not found`;
-        logger.log(errorLog);
+        this.logger.log(
+          {
+            key: 'ifc.freight.api.order.consumer-invoice-controller.create-error',
+            message: errorLog,
+          },
+          {},
+        );
         if (!order) {
           await this.setInvoiceStatusPending(data);
         } else {
@@ -195,7 +213,7 @@ export class ConsumerInvoiceController {
         });
       }
     } catch (error) {
-      logger.error(
+      this.logger.error(
         new Error(
           `Error integrate invoice with key ${data.key} and orderSale: ${data.order.externalOrderId}`,
         ),
@@ -212,7 +230,7 @@ export class ConsumerInvoiceController {
       'X-Correlation-Id': uuidV4(),
       'X-Version': '1.0',
     };
-    const logger = new InfraLogger(headers, ConsumerInvoiceController.name);
+
     try {
       let invoices = [];
       if (filter) {
@@ -228,14 +246,18 @@ export class ConsumerInvoiceController {
       }
 
       for await (const invoice of invoices) {
-        logger.log(
-          `reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId} status: ${invoice.status}`,
+        this.logger.log(
+          {
+            key: 'ifc.freight.api.order.consumer-invoice-controller.reprocess',
+            message: `reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId} status: ${invoice.status}`,
+          },
+          headers,
         );
         try {
           await this.generateIntegration(invoice, invoice.accountId, headers);
         } catch (error) {
           await this.setInvoiceStatusError(invoice, error);
-          logger.error(
+          this.logger.error(
             new Error(
               `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId}`,
             ),
@@ -243,15 +265,17 @@ export class ConsumerInvoiceController {
         }
       }
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     }
   }
 
   private async generateIntegration(data, accountId, headers) {
-    const logger = new InfraLogger(headers, ConsumerInvoiceController.name);
-
-    logger.log(
-      `Generate integration - key: ${data.key} orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId}`,
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.consumer-invoice-controller.generateIntegration',
+        message: `Generate integration - key: ${data.key} orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId}`,
+      },
+      headers,
     );
 
     try {
@@ -282,13 +306,12 @@ export class ConsumerInvoiceController {
       await this.integrateInvoice(
         data,
         accountId,
-        logger,
         headers,
         carrier,
         deliveryMethods,
       );
     } catch (error) {
-      logger.error(
+      this.logger.error(
         new Error(
           `Error generate integration - key: ${data.key} orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId}`,
         ),
@@ -350,9 +373,12 @@ export class ConsumerInvoiceController {
     data: any,
     errorLog: any = null,
   ): Promise<void> {
-    const logger = new InfraLogger({}, ConsumerInvoiceController.name);
-    logger.log(
-      `setInvoiceStatusError - key: ${data.key} orderSale: ${data.order.externalOrderId}`,
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.consumer-invoice-controller.setInvoiceStatusError',
+        message: `setInvoiceStatusError - key: ${data.key} orderSale: ${data.order.externalOrderId}`,
+      },
+      {},
     );
     await this.invoiceService.updateStatus(
       data.key,
@@ -363,9 +389,12 @@ export class ConsumerInvoiceController {
   }
 
   private async setInvoiceStatusPending(data: any): Promise<void> {
-    const logger = new InfraLogger({}, ConsumerInvoiceController.name);
-    logger.log(
-      `setInvoiceStatusPending - key: ${data.key} orderSale: ${data.order.externalOrderId}`,
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.consumer-invoice-controller.setInvoiceStatusError',
+        message: `setInvoiceStatusPending - key: ${data.key} orderSale: ${data.order.externalOrderId}`,
+      },
+      {},
     );
     await this.invoiceService.updateStatus(
       data.key,

@@ -5,16 +5,16 @@ import {
   StorageSharedKeyCredential,
 } from '@azure/storage-blob';
 import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq';
-import { InfraLogger } from '@infralabs/infra-logger';
 import {
   KafkaResponse,
   KafkaService,
   SubscribeTopic,
 } from '@infralabs/infra-nestjs-kafka';
-import { Controller, Inject } from '@nestjs/common';
+import { Controller, Inject, Logger } from '@nestjs/common';
 import { Channel } from 'amqplib';
 import { existsSync, promises } from 'fs';
 import { NotificationTypes } from 'src/commons/enums/notification.enum';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { v4 as uuidV4 } from 'uuid';
 import { Env } from '../../commons/environment/env';
 import { EventProvider } from '../../commons/providers/event/nestjs-event-provider.interface';
@@ -31,22 +31,19 @@ export class ConsumerOrderController {
     @Inject('EventProvider')
     private readonly eventEmitter: EventProvider,
     private orderProducer: OrderProducer,
-  ) {}
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
+  ) {
+    this.logger.instanceLogger(ConsumerOrderController.name);
+  }
 
   @RabbitSubscribe({
     exchange: Env.RABBITMQ_ORDER_NOTIFICATION_EXCHANGE,
     routingKey: '',
     queue: Env.RABBITMQ_ORDER_NOTIFICATION_QUEUE,
     errorHandler: (channel: Channel, msg: any, error) => {
-      const logger = new InfraLogger(
-        {
-          'X-Version': '1.0',
-          'X-Correlation-Id': uuidV4(),
-          'X-Tenant-Id': msg.storeId,
-        },
-        ConsumerOrderController.name,
-      );
-      logger.error(error);
+      const logger = new Logger('ConsumerOrderController.name');
+      logger.error(error.message, error.stack?.split('\n'));
       channel.reject(msg, false);
     },
   })
@@ -57,16 +54,18 @@ export class ConsumerOrderController {
       'X-Tenant-Id': order.storeId,
     };
 
-    const logger = new InfraLogger(headers, ConsumerOrderController.name);
-
     try {
       if (
         order.logisticInfo &&
         order.logisticInfo[0].deliveryChannel === 'delivery' &&
         (order.status === 'dispatched' || order.status === 'invoiced')
       ) {
-        logger.log(
-          `${Env.RABBITMQ_ORDER_NOTIFICATION_QUEUE} - iHub order received with orderSale ${order.externalOrderId} order ${order.erpInfo?.externalOrderId} in the integration queue`,
+        this.logger.log(
+          {
+            key: 'ifc.freight.api.order.consumer-order-controller.orderNotificationHandler',
+            message: `${Env.RABBITMQ_ORDER_NOTIFICATION_QUEUE} - iHub order received with orderSale ${order.externalOrderId} order ${order.erpInfo?.externalOrderId} in the integration queue`,
+          },
+          headers,
         );
 
         const orderToSaves: Array<any> = OrderMapper.mapMessageToOrders(order);
@@ -85,18 +84,21 @@ export class ConsumerOrderController {
               },
               { ...orderToSave },
               'ihub',
-              logger,
             );
           }),
         );
 
         if (orderToSaves.length) {
-          logger.log(
-            `OrderSale: ${orderToSaves[0].orderSale} order: ${
-              orderToSaves[0].order
-            } with invoiceKeys ${orderToSaves[0].invoiceKeys.join(
-              ',',
-            )} was saved`,
+          this.logger.log(
+            {
+              key: 'ifc.freight.api.order.consumer-order-controller.orderNotificationHandler.saved',
+              message: `OrderSale: ${orderToSaves[0].orderSale} order: ${
+                orderToSaves[0].order
+              } with invoiceKeys ${orderToSaves[0].invoiceKeys.join(
+                ',',
+              )} was saved`,
+            },
+            headers,
           );
         }
 
@@ -105,7 +107,7 @@ export class ConsumerOrderController {
         });
       }
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     }
   }
 
@@ -118,7 +120,6 @@ export class ConsumerOrderController {
   }: KafkaResponse<string>) {
     let file: any;
     const { data, user } = JSON.parse(value);
-    const logger = new InfraLogger(headers, ConsumerOrderController.name);
 
     await this.removeFromQueue(
       Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT,
@@ -126,11 +127,15 @@ export class ConsumerOrderController {
       offset,
     );
 
-    logger.log(
-      `${Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT} - Report request by user ${user.id} was received for storeId: ${data.storeId} - From ${data.orderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.consumer-order-controller.consumerExportOrders',
+        message: `${Env.KAFKA_TOPIC_FREIGHT_ORDERS_EXPORT} - Report request by user ${user.id} was received for storeId: ${data.storeId} - From ${data.orderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
+      },
+      headers,
     );
     try {
-      file = await this.orderService.exportData(data, user.id, logger);
+      file = await this.orderService.exportData(data, user.id);
 
       if (file) {
         const urlFile = await this.uploadFile(file, headers);
@@ -153,10 +158,16 @@ export class ConsumerOrderController {
           },
         );
       } else {
-        logger.log('No records found for this account.');
+        this.logger.log(
+          {
+            key: 'ifc.freight.api.order.consumer-order-controller.consumerExportOrders.no-records',
+            message: 'No records found for this account.',
+          },
+          headers,
+        );
       }
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     } finally {
       if (file && existsSync(file.path)) {
         await this.deleteFileLocally(file.path);
@@ -171,7 +182,6 @@ export class ConsumerOrderController {
     headers,
     offset,
   }: KafkaResponse<string>) {
-    const logger = new InfraLogger(headers, ConsumerOrderController.name);
     const { data } = JSON.parse(value);
 
     try {
@@ -184,8 +194,12 @@ export class ConsumerOrderController {
       //   return;
       // }
 
-      logger.log(
-        `${Env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING} - New tracking received to invoice key: ${data?.tracking?.sequentialCode} - status: ${data?.tracking?.statusCode?.micro}`,
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.consumer-order-controller.updateTrackingStatus',
+          message: `${Env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING} - New tracking received to invoice key: ${data?.tracking?.sequentialCode} - status: ${data?.tracking?.statusCode?.micro}`,
+        },
+        headers,
       );
 
       const configPK = {
@@ -250,14 +264,13 @@ export class ConsumerOrderController {
         configPK,
         dataToMerge,
         'freight-connector',
-        logger,
       );
 
       if (success) {
-        await this.orderProducer.sendStatusTrackingToIHub(order, logger);
+        await this.orderProducer.sendStatusTrackingToIHub(order);
       }
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     } finally {
       await this.removeFromQueue(
         Env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING,
@@ -281,12 +294,17 @@ export class ConsumerOrderController {
     );
     const { data, user } = JSON.parse(value);
 
-    const logger = new InfraLogger(headers, ConsumerOrderController.name);
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.consumer-order-controller.consumerReportConsolidated',
+        message: `Consumer report consolidated`,
+      },
+      headers,
+    );
     this.eventEmitter.emit('create.report.consolidated', {
       data,
       headers,
       user,
-      logger,
     });
   }
 
@@ -295,9 +313,14 @@ export class ConsumerOrderController {
   }
 
   private async uploadFile(fileLocally: any, headers: any) {
-    const logger = new InfraLogger(headers, ConsumerOrderController.name);
     try {
-      logger.log(`Starting file upload (${fileLocally.fileName})`);
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.consumer-order-controller.uploadFile.start',
+          message: `Starting file upload (${fileLocally.fileName})`,
+        },
+        headers,
+      );
       const credentials = new StorageSharedKeyCredential(
         Env.AZURE_ACCOUNT_NAME,
         Env.AZURE_ACCOUNT_KEY,
@@ -314,12 +337,18 @@ export class ConsumerOrderController {
       );
       await blockBlobClient.uploadFile(fileLocally.path);
 
-      logger.log(`Finish file upload (${fileLocally.fileName})`);
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.consumer-order-controller.uploadFile.finish',
+          message: `Finish file upload (${fileLocally.fileName})`,
+        },
+        headers,
+      );
       return `${String(Env.AZURE_BS_STORAGE_URL)}/${String(
         Env.AZURE_BS_CONTAINER_NAME,
       )}/${fileLocally.fileName}`;
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
       throw error;
     }
   }

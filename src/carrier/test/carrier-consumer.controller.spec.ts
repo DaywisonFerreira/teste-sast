@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { CarrierService } from '../carrier.service';
 import { ConsumerCarrierController } from '../consumer/carrier.controller';
 
@@ -12,6 +13,10 @@ describe('Carrier Consumer Controller', () => {
       providers: [
         { provide: CarrierService, useValue: {} },
         { provide: 'KafkaService', useValue: {} },
+        {
+          provide: 'LogProvider',
+          useClass: InfraLogger,
+        },
       ],
     }).compile();
 

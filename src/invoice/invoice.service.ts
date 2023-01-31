@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import * as https from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ClientFtp from 'ftp';
 import * as ClientFtpSSH from 'ssh2-sftp-client';
-import { LogProvider } from '@infralabs/infra-logger';
 import { InjectModel } from '@nestjs/mongoose';
 import { LeanDocument, Model } from 'mongoose';
 import { Env } from 'src/commons/environment/env';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { CarrierService } from '../carrier/carrier.service';
 import { InvoiceDocument, InvoiceEntity } from './schemas/invoice.schema';
@@ -18,13 +18,13 @@ export class InvoiceService {
     private readonly carrierService: CarrierService,
     @InjectModel(InvoiceEntity.name)
     private InvoiceModel: Model<InvoiceDocument>,
-  ) {}
-
-  async sendFtp(
-    data: CreateInvoiceDto,
-    accountId: string,
-    logger: LogProvider,
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
   ) {
+    this.logger.instanceLogger(InvoiceService.name);
+  }
+
+  async sendFtp(data: CreateInvoiceDto, accountId: string) {
     const carrier = await this.carrierService.findByDocument(
       data.carrier.document,
     );
@@ -56,7 +56,6 @@ export class InvoiceService {
     const nameFile = await this.downloadFileLocal(
       data.notfisFile,
       data.notfisFileName,
-      logger,
     );
     const filePathLocal = path.join(__dirname, '../tmp', nameFile);
     const file = fs.readFileSync(filePathLocal, 'utf8');
@@ -64,31 +63,20 @@ export class InvoiceService {
     if (destPath && port && password && user) {
       const destPathFtpServer = `${destPath.value}/${nameFile}`;
       if (integration.type === 'SFTP') {
-        await this.sendFileToFtpServerSSH(
-          destPathFtpServer,
-          filePathLocal,
-          {
-            host: integration.endpoint,
-            user: user.value,
-            password: password.value,
-            port: port.value,
-          },
-          logger,
-        );
+        await this.sendFileToFtpServerSSH(destPathFtpServer, filePathLocal, {
+          host: integration.endpoint,
+          user: user.value,
+          password: password.value,
+          port: port.value,
+        });
       } else if (integration.type === 'FTP' && secure) {
-        await this.sendFileToFtpServer(
-          file,
-          destPathFtpServer,
-          filePathLocal,
-          {
-            host: integration.endpoint,
-            user: user.value,
-            password: password.value,
-            port: port.value,
-            secure: secure.value,
-          },
-          logger,
-        );
+        await this.sendFileToFtpServer(file, destPathFtpServer, filePathLocal, {
+          host: integration.endpoint,
+          user: user.value,
+          password: password.value,
+          port: port.value,
+          secure: secure.value,
+        });
       }
       return true;
     }
@@ -101,19 +89,24 @@ export class InvoiceService {
     destPathFtp: string,
     filePathLocal: string,
     ftpAccess: any,
-    logger: LogProvider,
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       const ftp = new ClientFtp();
       ftp.on('ready', () => {
         ftp.put(file, destPathFtp, () => {
-          logger.log('File successfully uploaded to FTP server!');
-          this.deleteFileLocal(filePathLocal, logger);
+          this.logger.log(
+            {
+              key: 'ifc.freight.api.invoice-service.sendFileToFtpServer',
+              message: `File successfully uploaded to FTP server!`,
+            },
+            {},
+          );
+          this.deleteFileLocal(filePathLocal);
           resolve(ftp.end());
         });
       });
       ftp.on('error', err => {
-        this.deleteFileLocal(filePathLocal, logger);
+        this.deleteFileLocal(filePathLocal);
         reject(err);
       });
       ftp.connect({
@@ -130,7 +123,6 @@ export class InvoiceService {
     destPath: string,
     filePathLocal: string,
     ftpAccess: any,
-    logger: LogProvider,
   ) {
     return new Promise((resolve, reject) => {
       const sftp = new ClientFtpSSH();
@@ -145,29 +137,40 @@ export class InvoiceService {
           return sftp.put(fs.createReadStream(filePathLocal), destPath);
         })
         .then(() => {
-          this.deleteFileLocal(filePathLocal, logger);
-          logger.log('File successfully uploaded to SSH FTP server!');
+          this.deleteFileLocal(filePathLocal);
+          this.logger.log(
+            {
+              key: 'ifc.freight.api.invoice-service.sendFileToFtpServerSSH',
+              message: `File successfully uploaded to SSH FTP server!`,
+            },
+            {},
+          );
           resolve(sftp.end());
         })
         .catch(err => {
-          this.deleteFileLocal(filePathLocal, logger);
-          logger.error(err.message);
+          this.deleteFileLocal(filePathLocal);
+          this.logger.error(err.message);
           reject(err);
         });
     });
   }
 
-  private deleteFileLocal(path: string, logger: LogProvider) {
+  private deleteFileLocal(path: string) {
     if (fs.existsSync(path)) {
       fs.unlinkSync(path);
     }
-    logger.log(`File deleted from ${path}`);
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.invoice-service.deleteFileLocal',
+        message: `File deleted from ${path}`,
+      },
+      {},
+    );
   }
 
   private async downloadFileLocal(
     url: string,
     nameFile: string,
-    logger: LogProvider,
   ): Promise<string> {
     return new Promise((resolve, reject) => {
       if (url.includes('.txt')) {
@@ -189,7 +192,13 @@ export class InvoiceService {
               'utf8',
             );
             response.pipe(file).on('finish', () => {
-              logger.log('Successfully downloading the file');
+              this.logger.log(
+                {
+                  key: 'ifc.freight.api.invoice-service.downloadFileLocal',
+                  message: 'Successfully downloading the file',
+                },
+                {},
+              );
               resolve(nameFile);
             });
           }

@@ -2,6 +2,7 @@ import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AccountEntity } from 'src/account/schemas/account.schema';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { OrderService } from 'src/order/order.service';
 import { OrderProducer } from 'src/order/producer/order.producer';
 import { OrderEntity } from 'src/order/schemas/order.schema';
@@ -31,6 +32,10 @@ describe('InteliPostService', () => {
         {
           provide: 'KafkaService',
           useValue: {},
+        },
+        {
+          provide: 'LogProvider',
+          useClass: InfraLogger,
         },
       ],
     }).compile();

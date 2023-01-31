@@ -5,6 +5,7 @@ import {
   AccountEntity,
   AccountSchema,
 } from 'src/account/schemas/account.schema';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { OrderService } from './order.service';
 import { OrderController } from './order.controller';
 import { OrderEntity, OrderSchema } from './schemas/order.schema';
@@ -40,6 +41,10 @@ import { OrderProducer } from './producer/order.producer';
     UpdateHistoryOrders,
     HandleStatusCode,
     { provide: 'EventProvider', useClass: NestjsEventEmitter },
+    {
+      provide: 'LogProvider',
+      useClass: InfraLogger,
+    },
   ],
   exports: [
     MongooseModule.forFeature([

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { CarrierService } from 'src/carrier/carrier.service';
 import { CarrierEntity } from 'src/carrier/schemas/carrier.schema';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { InvoiceService } from '../invoice.service';
 import { TrackingCodeEntity } from '../schemas/tracking-code.schema';
 import { InvoiceEntity } from '../schemas/invoice.schema';
@@ -25,6 +26,10 @@ describe('InvoiceService', () => {
         {
           provide: getModelToken(InvoiceEntity.name),
           useValue: {},
+        },
+        {
+          provide: 'LogProvider',
+          useClass: InfraLogger,
         },
       ],
     }).compile();

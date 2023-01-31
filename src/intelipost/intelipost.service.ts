@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { InfraLogger } from '@infralabs/infra-logger';
-
+import { Inject, Injectable } from '@nestjs/common';
 import { OrderService } from 'src/order/order.service';
 import { OrderProducer } from 'src/order/producer/order.producer';
 import { OrderDocument } from 'src/order/schemas/order.schema';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { OrderMapper } from '../order/mappers/orderMapper';
 import { CreateIntelipost } from './dto/create-intelipost.dto';
 
@@ -12,18 +11,19 @@ export class InteliPostService {
   constructor(
     private orderService: OrderService,
     private orderProducer: OrderProducer,
-  ) {}
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
+  ) {
+    this.logger.instanceLogger(InteliPostService.name);
+  }
 
   async intelipost(
     payload: CreateIntelipost,
-    logger: InfraLogger,
     headers: any,
     extra: Record<string, any> = {},
     needChangeDispatchStatus = true,
   ) {
     try {
-      // eslint-disable-next-line no-param-reassign
-      logger.context = InteliPostService.name;
       let order = OrderMapper.mapPartnerToOrder(payload, extra);
 
       if (order.statusCode.macro === 'delivered') {
@@ -46,7 +46,6 @@ export class InteliPostService {
         },
         { ...order, attachments: payload.history.attachments },
         'intelipost',
-        logger,
       );
 
       if (success) {
@@ -79,7 +78,6 @@ export class InteliPostService {
                 },
               },
             },
-            logger,
             headers,
             extra,
             false,
@@ -95,18 +93,26 @@ export class InteliPostService {
           orderMerged.statusCode = order.statusCode;
         }
 
-        logger.log(
-          `OrderSale: ${orderMerged.orderSale} order: ${orderMerged.partnerOrder} and microStatus: ${orderMerged.statusCode.micro} was saved`,
+        this.logger.log(
+          {
+            key: 'ifc.freight.api.order.intellipost-service.intelipost.saved',
+            message: `OrderSale: ${orderMerged.orderSale} order: ${orderMerged.partnerOrder} and microStatus: ${orderMerged.statusCode.micro} was saved`,
+          },
+          headers,
         );
 
-        await this.orderProducer.sendStatusTrackingToIHub(orderMerged, logger);
+        await this.orderProducer.sendStatusTrackingToIHub(orderMerged);
       } else {
-        logger.log(
-          `OrderSale: ${orderMerged.orderSale} order: ${orderMerged.partnerOrder} and microStatus: ${orderMerged.statusCode.micro} was NOT saved`,
+        this.logger.log(
+          {
+            key: 'ifc.freight.api.order.intellipost-service.intelipost.not-saved',
+            message: `OrderSale: ${orderMerged.orderSale} order: ${orderMerged.partnerOrder} and microStatus: ${orderMerged.statusCode.micro} was NOT saved`,
+          },
+          headers,
         );
       }
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     }
   }
 

@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Model } from 'mongoose';
 import faker from '@faker-js/faker';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { AccountService } from '../account.service';
 import {
   AccountDocument,
@@ -79,6 +80,10 @@ const makeSut = async (): Promise<SutTypes> => {
       {
         provide: getModelToken(AccountEntity.name),
         useValue: MockAccountModel,
+      },
+      {
+        provide: 'LogProvider',
+        useClass: InfraLogger,
       },
     ],
   }).compile();

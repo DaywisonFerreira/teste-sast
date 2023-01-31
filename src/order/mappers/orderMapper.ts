@@ -1,4 +1,3 @@
-import { InfraLogger } from '@infralabs/infra-logger';
 import axios from 'axios';
 import { createWriteStream, promises } from 'fs';
 import { Types } from 'mongoose';
@@ -8,6 +7,8 @@ import {
   StorageSharedKeyCredential,
 } from '@azure/storage-blob';
 import { CreateIntelipost } from 'src/intelipost/dto/create-intelipost.dto';
+import { Logger } from '@nestjs/common';
+import formatLoggerHelper from '@infralabs/infra-logger-nestjs';
 import { Env } from '../../commons/environment/env';
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderDocument } from '../schemas/order.schema';
@@ -71,7 +72,7 @@ export class OrderMapper {
     };
   }
 
-  static async mapAttachment(attachment, invoiceKey, logger: InfraLogger) {
+  static async mapAttachment(attachment, invoiceKey) {
     try {
       if (attachment.type === 'POD') {
         const fileName = `pod-${invoiceKey}${attachment.file_name}`;
@@ -99,7 +100,8 @@ export class OrderMapper {
         };
       }
     } catch (error) {
-      logger.error(error);
+      const logger = new Logger('ConsumerOrderController.name');
+      logger.error(error.message, error.stack?.split('\n'));
     }
     return {};
   }
@@ -127,9 +129,19 @@ export class OrderMapper {
   }
 
   static async uploadToCloud(fileName: string, path: string): Promise<string> {
-    const logger = new InfraLogger({}, OrderMapper.name);
+    const logger = new Logger('ConsumerOrderController.name');
+
     try {
-      logger.log(`Starting file upload (${fileName})`);
+      logger.log(
+        formatLoggerHelper(
+          {
+            key: 'ifc.freight.api.order.order-mapper.uploadToCloud.start',
+            message: `Starting file upload (${fileName})`,
+          },
+          {},
+        ),
+      );
+
       const credentials = new StorageSharedKeyCredential(
         Env.AZURE_ACCOUNT_NAME,
         Env.AZURE_ACCOUNT_KEY,
@@ -144,12 +156,20 @@ export class OrderMapper {
       const blockBlobClient = containerClient.getBlockBlobClient(fileName);
       await blockBlobClient.uploadFile(path);
 
-      logger.log(`Finish file upload (${fileName})`);
+      logger.log(
+        formatLoggerHelper(
+          {
+            key: 'ifc.freight.api.order.order-mapper.uploadToCloud.finish',
+            message: `Finish file upload (${fileName})`,
+          },
+          {},
+        ),
+      );
       return `${String(Env.AZURE_BS_STORAGE_URL)}/${String(
         Env.AZURE_BS_CONTAINER_NAME,
       )}/${fileName}`;
     } catch (error) {
-      logger.error(error);
+      logger.error(error.message, error.stack?.split('\n'));
       throw error;
     }
   }
