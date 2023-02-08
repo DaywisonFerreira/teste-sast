@@ -45,7 +45,7 @@ export class ConsumerInvoiceController {
       await this.setInvoiceStatusError(data, error);
       logger.error(
         new Error(
-          `Error Invoice with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId} key: ${data.key}`,
+          `Error Invoice with the orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId} key: ${data.key} -- errorMessage: ${error.message}`,
         ),
       );
     } finally {
@@ -107,7 +107,7 @@ export class ConsumerInvoiceController {
       await this.setInvoiceStatusError(invoice, error);
       logger.error(
         new Error(
-          `Error integrated invoice - orderSale: ${data.order.externalOrderId}, order: ${data.order.internalOrderId}, invoiceKey: ${invoice.key}`,
+          `Error integrated invoice - orderSale: ${data.order.externalOrderId}, order: ${data.order.internalOrderId}, invoiceKey: ${invoice.key} -- errorMessage: ${error.message}`,
         ),
       );
     } finally {
@@ -195,11 +195,9 @@ export class ConsumerInvoiceController {
         });
       }
     } catch (error) {
-      logger.error(
-        new Error(
-          `Error integrate invoice with key ${data.key} and orderSale: ${data.order.externalOrderId}`,
-        ),
-      );
+      const errorLog = `Error integrate invoice with key ${data.key} and orderSale: ${data.order.externalOrderId} -- errorMessage: ${error.message}`;
+      logger.error(new Error(errorLog));
+      throw new Error(errorLog);
     }
   }
 
@@ -229,7 +227,7 @@ export class ConsumerInvoiceController {
 
       for await (const invoice of invoices) {
         logger.log(
-          `reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId} status: ${invoice.status}`,
+          `Reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId} status: ${invoice.status}`,
         );
         try {
           await this.generateIntegration(invoice, invoice.accountId, headers);
@@ -237,7 +235,7 @@ export class ConsumerInvoiceController {
           await this.setInvoiceStatusError(invoice, error);
           logger.error(
             new Error(
-              `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId}`,
+              `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId} -- errorMessage: ${error.message}`,
             ),
           );
         }
@@ -288,11 +286,9 @@ export class ConsumerInvoiceController {
         deliveryMethods,
       );
     } catch (error) {
-      logger.error(
-        new Error(
-          `Error generate integration - key: ${data.key} orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId}`,
-        ),
-      );
+      const errorLog = `Error generate integration - key: ${data.key} orderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId} -- errorMessage: ${error.message}`;
+      logger.error(new Error(errorLog));
+      throw new Error(errorLog);
     }
   }
 
