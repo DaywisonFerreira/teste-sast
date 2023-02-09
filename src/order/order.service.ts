@@ -425,12 +425,14 @@ export class OrderService {
         return 3;
       case 'out-of-delivery':
         return 4;
+      case 'check-delivery-failed':
+        return 5;
       case 'delivered':
-        return 5;
+        return 6;
       case 'delivery-failed':
-        return 5;
+        return 6;
       case 'canceled':
-        return 5;
+        return 6;
       default:
         return 1;
     }
