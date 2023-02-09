@@ -200,15 +200,19 @@ describe('OrderService', () => {
         await (service as any).getStatusScale('out-of-delivery'),
       ).toStrictEqual(4);
 
+      expect(
+        await (service as any).getStatusScale('check-delivery-failed'),
+      ).toStrictEqual(5);
+
       expect(await (service as any).getStatusScale('delivered')).toStrictEqual(
-        5,
+        6,
       );
 
       expect(
         await (service as any).getStatusScale('delivery-failed'),
-      ).toStrictEqual(5);
+      ).toStrictEqual(6);
 
-      expect((service as any).getStatusScale('canceled')).toStrictEqual(5);
+      expect((service as any).getStatusScale('canceled')).toStrictEqual(6);
     });
 
     // it('Should return file xlsx generated', async () => {
