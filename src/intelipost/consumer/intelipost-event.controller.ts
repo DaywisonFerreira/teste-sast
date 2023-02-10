@@ -3,11 +3,11 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable radix */
 import { Types } from 'mongoose';
-import { InfraLogger } from '@infralabs/infra-logger';
 import { Controller, Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 
 import { Env } from 'src/commons/environment/env';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { ApiGateway } from '../../commons/providers/api/api-gateway.interface';
 import { IntelipostApiGatewayResponse } from '../../commons/providers/api/intelipost-api-gateway';
 import { InvoiceStatusEnum } from '../../invoice/enums/invoice-status-enum';
@@ -27,11 +27,21 @@ export class OnEventIntelipostController {
     private readonly accountService: AccountService,
     @Inject('ApiGateway')
     private readonly intelipostApiGateway: ApiGateway,
-  ) {}
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
+  ) {
+    this.logger.instanceLogger(OnEventIntelipostController.name);
+  }
 
   @OnEvent('intelipost.sent')
   async sendIntelipostData({ headers, data, account, retry = false }: any) {
-    const logger = new InfraLogger(headers, OnEventIntelipostController.name);
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.on-event-intellipost-controller.sendIntelipostData',
+        message: `Sending ${account} data to Intellipost`,
+      },
+      headers,
+    );
 
     try {
       const location = await this.accountService.findOneLocationByDocument(
@@ -69,8 +79,12 @@ export class OnEventIntelipostController {
           await new Promise(resolve =>
             setTimeout(resolve, Env.INTELIPOST_SLEEP_RESEND),
           );
-          logger.log(
-            `Error when try to create OrderSale (${data.order.externalOrderId}) Order (${data.order.internalOrderId}) on Intelipost. Retrying...`,
+          this.logger.log(
+            {
+              key: 'ifc.freight.api.order.on-event-intellipost-controller.sendIntelipostData.error',
+              message: `Error when try to create OrderSale (${data.order.externalOrderId}) Order (${data.order.internalOrderId}) on Intelipost. Retrying...`,
+            },
+            headers,
           );
         } else {
           break;
@@ -89,10 +103,7 @@ export class OnEventIntelipostController {
       }
 
       if (isValidationError && existingOrderNumber && !retry) {
-        await this.retryIntelipostIntegration(
-          { headers, data, account },
-          logger,
-        );
+        await this.retryIntelipostIntegration({ headers, data, account });
         return;
       }
       if (isValidationError && existingOrderNumber && retry) {
@@ -100,8 +111,12 @@ export class OnEventIntelipostController {
       }
 
       if (response.status === 200) {
-        logger.log(
-          `Order created successfully on Intelipost with orderSale: ${response?.data?.content?.sales_order_number} order: ${response?.data?.content?.order_number} and trackingUrl: ${response?.data?.content?.tracking_url}`,
+        this.logger.log(
+          {
+            key: 'ifc.freight.api.order.on-event-intellipost-controller.sendIntelipostData.success',
+            message: `Order created successfully on Intelipost with orderSale: ${response?.data?.content?.sales_order_number} order: ${response?.data?.content?.order_number} and trackingUrl: ${response?.data?.content?.tracking_url}`,
+          },
+          headers,
         );
 
         const newOrders =
@@ -120,12 +135,7 @@ export class OnEventIntelipostController {
           : {};
 
         for await (const order of newOrders) {
-          await this.intelipostService.intelipost(
-            order,
-            new InfraLogger(headers),
-            headers,
-            extra,
-          );
+          await this.intelipostService.intelipost(order, headers, extra);
         }
         await this.invoiceService.updateStatus(
           data.key,
@@ -138,7 +148,7 @@ export class OnEventIntelipostController {
 
       throw new Error(JSON.stringify(response?.data));
     } catch (error) {
-      logger.error(
+      this.logger.error(
         new Error(
           `Error message: '${error.message}'. OrderSale: ${data.order.externalOrderId} order: ${data.order.internalOrderId} invoice key: ${data.key} and status: ${InvoiceStatusEnum.ERROR}`,
         ),
@@ -152,10 +162,11 @@ export class OnEventIntelipostController {
     }
   }
 
-  private async retryIntelipostIntegration(
-    { headers, data, account },
-    logger,
-  ): Promise<void> {
+  private async retryIntelipostIntegration({
+    headers,
+    data,
+    account,
+  }): Promise<void> {
     const newData = {
       ...data,
       order: {
@@ -163,8 +174,12 @@ export class OnEventIntelipostController {
         internalOrderId: `${data.order.internalOrderId}-${data.number}`,
       },
     };
-    logger.log(
-      `OrderSale (${data.order.externalOrderId}) Order (${data.order.internalOrderId}) already exists on Intelipost. Retrying with the new orderNumber: ${newData.order.internalOrderId}`,
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.on-event-intellipost-controller.retryIntelipostIntegration',
+        message: `OrderSale (${data.order.externalOrderId}) Order (${data.order.internalOrderId}) already exists on Intelipost. Retrying with the new orderNumber: ${newData.order.internalOrderId}`,
+      },
+      headers,
     );
     await this.sendIntelipostData({
       headers,

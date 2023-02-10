@@ -20,13 +20,13 @@ import { Env } from 'src/commons/environment/env';
 import { RequestDto } from 'src/commons/dtos/request.dto';
 import { JWTGuard } from 'src/commons/guards/jwt.guard';
 import { OnEvent } from '@nestjs/event-emitter';
-import { InfraLogger } from '@infralabs/infra-logger';
 import {
   BlobServiceClient,
   StorageSharedKeyCredential,
 } from '@azure/storage-blob';
 import { existsSync, promises } from 'fs';
 import { differenceInDays, isBefore } from 'date-fns';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { FilterPaginateOrderDto } from './dto/filter-paginate-order.dto';
 import { PaginateOrderDto } from './dto/paginate-order.dto';
 import { OrderService } from './order.service';
@@ -48,16 +48,26 @@ export class OrderController {
   constructor(
     private readonly orderService: OrderService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
-  ) {}
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
+  ) {
+    this.logger.instanceLogger(OrderController.name);
+  }
 
   @Get()
   @ApiOkResponse({ type: PaginateOrderDto })
   async findAll(
     @Query(ValidationPipe) filterPaginateDto: FilterPaginateOrderDto,
     @Headers('x-tenant-id') xTenantId: string,
-    @Req() req: any,
   ): Promise<PaginateOrderDto> {
     try {
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.order-controller.findAll',
+          message: `Find all orders from tenant ${xTenantId}`,
+        },
+        {},
+      );
       const {
         page = 1,
         perPage = 20,
@@ -107,7 +117,7 @@ export class OrderController {
         pageSize,
       );
     } catch (error) {
-      req.logger.error(error);
+      this.logger.error(error);
       throw error;
     }
   }
@@ -119,10 +129,17 @@ export class OrderController {
     @Param('id') id: string,
     @Req() req: any,
   ): Promise<GetOrderDto> {
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.order-controller.findOne',
+        message: `Find order id: ${id}`,
+      },
+      {},
+    );
     try {
       return this.orderService.getOrderDetails(id, req.tenants);
     } catch (error) {
-      req.logger.error(error);
+      this.logger.error(error);
       throw error;
     }
   }
@@ -134,7 +151,14 @@ export class OrderController {
     @Request() request: RequestDto,
     @Headers() headers: HeadersExportOrdersDto,
   ) {
-    const { userId, userName, email, logger } = request;
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.order-controller.exportOrders',
+        message: `Export orders from ${headers['x-tenant-id']} `,
+      },
+      headers,
+    );
+    const { userId, userName, email } = request;
     try {
       const {
         orderCreatedAtFrom,
@@ -167,7 +191,7 @@ export class OrderController {
         }),
       });
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
       throw error;
     }
   }
@@ -179,7 +203,14 @@ export class OrderController {
     @Request() request: RequestDto,
     @Headers() headers: HeadersConsolidatedReportOrdersDTO,
   ) {
-    const { userId, userName, email, logger } = request;
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.order-controller.consolidatedReportOrders',
+        message: `Consolidated Report from userid: ${request.userId}`,
+      },
+      headers,
+    );
+    const { userId, userName, email } = request;
     try {
       const { orderCreatedAtFrom, orderCreatedAtTo, tenants } = reportDTO;
 
@@ -228,17 +259,22 @@ export class OrderController {
         },
       );
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
       throw error;
     }
   }
 
   @OnEvent('create.report.consolidated', { async: true })
-  async createReportConsolidated({ data, headers, user, logger }) {
-    let reportFilePath: { path: string; fileName: string };
-    logger.log(
-      `${Env.KAFKA_TOPIC_FREIGHT_CONSOLIDATED_REPORT_ORDERS} - Report consolidated request by user ${user.id} was received - From ${data.orderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
+  async createReportConsolidated({ data, headers, user }) {
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.order-controller.createReportConsolidated',
+        message: `${Env.KAFKA_TOPIC_FREIGHT_CONSOLIDATED_REPORT_ORDERS} - Report consolidated request by user ${user.id} was received - From ${data.orderCreatedAtFrom} to ${data.orderCreatedAtTo}`,
+      },
+      headers,
     );
+    let reportFilePath: { path: string; fileName: string };
+
     try {
       reportFilePath = await this.orderService.createReportConsolidated(data);
       if (reportFilePath) {
@@ -262,10 +298,16 @@ export class OrderController {
           },
         );
       } else {
-        logger.log('No records found for this account.');
+        this.logger.log(
+          {
+            key: 'ifc.freight.api.order.order-controller.createReportConsolidated.no-records',
+            message: 'No records found for this account.',
+          },
+          headers,
+        );
       }
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     } finally {
       if (reportFilePath && existsSync(reportFilePath.path)) {
         await this.deleteFileLocally(reportFilePath.path);
@@ -274,9 +316,14 @@ export class OrderController {
   }
 
   private async uploadFile(fileLocally: any, headers: any) {
-    const logger = new InfraLogger(headers, OrderController.name);
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.order-controller.uploadFile.start',
+        message: `Starting file upload (${fileLocally.fileName})`,
+      },
+      headers,
+    );
     try {
-      logger.log(`Starting file upload (${fileLocally.fileName})`);
       const credentials = new StorageSharedKeyCredential(
         Env.AZURE_ACCOUNT_NAME,
         Env.AZURE_ACCOUNT_KEY,
@@ -293,12 +340,19 @@ export class OrderController {
       );
       await blockBlobClient.uploadFile(fileLocally.path);
 
-      logger.log(`Finish file upload (${fileLocally.fileName})`);
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.order-controller.uploadFile.finish',
+          message: `Finish file upload (${fileLocally.fileName})`,
+        },
+        headers,
+      );
+
       return `${String(Env.AZURE_BS_STORAGE_URL)}/${String(
         Env.AZURE_BS_CONTAINER_NAME,
       )}/${fileLocally.fileName}`;
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
       throw error;
     }
   }

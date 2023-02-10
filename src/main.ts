@@ -16,9 +16,9 @@ import compress from 'fastify-compress';
 import helmet from 'fastify-helmet';
 import { join, resolve } from 'path';
 
+import { HeaderInterceptor } from '@infralabs/infra-middlewares';
 import { AppModule } from './app.module';
 import { Env } from './commons/environment/env';
-import { LoggingInterceptor } from './commons/interceptors/logging.interceptor';
 
 const bootstrap = async (): Promise<void> => {
   const fastifyAdapter = new FastifyAdapter({
@@ -56,7 +56,7 @@ const bootstrap = async (): Promise<void> => {
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  app.useGlobalInterceptors(new HeaderInterceptor());
 
   app.setViewEngine({
     engine: {

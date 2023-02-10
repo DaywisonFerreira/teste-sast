@@ -10,7 +10,6 @@ import { OrderService } from '../order.service';
 import { OrderDocument, OrderEntity } from '../schemas/order.schema';
 import { ordersEntityMock } from './mocks/orders-entity.mock';
 import { OrdersProvidersMock } from './providers/orders-providers.mock';
-import { infraLoggerMock } from './mocks/infra-logger.mock';
 import {
   attachmentMock,
   ordersUpdateMappedMock,
@@ -108,18 +107,13 @@ describe('OrderService', () => {
       };
 
       expect(
-        await service.exportData(
-          data,
-          '632376aba8900e002a262924',
-          infraLoggerMock,
-        ),
+        await service.exportData(data, '632376aba8900e002a262924'),
       ).toStrictEqual('');
 
       expect(
         await service.exportData(
           { ...data, orderCreatedAtTo: '2022-09-15' },
           '632376aba8900e002a262924',
-          infraLoggerMock,
         ),
       ).toStrictEqual('');
 
@@ -127,7 +121,6 @@ describe('OrderService', () => {
         await service.exportData(
           { ...data, type: 'xlsx', orderCreatedAtTo: '2022-09-15' },
           '632376aba8900e002a262924',
-          infraLoggerMock,
         ),
       ).toStrictEqual({
         fileName: 'Status_Entregas_STORE_14092022-15092022.xlsx',
@@ -337,7 +330,7 @@ describe('OrderService', () => {
         await (service as any).generateAttachments(
           ordersUpdateMappedMock,
           true,
-          infraLoggerMock,
+
           ordersEntityMock,
         ),
       ).toStrictEqual([attachmentMock]);
@@ -351,7 +344,7 @@ describe('OrderService', () => {
         await (service as any).generateAttachments(
           ordersUpdateMappedMock,
           false,
-          infraLoggerMock,
+
           { ...ordersEntityMock, attachments: [oldAttachment] },
         ),
       ).toStrictEqual([oldAttachment, attachmentMock]);
@@ -360,7 +353,7 @@ describe('OrderService', () => {
         await (service as any).generateAttachments(
           ordersUpdateMappedMock,
           false,
-          infraLoggerMock,
+
           ordersEntityMock,
         ),
       ).toStrictEqual([attachmentMock]);

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { OrderProducer } from 'src/order/producer/order.producer';
 
 import { AccountService } from '../account/account.service';
@@ -43,6 +44,10 @@ import { IntelipostMapper } from './mappers/intelipostMapper';
     OnEventIntelipostController,
   ],
   providers: [
+    {
+      provide: 'LogProvider',
+      useClass: InfraLogger,
+    },
     InteliPostService,
     OrderService,
     OrderProducer,

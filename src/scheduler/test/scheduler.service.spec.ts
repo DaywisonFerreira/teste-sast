@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Test, TestingModule } from '@nestjs/testing';
 import * as fs from 'fs/promises';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { NestjsEventEmitter } from '../../commons/providers/event/nestjs-event-emitter';
 import { SchedulerService } from '../scheduler.service';
 
@@ -16,6 +17,10 @@ describe('Scheduler Service Tests', () => {
           useValue: {
             emit: () => null,
           },
+        },
+        {
+          provide: 'LogProvider',
+          useClass: InfraLogger,
         },
       ],
     }).compile();

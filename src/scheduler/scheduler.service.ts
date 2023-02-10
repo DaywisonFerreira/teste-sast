@@ -1,22 +1,25 @@
-import { InfraLogger } from '@infralabs/infra-logger';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { existsSync, mkdirSync } from 'fs';
 import { readdir, stat, unlink } from 'fs/promises';
 import { isAfter } from 'date-fns';
 import { NestjsEventEmitter } from 'src/commons/providers/event/nestjs-event-emitter';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { Env } from '../commons/environment/env';
 
 @Injectable()
 export class SchedulerService {
-  private readonly logger = new InfraLogger({}, SchedulerService.name);
-
   private readonly tmp_path =
     Env.NODE_ENV !== 'local'
       ? `${process.cwd()}/dist/tmp`
       : `${process.cwd()}/src/tmp`;
 
-  constructor(private readonly eventEmitter: NestjsEventEmitter) {
+  constructor(
+    private readonly eventEmitter: NestjsEventEmitter,
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
+  ) {
+    this.logger.instanceLogger(SchedulerService.name);
     if (!existsSync(this.tmp_path)) mkdirSync(this.tmp_path);
   }
 
@@ -24,7 +27,11 @@ export class SchedulerService {
   async reprocessInvoices(): Promise<void> {
     try {
       this.logger.log(
-        `${SchedulerService.name}: Starting Cron to Reprocess invoices with error ...`,
+        {
+          key: 'ifc.freight.api.order.scheduler-service.reprocessInvoices',
+          message: `${SchedulerService.name}: Starting Cron to Reprocess invoices with error ...`,
+        },
+        {},
       );
       return this.eventEmitter.emit('invoice.reprocess', null);
     } catch (error) {
@@ -40,7 +47,11 @@ export class SchedulerService {
   )
   async clearTmpFolder() {
     this.logger.log(
-      `${SchedulerService.name}: Start Cron remove older files from disk...`,
+      {
+        key: 'ifc.freight.api.order.scheduler-service.clearTmpFolder',
+        message: `${SchedulerService.name}: Start Cron remove older files from disk...`,
+      },
+      {},
     );
     const yesterday = new Date();
     yesterday.setDate(new Date().getDate() - 1);
@@ -49,7 +60,11 @@ export class SchedulerService {
 
       if (!files.length) {
         this.logger.log(
-          `${SchedulerService.name}: Empty folder, no files to be checked`,
+          {
+            key: 'ifc.freight.api.order.scheduler-service.clearTmpFolder.no-files',
+            message: `${SchedulerService.name}: Empty folder, no files to be checked`,
+          },
+          {},
         );
         return;
       }
@@ -64,7 +79,13 @@ export class SchedulerService {
     } catch (error) {
       this.logger.error(error);
     } finally {
-      this.logger.log(`${SchedulerService.name}: End Cron Successful`);
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.scheduler-service.clearTmpFolder.finish',
+          message: `${SchedulerService.name}: End Cron Successful`,
+        },
+        {},
+      );
     }
   }
 }

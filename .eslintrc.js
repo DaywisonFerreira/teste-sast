@@ -27,6 +27,7 @@ module.exports = {
     'no-restricted-syntax': 'off',
     'no-shadow': 'off',
     'no-await-in-loop': 'off',
+    'no-param-reassign': 'off',
     'no-useless-constructor': 'off',
     'import/prefer-default-export': 'off',
     'prettier/prettier': 'error',
@@ -52,15 +53,15 @@ module.exports = {
     'prettier/prettier': [
       'error',
       {
-        'endOfLine': 'auto',
-        'singleQuote': true,
-        'bracketSpacing': true,
-        'jsxBracketSameLine': true,
-        'printWidth': 80,
-        'maxClassesPerFile': false,
-      }
+        endOfLine: 'auto',
+        singleQuote: true,
+        bracketSpacing: true,
+        jsxBracketSameLine: true,
+        printWidth: 80,
+        maxClassesPerFile: false,
+      },
     ],
-    "max-classes-per-file": ["error", 10],
+    'max-classes-per-file': ['error', 10],
   },
   settings: {
     'import/resolver': {

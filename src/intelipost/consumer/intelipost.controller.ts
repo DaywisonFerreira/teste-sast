@@ -3,7 +3,6 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable radix */
 
-import { InfraLogger } from '@infralabs/infra-logger';
 import {
   KafkaResponse,
   SubscribeTopic,
@@ -12,6 +11,7 @@ import {
 import { Controller, Inject } from '@nestjs/common';
 
 import { Env } from 'src/commons/environment/env';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { CreateIntelipost } from '../dto/create-intelipost.dto';
 import { InteliPostService } from '../intelipost.service';
 
@@ -20,7 +20,11 @@ export class ConsumerIntelipostController {
   constructor(
     private readonly inteliPostService: InteliPostService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
-  ) {}
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
+  ) {
+    this.logger.instanceLogger(ConsumerIntelipostController.name);
+  }
 
   @SubscribeTopic(Env.KAFKA_TOPIC_INTELIPOST_CREATED)
   async consumerCreateContract({
@@ -29,22 +33,20 @@ export class ConsumerIntelipostController {
     headers,
     offset,
   }: KafkaResponse<string>) {
-    const logger = new InfraLogger(headers, ConsumerIntelipostController.name);
-
     try {
       const { data }: { data: CreateIntelipost } = JSON.parse(value);
 
-      logger.verbose(
-        `${Env.KAFKA_TOPIC_INTELIPOST_CREATED} - Intelipost tracking received for orderSale: ${data?.sales_order_number} order: ${data?.order_number} in the integration queue`,
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.consumer-intellipost-controller.consumerCreateContract',
+          message: `${Env.KAFKA_TOPIC_INTELIPOST_CREATED} - Intelipost tracking received for orderSale: ${data?.sales_order_number} order: ${data?.order_number} in the integration queue`,
+        },
+        {},
       );
 
-      await this.inteliPostService.intelipost(
-        data,
-        new InfraLogger(headers),
-        headers,
-      );
+      await this.inteliPostService.intelipost(data, headers);
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     } finally {
       await this.kafkaProducer.commitOffsets([
         {

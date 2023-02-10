@@ -3,9 +3,9 @@ import {
   KafkaService,
   SubscribeTopic,
 } from '@infralabs/infra-nestjs-kafka';
-import { InfraLogger } from '@infralabs/infra-logger';
 import { Controller, Inject } from '@nestjs/common';
 import { Env } from 'src/commons/environment/env';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { AccountService } from '../account.service';
 
 @Controller()
@@ -13,7 +13,11 @@ export class ConsumerAccountController {
   constructor(
     private readonly accountService: AccountService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
-  ) {}
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
+  ) {
+    this.logger.instanceLogger(ConsumerAccountController.name);
+  }
 
   @SubscribeTopic(Env.KAFKA_TOPIC_ACCOUNT_CREATED)
   async createAccount({
@@ -22,15 +26,18 @@ export class ConsumerAccountController {
     headers,
     offset,
   }: KafkaResponse<string>) {
-    const logger = new InfraLogger(headers, ConsumerAccountController.name);
     const { data } = JSON.parse(value);
     try {
-      logger.log(
-        `${Env.KAFKA_TOPIC_ACCOUNT_CREATED} - Account consumer was received`,
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.consumer-account-controller.createAccount',
+          message: `${Env.KAFKA_TOPIC_ACCOUNT_CREATED} - Account consumer was received`,
+        },
+        headers,
       );
       await this.accountService.create(data);
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     } finally {
       await this.removeFromQueue(
         Env.KAFKA_TOPIC_ACCOUNT_CREATED,
@@ -47,15 +54,18 @@ export class ConsumerAccountController {
     headers,
     offset,
   }: KafkaResponse<string>) {
-    const logger = new InfraLogger(headers, ConsumerAccountController.name);
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.consumer-account-controller.createAccount',
+        message: `${Env.KAFKA_TOPIC_ACCOUNT_CHANGED} - Account consumer was received`,
+      },
+      headers,
+    );
     const { data } = JSON.parse(value);
     try {
-      logger.log(
-        `${Env.KAFKA_TOPIC_ACCOUNT_CHANGED} - Account consumer was received`,
-      );
       await this.accountService.update(data.id, data);
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     } finally {
       await this.removeFromQueue(
         Env.KAFKA_TOPIC_ACCOUNT_CHANGED,
@@ -72,15 +82,18 @@ export class ConsumerAccountController {
     headers,
     offset,
   }: KafkaResponse<string>) {
-    const logger = new InfraLogger(headers, ConsumerAccountController.name);
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.consumer-account-controller.createAccount',
+        message: `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_CREATED} - Account consumer was received`,
+      },
+      headers,
+    );
     const { data } = JSON.parse(value);
     try {
-      logger.log(
-        `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_CREATED} - Account consumer was received`,
-      );
       await this.accountService.create(data);
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     } finally {
       await this.removeFromQueue(
         Env.KAFKA_TOPIC_ACCOUNT_LOCATION_CREATED,
@@ -97,16 +110,19 @@ export class ConsumerAccountController {
     headers,
     offset,
   }: KafkaResponse<string>) {
-    const logger = new InfraLogger(headers, ConsumerAccountController.name);
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.consumer-account-controller.createAccount',
+        message: `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_CHANGED} - Account consumer was received`,
+      },
+      headers,
+    );
     const { data } = JSON.parse(value);
 
     try {
-      logger.log(
-        `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_CHANGED} - Account consumer was received`,
-      );
       await this.accountService.update(data.id, data);
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     } finally {
       await this.removeFromQueue(
         Env.KAFKA_TOPIC_ACCOUNT_LOCATION_CHANGED,
@@ -123,19 +139,21 @@ export class ConsumerAccountController {
     headers,
     offset,
   }: KafkaResponse<string>) {
-    const logger = new InfraLogger(headers, ConsumerAccountController.name);
     const { data } = JSON.parse(value);
-
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.consumer-account-controller.createAccount',
+        message: `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_ASSOCIATED} - Account consumer was received ${data.id}`,
+      },
+      headers,
+    );
     try {
-      logger.log(
-        `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_ASSOCIATED} - Account consumer was received ${data.id}`,
-      );
       await this.accountService.associateLocation(
         headers['X-Tenant-Id'],
         data.id,
       );
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     } finally {
       await this.removeFromQueue(
         Env.KAFKA_TOPIC_ACCOUNT_LOCATION_ASSOCIATED,
@@ -152,19 +170,21 @@ export class ConsumerAccountController {
     headers,
     offset,
   }: KafkaResponse<string>) {
-    const logger = new InfraLogger(headers, ConsumerAccountController.name);
     const { data } = JSON.parse(value);
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.consumer-account-controller.createAccount',
+        message: `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_UNASSOCIATED} - Account consumer was received ${data.id}`,
+      },
+      headers,
+    );
     try {
-      logger.log(
-        `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_UNASSOCIATED} - Account consumer was received ${data.id}`,
-      );
-
       await this.accountService.unassociateLocation(
         headers['X-Tenant-Id'],
         data.id,
       );
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     } finally {
       await this.removeFromQueue(
         Env.KAFKA_TOPIC_ACCOUNT_LOCATION_UNASSOCIATED,
