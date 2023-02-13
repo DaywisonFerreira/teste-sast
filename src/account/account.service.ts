@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { LeanDocument, Model } from 'mongoose';
@@ -42,6 +43,8 @@ export class AccountService {
     id: string,
     accountData: any,
   ): Promise<LeanDocument<AccountEntity>> {
+    const account = await this.accountModel.findOne({ id });
+
     const mapData = {
       ...accountData,
       document: accountData.fiscalCode
@@ -49,6 +52,14 @@ export class AccountService {
         .replace(/\./g, '')
         .replace(/\//g, ''),
       zipCode: accountData.address.zipCode.replace(/-/g, '').replace(/\./g, ''),
+      useDeliveryHub:
+        account && account?.toJSON().hasOwnProperty('useDeliveryHub')
+          ? account.useDeliveryHub
+          : false,
+      useDeliveryHubStandalone:
+        account && account?.toJSON().hasOwnProperty('useDeliveryHubStandalone')
+          ? account.useDeliveryHubStandalone
+          : false,
     };
 
     return this.accountModel

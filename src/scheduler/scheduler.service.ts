@@ -23,22 +23,22 @@ export class SchedulerService {
     if (!existsSync(this.tmp_path)) mkdirSync(this.tmp_path);
   }
 
-  @Cron(CronExpression[Env.CRON_TIME_REPROCESS_INVOICES_ERROR_STATUS])
-  async reprocessInvoices(): Promise<void> {
-    try {
-      this.logger.log(
-        {
-          key: 'ifc.freight.api.order.scheduler-service.reprocessInvoices',
-          message: `${SchedulerService.name}: Starting Cron to Reprocess invoices with error ...`,
-        },
-        {},
-      );
-      return this.eventEmitter.emit('invoice.reprocess', null);
-    } catch (error) {
-      this.logger.error(error);
-      throw error;
-    }
-  }
+  // @Cron(CronExpression[Env.CRON_TIME_REPROCESS_INVOICES_ERROR_STATUS])
+  // async reprocessInvoices(): Promise<void> {
+  //   try {
+  //     this.logger.log(
+  //       {
+  //         key: 'ifc.freight.api.order.scheduler-service.reprocessInvoices',
+  //         message: `${SchedulerService.name}: Starting Cron to Reprocess invoices with error ...`,
+  //       },
+  //       {},
+  //     );
+  //     return this.eventEmitter.emit('invoice.reprocess', null);
+  //   } catch (error) {
+  //     this.logger.error(error);
+  //     throw error;
+  //   }
+  // }
 
   @Cron(
     Env.NODE_ENV !== 'local'

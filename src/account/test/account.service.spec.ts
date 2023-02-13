@@ -41,12 +41,14 @@ class MockAccountModel {
   static findOne = () => {
     return {
       ...mockAccount(),
+      toJSON: () => mockAccount(),
       lean: () => mockAccount(),
     };
   };
 
   static findOneAndUpdate = () => {
     return {
+      toJSON: () => mockAccount(),
       lean: () => mockAccount(),
     };
   };
@@ -257,6 +259,6 @@ describe('AccountService', () => {
       );
     }
 
-    expect(spyAccountFindOne).toBeCalledTimes(10);
+    expect(spyAccountFindOne).toBeCalledTimes(11);
   });
 });
