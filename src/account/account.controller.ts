@@ -8,6 +8,8 @@ import {
   Query,
   ValidationPipe,
   Inject,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
@@ -87,6 +89,14 @@ export class AccountController {
       id,
       'account',
     );
+
+    if (!account) {
+      throw new HttpException(
+        'Account or Location not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     // @ts-ignore
     return GetAccountDto.factory(account) as GetAccountDto;
   }
@@ -130,6 +140,14 @@ export class AccountController {
       id,
       'location',
     );
+
+    if (!account) {
+      throw new HttpException(
+        'Account or Location not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     // @ts-ignore
     return GetAccountDto.factory(account) as GetAccountDto;
   }

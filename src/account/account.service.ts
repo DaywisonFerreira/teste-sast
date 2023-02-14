@@ -175,13 +175,6 @@ export class AccountService {
       )
       .lean();
 
-    if (!account) {
-      throw new HttpException(
-        'Account or Location not found.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
     return account;
   }
 

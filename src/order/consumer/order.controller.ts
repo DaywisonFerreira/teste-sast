@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable no-prototype-builtins */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import {
@@ -16,6 +18,7 @@ import { existsSync, promises } from 'fs';
 import { NotificationTypes } from 'src/commons/enums/notification.enum';
 import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { v4 as uuidV4 } from 'uuid';
+import { AccountService } from '../../account/account.service';
 import { Env } from '../../commons/environment/env';
 import { EventProvider } from '../../commons/providers/event/nestjs-event-provider.interface';
 import { IHubOrder } from '../interfaces/order.interface';
@@ -28,6 +31,7 @@ export class ConsumerOrderController {
   constructor(
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     private readonly orderService: OrderService,
+    private readonly accountService: AccountService,
     @Inject('EventProvider')
     private readonly eventEmitter: EventProvider,
     private orderProducer: OrderProducer,
@@ -42,7 +46,7 @@ export class ConsumerOrderController {
     routingKey: '',
     queue: Env.RABBITMQ_ORDER_NOTIFICATION_QUEUE,
     errorHandler: (channel: Channel, msg: any, error) => {
-      const logger = new Logger('ConsumerOrderController.name');
+      const logger = new Logger(ConsumerOrderController.name);
       logger.error(error.message, error.stack?.split('\n'));
       channel.reject(msg, false);
     },
@@ -55,7 +59,15 @@ export class ConsumerOrderController {
     };
 
     try {
+      const account = await this.accountService.findOneAccountOrLocation(
+        order.storeId,
+        'account',
+      );
+
       if (
+        account &&
+        account?.hasOwnProperty('useDeliveryHub') &&
+        account?.useDeliveryHub &&
         order.logisticInfo &&
         order.logisticInfo[0].deliveryChannel === 'delivery' &&
         (order.status === 'dispatched' || order.status === 'invoiced')
