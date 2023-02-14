@@ -50,6 +50,7 @@
   "dependencies": {
     "@azure/storage-blob": "^12.11.0",
     "@golevelup/nestjs-rabbitmq": "^1.19.0",
+    "@infralabs/infra-logger": "^2.3.0",
     "@infralabs/infra-logger-nestjs": "^1.0.3",
     "@infralabs/infra-middlewares": "^1.0.6",
     "@infralabs/infra-nestjs-kafka": "^1.6.1",
