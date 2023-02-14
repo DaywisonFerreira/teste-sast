@@ -6,6 +6,7 @@ specifiers:
   '@commitlint/config-conventional': ^13.1.0
   '@faker-js/faker': 6.3.1
   '@golevelup/nestjs-rabbitmq': ^1.19.0
+  '@infralabs/infra-logger': ^2.3.0
   '@infralabs/infra-logger-nestjs': ^1.0.3
   '@infralabs/infra-middlewares': ^1.0.6
   '@infralabs/infra-nestjs-kafka': ^1.6.1
@@ -104,6 +105,7 @@ specifiers:
 dependencies:
   '@azure/storage-blob': 12.12.0
   '@golevelup/nestjs-rabbitmq': 1.22.0_dilk3li5i7sa63oq35hxgg4sbu
+  '@infralabs/infra-logger': 2.3.0
   '@infralabs/infra-logger-nestjs': 1.0.3_@nestjs+common@8.4.7
   '@infralabs/infra-middlewares': 1.0.6_brdl4igdapn74yom6zim4xl3pq
   '@infralabs/infra-nestjs-kafka': 1.6.3_jo4gjxw7rddiqlexw6a2j7a4va
@@ -1073,6 +1075,16 @@ packages:
       winston: 3.7.2
     transitivePeerDependencies:
       - '@nestjs/common'
+    dev: false
+
+  /@infralabs/infra-logger/2.3.0:
+    resolution: {integrity: sha1-T/9iUIa7d9eWKl4fpr0bLQEwxLA=, tarball: https://git.ifcshop.net/api/v4/projects/8/packages/npm/@infralabs/infra-logger/-/@infralabs/infra-logger-2.3.0.tgz}
+    dependencies:
+      '@types/node': 14.18.36
+      dotenv: 8.6.0
+      rxjs: 7.8.0
+      uuid: 8.3.2
+      winston: 3.7.2
     dev: false
 
   /@infralabs/infra-middlewares/1.0.6_brdl4igdapn74yom6zim4xl3pq:
@@ -3947,6 +3959,11 @@ packages:
   /dotenv/16.0.1:
     resolution: {integrity: sha512-1K6hR6wtk2FviQ4kEiSjFiH5rpzEVi8WW0x96aztHVMhEspNpc4DVOUTEHtEva5VThQ8IaBX1Pe4gSzpVVUsKQ==}
     engines: {node: '>=12'}
+    dev: false
+
+  /dotenv/8.6.0:
+    resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==}
+    engines: {node: '>=10'}
     dev: false
 
   /duplexer2/0.1.4:
