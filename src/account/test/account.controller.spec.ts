@@ -1,5 +1,6 @@
 import faker from '@faker-js/faker';
 import { Test, TestingModule } from '@nestjs/testing';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { AccountController } from '../account.controller';
 import { AccountService } from '../account.service';
 import { FilterPaginateAccountDto } from '../dto/filter-paginate-account.dto';
@@ -14,6 +15,10 @@ type SutTypes = {
 const makeSut = async (): Promise<SutTypes> => {
   const module: TestingModule = await Test.createTestingModule({
     providers: [
+      {
+        provide: 'LogProvider',
+        useClass: InfraLogger,
+      },
       AccountController,
       { provide: AccountService, useClass: AccountServiceSpy },
     ],

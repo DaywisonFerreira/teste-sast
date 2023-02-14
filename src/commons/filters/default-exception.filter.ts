@@ -27,6 +27,7 @@ export class DefaultExceptionsFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const httpResponse = ctx.getResponse();
+
     const status =
       exception instanceof HttpException
         ? exception.getStatus()

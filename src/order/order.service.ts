@@ -18,6 +18,7 @@ import { utils } from 'xlsx';
 
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { CsvMapper } from './mappers/csvMapper';
 import { OrderMapper } from './mappers/orderMapper';
 import {
@@ -71,7 +72,11 @@ export class OrderService {
     private accountModel: Model<AccountDocument>,
     @InjectModel(OrderEntity.name)
     private OrderModel: Model<OrderDocument>,
-  ) {}
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
+  ) {
+    this.logger.instanceLogger(OrderService.name);
+  }
 
   async findAll({
     page,
@@ -269,7 +274,6 @@ export class OrderService {
   async exportData(
     { orderCreatedAtFrom, orderCreatedAtTo, type, storeId },
     userId,
-    logger: any,
   ) {
     const conditions: any = {
       storeId: new Types.ObjectId(storeId),
@@ -287,8 +291,13 @@ export class OrderService {
 
     const chunkSize = Env.CHUNK_SIZE_WRITE;
     const countOrders = await this.OrderModel.countDocuments(conditions);
-
-    logger.log(`Creating an order report, with ${countOrders} documents`);
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.order-service.exportData.create',
+        message: `Creating an order report, with ${countOrders} documents`,
+      },
+      {},
+    );
 
     let file = {
       path: '',
@@ -344,10 +353,14 @@ export class OrderService {
         .skip(chunkSize * page)
         .lean();
 
-      logger.log(
-        `Order report in progress: ${page + 1}/${pages}, with ${
-          result.length
-        } records`,
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.order-service.exportData.progress',
+          message: `Order report in progress: ${page + 1}/${pages}, with ${
+            result.length
+          } records`,
+        },
+        {},
       );
 
       const dataFormatted = CsvMapper.mapOrderToCsv(result);
@@ -425,12 +438,14 @@ export class OrderService {
         return 3;
       case 'out-of-delivery':
         return 4;
+      case 'check-delivery-failed':
+        return 5;
       case 'delivered':
-        return 5;
+        return 6;
       case 'delivery-failed':
-        return 5;
+        return 6;
       case 'canceled':
-        return 5;
+        return 6;
       default:
         return 1;
     }
@@ -439,7 +454,6 @@ export class OrderService {
   private async generateAttachments(
     data,
     isCreate,
-    logger,
     oldOrder?: any,
   ): Promise<Attachments[]> {
     const { invoice } = data;
@@ -451,8 +465,12 @@ export class OrderService {
 
       let attachments = data.attachments.filter(({ url }) => {
         if (originalUrls.includes(url)) {
-          logger.warn(
-            `generateAttachment - OrderSale: ${data.orderSale} order: ${data.partnerOrder} received a duplicate file (${url}) by Intelipost and will be ignore`,
+          this.logger.log(
+            {
+              key: 'ifc.freight.api.order.order-service.generateAttachments',
+              message: `generateAttachment - OrderSale: ${data.orderSale} order: ${data.partnerOrder} received a duplicate file (${url}) by Intelipost and will be ignore`,
+            },
+            {},
           );
           return false;
         }
@@ -462,7 +480,7 @@ export class OrderService {
       attachments = (
         await Promise.all(
           attachments.map(attachment =>
-            OrderMapper.mapAttachment(attachment, invoice.key, logger),
+            OrderMapper.mapAttachment(attachment, invoice.key),
           ),
         )
       ).filter(o => Object.keys(o).length);
@@ -476,13 +494,13 @@ export class OrderService {
     return (
       await Promise.all(
         data.attachments.map(attachment =>
-          OrderMapper.mapAttachment(attachment, invoice.key, logger),
+          OrderMapper.mapAttachment(attachment, invoice.key),
         ),
       )
     ).filter(o => Object.keys(o).length) as Attachments[];
   }
 
-  private generateHistory(data, origin, isCreate, logger, oldOrder?: any) {
+  private generateHistory(data, origin, isCreate, oldOrder?: any) {
     const sortHistory = (HistoryOne, HistoryTwo) => {
       if (
         this.getStatusScale(HistoryOne?.statusCode?.macro) >
@@ -510,8 +528,12 @@ export class OrderService {
     }
 
     if (historyExists) {
-      logger.warn(
-        `generateHistory - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} received a duplicate status (statusMicro: ${data.statusCode.micro}, statusMacro: ${data.statusCode.macro}) by Intelipost and will be ignore`,
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.order-service.generateHistory',
+          message: `generateHistory - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} received a duplicate status (statusMicro: ${data.statusCode.micro}, statusMacro: ${data.statusCode.macro}) by Intelipost and will be ignore`,
+        },
+        {},
       );
       return { ignore: true, history: [] };
     }
@@ -539,16 +561,16 @@ export class OrderService {
     return { ignore: true, history: [] };
   }
 
-  public async createOrder(data, origin, logger) {
+  public async createOrder(data, origin) {
     const orderFinded = await this.OrderModel.find({
       orderSale: data.orderSale,
     });
 
     if (!orderFinded.length) {
-      const { history } = this.generateHistory(data, origin, true, logger);
+      const { history } = this.generateHistory(data, origin, true);
       const attachments =
         origin === 'intelipost'
-          ? await this.generateAttachments(data, true, logger)
+          ? await this.generateAttachments(data, true)
           : [];
 
       const order = await this.OrderModel.create({
@@ -580,11 +602,9 @@ export class OrderService {
 
     data.invoiceKeys.push(...orderFinded[0].invoiceKeys);
 
-    const { history } = this.generateHistory(data, origin, true, logger);
+    const { history } = this.generateHistory(data, origin, true);
     const attachments =
-      origin === 'intelipost'
-        ? await this.generateAttachments(data, true, logger)
-        : [];
+      origin === 'intelipost' ? await this.generateAttachments(data, true) : [];
 
     const order = await this.OrderModel.create({
       ...data,
@@ -600,14 +620,17 @@ export class OrderService {
     oldOrders,
     origin,
     options,
-    logger,
   ) {
     const oldOrder = oldOrders.find(
       ({ invoice }) => invoice.key === data.invoice.key,
     );
     if (!oldOrder || !Object.keys(oldOrder).length) {
-      logger.log(
-        `updateOrdersWithMultipleInvoices - OldOrder not exists. OrderSale: ${data.orderSale} order: ${data.partnerOrder}`,
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.order-service.updateOrdersWithMultipleInvoices.not-exists',
+          message: `updateOrdersWithMultipleInvoices - OldOrder not exists. OrderSale: ${data.orderSale} order: ${data.partnerOrder}`,
+        },
+        {},
       );
       return { success: false, order: data };
     }
@@ -617,8 +640,12 @@ export class OrderService {
     );
 
     if (OrderAlreadyFinished) {
-      logger.log(
-        `updateOrdersWithMultipleInvoices - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.order-service.updateOrdersWithMultipleInvoices.ignored',
+          message: `updateOrdersWithMultipleInvoices - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} already finished with status: ${oldOrder.statusCode.macro}, request update with status: ${data.statusCode.macro} will be ignored`,
+        },
+        {},
       );
 
       return { success: false, order: oldOrder };
@@ -628,13 +655,12 @@ export class OrderService {
       data,
       origin,
       false,
-      logger,
       oldOrder,
     );
 
     const attachments =
       origin === 'intelipost'
-        ? await this.generateAttachments(data, false, logger, oldOrder)
+        ? await this.generateAttachments(data, false, oldOrder)
         : [];
 
     const shouldUpdateSourceOfOrder = this.shouldUpdateSourceOfOrder(
@@ -680,14 +706,18 @@ export class OrderService {
     return { success: true, order: order[0] };
   }
 
-  private async updateOrder(configPK, data, oldOrder, origin, options, logger) {
+  private async updateOrder(configPK, data, oldOrder, origin, options) {
     const OrderAlreadyFinished = this.checkIfOrderAlreadyFinished(
       oldOrder.statusCode.micro,
     );
 
     if (OrderAlreadyFinished) {
-      logger.warn(
-        `updateOrder - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} already finished with status: ${oldOrder.statusCode.micro}, request update with status: ${data.statusCode.micro} will be ignored`,
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.order-service.updateOrder',
+          message: `updateOrder - OrderSale: ${oldOrder.orderSale} order: ${oldOrder.partnerOrder} already finished with status: ${oldOrder.statusCode.micro}, request update with status: ${data.statusCode.micro} will be ignored`,
+        },
+        {},
       );
 
       return { success: false, order: oldOrder };
@@ -702,13 +732,12 @@ export class OrderService {
       data,
       origin,
       false,
-      logger,
       oldOrder,
     );
 
     const attachments =
       origin === 'intelipost'
-        ? await this.generateAttachments(data, false, logger, oldOrder)
+        ? await this.generateAttachments(data, false, oldOrder)
         : [];
 
     const newDataToSave = { ...data };
@@ -755,13 +784,7 @@ export class OrderService {
     return { success: true, order };
   }
 
-  async merge(
-    headers: any,
-    configPK: any,
-    data: any = {},
-    origin: string,
-    logger: any,
-  ) {
+  async merge(headers: any, configPK: any, data: any = {}, origin: string) {
     const options: any = {
       new: true,
       runValidators: true,
@@ -771,7 +794,7 @@ export class OrderService {
     const orders = await this.OrderModel.find(configPK).lean();
 
     if (!orders.length) {
-      operationStatus = await this.createOrder(data, origin, logger);
+      operationStatus = await this.createOrder(data, origin);
     } else if (orders.length > 1) {
       operationStatus = await this.updateOrdersWithMultipleInvoices(
         configPK,
@@ -779,7 +802,6 @@ export class OrderService {
         orders,
         origin,
         options,
-        logger,
       );
     } else {
       operationStatus = await this.updateOrder(
@@ -788,7 +810,6 @@ export class OrderService {
         orders[0],
         origin,
         options,
-        logger,
       );
     }
 

@@ -4,10 +4,10 @@ import {
   Get,
   Param,
   Patch,
-  Req,
   Headers,
   UploadedFile,
   UseInterceptors,
+  Inject,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -23,7 +23,7 @@ import {
   BlobServiceClient,
   StorageSharedKeyCredential,
 } from '@azure/storage-blob';
-import { InfraLogger } from '@infralabs/infra-logger';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { GetCarrierDto } from './dto/get-carrier.dto';
 import { UpdateCarrierDto } from './dto/update-carrier.dto';
 import { CarrierService } from './carrier.service';
@@ -34,11 +34,24 @@ import { UploadLogoDto } from './dto/upload-logo.dto';
 @ApiTags('Carrier')
 @ApiBearerAuth()
 export class CarrierController {
-  constructor(private readonly carrierService: CarrierService) {}
+  constructor(
+    private readonly carrierService: CarrierService,
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
+  ) {
+    this.logger.instanceLogger(CarrierController.name);
+  }
 
   @Get(':id')
   @ApiOkResponse({ type: GetCarrierDto })
   async findOne(@Param('id') id: string): Promise<GetCarrierDto> {
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.carrier-controller.findOne',
+        message: `Find carrier ${id}`,
+      },
+      {},
+    );
     const carrier = await this.carrierService.findOne(id);
     return GetCarrierDto.factory(carrier) as GetCarrierDto;
   }
@@ -48,8 +61,14 @@ export class CarrierController {
   async updateCredentials(
     @Param('id') id: string,
     @Body() updateShippingDto: UpdateCarrierDto,
-    @Req() req: any,
   ): Promise<GetCarrierDto> {
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.carrier-controller.updateCredentials',
+        message: `Update carrier ${id}`,
+      },
+      {},
+    );
     try {
       const {
         generateNotfisFile,
@@ -64,10 +83,17 @@ export class CarrierController {
         partners,
         externalDeliveryMethodId,
       });
-      req.logger.verbose(`Carrier id: ${carrier.id} updated`);
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.carrier-controller.updateCredentials',
+          message: `Carrier id: ${carrier.id} updated`,
+        },
+        {},
+      );
+
       return GetCarrierDto.factory(carrier) as GetCarrierDto;
     } catch (error) {
-      req.logger.error(error);
+      this.logger.error(error);
       throw error;
     }
   }
@@ -77,9 +103,14 @@ export class CarrierController {
     localFileName: string,
     headers: any,
   ): Promise<string> {
-    const logger = new InfraLogger(headers, CarrierController.name);
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.carrier-controller.uploadFile.start',
+        message: `Starting file upload (${localFileName})`,
+      },
+      headers,
+    );
     try {
-      logger.log(`Starting file upload (${localFileName})`);
       const credentials = new StorageSharedKeyCredential(
         Env.AZURE_ACCOUNT_NAME,
         Env.AZURE_ACCOUNT_KEY,
@@ -96,12 +127,19 @@ export class CarrierController {
         `${fileLocally.destination}/${localFileName}`,
       );
 
-      logger.log(`Finish file upload (${localFileName})`);
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.carrier-controller.uploadFile.finish',
+          message: `Starting file upload (${localFileName})`,
+        },
+        headers,
+      );
+
       return `${String(Env.AZURE_BS_STORAGE_URL)}/${String(
         Env.AZURE_BS_CONTAINER_NAME,
       )}/${localFileName}`;
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
       throw error;
     }
   }
@@ -125,17 +163,22 @@ export class CarrierController {
     @UploadedFile() file: any,
     @Param('id') id: string,
     @Body() _: UploadLogoDto,
-    @Req() req: any,
     @Headers() headers: any,
   ) {
+    this.logger.log(
+      {
+        key: 'ifc.freight.api.order.carrier-controller.uploadCarrierLogo',
+        message: `File logo to update on carrierId: ${id}`,
+      },
+      headers,
+    );
     try {
       const logo = await this.uploadFile(file, file.filename, headers);
       await this.carrierService.updateLogo(id, {
         logo,
       });
-      req.logger.verbose(`File logo updated to carrierId: ${id}`);
     } catch (error) {
-      req.logger.log(error);
+      this.logger.log(error);
       throw error;
     } finally {
       if (existsSync(file.path)) {

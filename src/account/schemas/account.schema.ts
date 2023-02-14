@@ -52,6 +52,12 @@ export class AccountEntity extends Document {
   })
   salesChannels: string[];
 
+  @Prop({ type: Boolean, default: false })
+  useDeliveryHub: boolean;
+
+  @Prop({ type: Boolean, default: false })
+  useDeliveryHubStandalone: boolean;
+
   @Prop({ type: Boolean, default: false, required: false })
   generateNotfisFile: boolean;
 

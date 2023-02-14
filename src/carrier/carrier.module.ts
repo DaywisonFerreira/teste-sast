@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { CnpjAlreadyExist, NameAlreadyExist } from './validators';
 import { CarrierEntity, CarrierSchema } from './schemas/carrier.schema';
 import { CarrierController } from './carrier.controller';
@@ -13,7 +14,15 @@ import { ConsumerCarrierController } from './consumer/carrier.controller';
     ]),
   ],
   controllers: [CarrierController, ConsumerCarrierController],
-  providers: [CarrierService, CnpjAlreadyExist, NameAlreadyExist],
+  providers: [
+    CarrierService,
+    CnpjAlreadyExist,
+    NameAlreadyExist,
+    {
+      provide: 'LogProvider',
+      useClass: InfraLogger,
+    },
+  ],
   exports: [
     MongooseModule.forFeature([
       { name: CarrierEntity.name, schema: CarrierSchema },

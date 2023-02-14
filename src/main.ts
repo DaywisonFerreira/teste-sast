@@ -16,9 +16,9 @@ import compress from 'fastify-compress';
 import helmet from 'fastify-helmet';
 import { join, resolve } from 'path';
 
+import { LoggingInterceptor } from './commons/interceptors/logging.interceptor';
 import { AppModule } from './app.module';
 import { Env } from './commons/environment/env';
-import { LoggingInterceptor } from './commons/interceptors/logging.interceptor';
 
 const bootstrap = async (): Promise<void> => {
   const fastifyAdapter = new FastifyAdapter({

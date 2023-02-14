@@ -1,9 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Scope } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { LeanDocument, Model } from 'mongoose';
-
 import { v4 as uuidV4 } from 'uuid';
-
 import { ICarrier } from './interfaces/carrier.interface';
 import { CarrierDocument, CarrierEntity } from './schemas/carrier.schema';
 

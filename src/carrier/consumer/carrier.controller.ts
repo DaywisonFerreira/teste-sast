@@ -5,7 +5,7 @@ import {
 } from '@infralabs/infra-nestjs-kafka';
 import { Controller, Inject } from '@nestjs/common';
 import { Env } from 'src/commons/environment/env';
-import { InfraLogger } from '@infralabs/infra-logger';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { CarrierService } from '../carrier.service';
 
 @Controller()
@@ -13,7 +13,11 @@ export class ConsumerCarrierController {
   constructor(
     private readonly carrierService: CarrierService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
-  ) {}
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
+  ) {
+    this.logger.instanceLogger(ConsumerCarrierController.name);
+  }
 
   @SubscribeTopic(Env.KAFKA_TOPIC_CARRIER_CREATED)
   async createCarrier({
@@ -22,16 +26,19 @@ export class ConsumerCarrierController {
     headers,
     offset,
   }: KafkaResponse<string>) {
-    const logger = new InfraLogger(headers, ConsumerCarrierController.name);
     const { data } = JSON.parse(value);
 
     try {
-      logger.log(
-        `${Env.KAFKA_TOPIC_CARRIER_CREATED} - Carrier consumer was received`,
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.consumer-carrier-controller.createCarrier',
+          message: `${Env.KAFKA_TOPIC_CARRIER_CREATED} - Carrier consumer was received`,
+        },
+        headers,
       );
       await this.carrierService.create(data);
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     } finally {
       await this.removeFromQueue(
         Env.KAFKA_TOPIC_CARRIER_CREATED,
@@ -48,16 +55,19 @@ export class ConsumerCarrierController {
     headers,
     offset,
   }: KafkaResponse<string>) {
-    const logger = new InfraLogger(headers, ConsumerCarrierController.name);
     const { data } = JSON.parse(value);
 
     try {
-      logger.log(
-        `${Env.KAFKA_TOPIC_CARRIER_CHANGED} - Carrier consumer was received`,
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.consumer-carrier-controller.updateCarrier',
+          message: `${Env.KAFKA_TOPIC_CARRIER_CHANGED} - Carrier consumer was received to update`,
+        },
+        headers,
       );
       await this.carrierService.updateConsumer(data.id, data);
     } catch (error) {
-      logger.error(error);
+      this.logger.error(error);
     } finally {
       await this.removeFromQueue(
         Env.KAFKA_TOPIC_CARRIER_CHANGED,

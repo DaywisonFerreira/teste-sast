@@ -5,6 +5,7 @@ import {
   AccountEntity,
   AccountSchema,
 } from 'src/account/schemas/account.schema';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { OrderService } from './order.service';
 import { OrderController } from './order.controller';
 import { OrderEntity, OrderSchema } from './schemas/order.schema';
@@ -16,6 +17,7 @@ import { HandleStatusCode } from './scripts/handle-status-code.service';
 import { RabbitMqModule } from '../rabbitmq/rabbit.module';
 import { NestjsEventEmitter } from '../commons/providers/event/nestjs-event-emitter';
 import { OrderProducer } from './producer/order.producer';
+import { AccountService } from '../account/account.service';
 
 @Module({
   imports: [
@@ -33,6 +35,7 @@ import { OrderProducer } from './producer/order.producer';
   ],
   controllers: [OrderController, ConsumerOrderController],
   providers: [
+    AccountService,
     OrderService,
     OrderProducer,
     UpdateStructureOrder,
@@ -40,6 +43,10 @@ import { OrderProducer } from './producer/order.producer';
     UpdateHistoryOrders,
     HandleStatusCode,
     { provide: 'EventProvider', useClass: NestjsEventEmitter },
+    {
+      provide: 'LogProvider',
+      useClass: InfraLogger,
+    },
   ],
   exports: [
     MongooseModule.forFeature([

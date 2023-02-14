@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Model } from 'mongoose';
 import faker from '@faker-js/faker';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { AccountService } from '../account.service';
 import {
   AccountDocument,
@@ -40,12 +41,14 @@ class MockAccountModel {
   static findOne = () => {
     return {
       ...mockAccount(),
+      toJSON: () => mockAccount(),
       lean: () => mockAccount(),
     };
   };
 
   static findOneAndUpdate = () => {
     return {
+      toJSON: () => mockAccount(),
       lean: () => mockAccount(),
     };
   };
@@ -79,6 +82,10 @@ const makeSut = async (): Promise<SutTypes> => {
       {
         provide: getModelToken(AccountEntity.name),
         useValue: MockAccountModel,
+      },
+      {
+        provide: 'LogProvider',
+        useClass: InfraLogger,
       },
     ],
   }).compile();
@@ -252,6 +259,6 @@ describe('AccountService', () => {
       );
     }
 
-    expect(spyAccountFindOne).toBeCalledTimes(10);
+    expect(spyAccountFindOne).toBeCalledTimes(11);
   });
 });

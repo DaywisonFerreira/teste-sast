@@ -1,7 +1,6 @@
-import { InfraLogger } from '@infralabs/infra-logger';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsString, IsArray, IsObject } from 'class-validator';
+import { IsString, IsArray } from 'class-validator';
 
 export class RequestDto {
   @ApiProperty({ type: String })
@@ -23,9 +22,4 @@ export class RequestDto {
   @Type(() => Array)
   @IsArray()
   tenants: string[];
-
-  @ApiProperty({ type: InfraLogger })
-  @Type(() => InfraLogger)
-  @IsObject()
-  logger: InfraLogger;
 }
