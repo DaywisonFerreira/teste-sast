@@ -1174,4 +1174,12 @@ export class OrderService {
       });
     }
   }
+
+  async find(filter: Record<string, any>, options?: any) {
+    return this.OrderModel.find(filter, {}, options);
+  }
+
+  async deleteMany(filter: Record<string, any>) {
+    await this.OrderModel.deleteMany(filter);
+  }
 }

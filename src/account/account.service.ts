@@ -164,6 +164,10 @@ export class AccountService {
     return [result, count];
   }
 
+  async find(filter: Record<string, any>) {
+    return this.accountModel.find(filter);
+  }
+
   async findOneAccountOrLocation(id: string, accountType: string) {
     const account = await this.accountModel
       .findOne(
