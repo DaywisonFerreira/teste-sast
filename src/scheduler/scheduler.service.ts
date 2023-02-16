@@ -97,13 +97,25 @@ export class SchedulerService {
       });
       const accounts = await this.accountService.find({ useDeliveryHub: true });
 
-      const accountsIds = accounts.map(acc => acc.id);
+      const accountsIds = accounts
+        .map(acc => {
+          try {
+            return new Types.ObjectId(acc.id);
+          } catch (error) {
+            this.logger.log({
+              key: 'ifc.freight.api.order.scheduler-service.removeUselessOrders',
+              message: `Invalid Id: ${acc.id}`,
+            });
+            return null;
+          }
+        })
+        .filter(Boolean);
 
       if (!accountsIds) return;
 
       const uselessOrders = await this.orderService.find(
         {
-          storeId: { $nin: accountsIds.map(acc => new Types.ObjectId(acc)) },
+          storeId: { $nin: accountsIds },
         },
         { limit: Env.LIMIT_QUERY_USELESS_ORDERS, sort: { createdAt: 1 } },
       );
