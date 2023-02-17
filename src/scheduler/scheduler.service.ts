@@ -88,7 +88,8 @@ export class SchedulerService {
     }
   }
 
-  @Cron(CronExpression[Env.CRON_TIME_REMOVE_USELESS_ORDERS])
+  // @Cron(CronExpression[Env.CRON_TIME_REMOVE_USELESS_ORDERS])
+  @Cron(CronExpression.EVERY_MINUTE)
   async removeUselessOrders(): Promise<void> {
     try {
       this.logger.log({
@@ -111,7 +112,7 @@ export class SchedulerService {
         })
         .filter(Boolean);
 
-      if (!accountsIds) return;
+      if (!accountsIds.length) return;
 
       const uselessOrders = await this.orderService.find(
         {
@@ -120,7 +121,20 @@ export class SchedulerService {
         { limit: Env.LIMIT_QUERY_USELESS_ORDERS, sort: { createdAt: 1 } },
       );
 
-      if (!uselessOrders) return;
+      if (!uselessOrders.length) {
+        this.logger.log({
+          key: 'ifc.freight.api.order.scheduler-service.removeUselessOrders',
+          message: `${SchedulerService.name}: No orders to be deleted`,
+        });
+        return;
+      }
+
+      this.logger.log({
+        key: 'ifc.freight.api.order.scheduler-service.removeUselessOrders',
+        message: `${SchedulerService.name}: Removing ${
+          uselessOrders.length
+        } orders, from accounts [${accountsIds.join(',')}]`,
+      });
 
       await this.orderService.deleteMany({
         orderId: { $in: uselessOrders.map(order => order.orderId) },
