@@ -132,7 +132,7 @@ export class SchedulerService {
         key: 'ifc.freight.api.order.scheduler-service.removeUselessOrders',
         message: `${SchedulerService.name}: Removing ${
           uselessOrders.length
-        } orders, from accounts [${accountsIds.join(',')}]`,
+        } orders, avoiding orders from accounts [${accountsIds.join(',')}]`,
       });
 
       await this.orderService.deleteMany({
