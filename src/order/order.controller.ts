@@ -40,6 +40,7 @@ import {
   HeadersConsolidatedReportOrdersDTO,
 } from './dto/consolidated-report-orders.dto';
 import { NotificationTypes } from '../commons/enums/notification.enum';
+import { AccountService } from '../account/account.service';
 
 @Controller('orders')
 @ApiTags('Orders')
@@ -47,6 +48,7 @@ import { NotificationTypes } from '../commons/enums/notification.enum';
 export class OrderController {
   constructor(
     private readonly orderService: OrderService,
+    private readonly accountService: AccountService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     @Inject('LogProvider')
     private readonly logger: LogProvider,
@@ -212,7 +214,7 @@ export class OrderController {
     );
     const { userId, userName, email } = request;
     try {
-      const { orderCreatedAtFrom, orderCreatedAtTo, tenants } = reportDTO;
+      const { orderCreatedAtFrom, orderCreatedAtTo } = reportDTO;
 
       if (
         isBefore(
@@ -232,10 +234,18 @@ export class OrderController {
         throw new Error('Date difference greater than 4 months');
       }
 
+      const accounts = await this.accountService.find({
+        useDeliveryHubStandalone: true,
+      });
+
+      if (!accounts.length) {
+        throw new Error('No account available to create report');
+      }
+
       const filter = {
         orderCreatedAtFrom,
         orderCreatedAtTo,
-        tenants,
+        tenants: accounts.map(acc => acc.id),
       };
 
       await this.kafkaProducer.send(
