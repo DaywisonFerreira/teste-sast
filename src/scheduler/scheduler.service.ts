@@ -88,8 +88,7 @@ export class SchedulerService {
     }
   }
 
-  // @Cron(CronExpression[Env.CRON_TIME_REMOVE_USELESS_ORDERS])
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression[Env.CRON_TIME_REMOVE_USELESS_ORDERS])
   async removeUselessOrders(): Promise<void> {
     try {
       this.logger.log({
