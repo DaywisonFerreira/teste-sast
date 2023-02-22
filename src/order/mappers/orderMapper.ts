@@ -495,6 +495,29 @@ export class OrderMapper {
     };
   }
 
+  static mapFreightConnectorHistoryToOrderHistory(data: any): any {
+    return {
+      statusCode: data?.statusCode,
+      partnerStatusId: data?.partnerStatusId,
+      partnerStatus: data?.partnerStatus,
+      orderUpdatedAt: data?.orderUpdatedAt,
+      dispatchDate: data?.dispatchDate,
+    };
+  }
+
+  static mapDeliveryHubHistoryToOrderHistory(data: any): any {
+    return {
+      statusCode: data?.statusCode,
+      partnerStatusId: data?.partnerStatusId,
+      partnerStatus: data?.partnerStatus,
+      orderUpdatedAt: data?.orderUpdatedAt,
+      dispatchDate: data?.dispatchDate,
+      reason: data?.reason,
+      additionalInfo: data?.additionalInfo,
+      author: data?.author,
+    };
+  }
+
   static mapPartnerToExportingOrder(payload: Partial<OrderDocument>): any {
     const MAP_STATUS_TO_IHUB = {
       'order-dispatched': 'shipped',

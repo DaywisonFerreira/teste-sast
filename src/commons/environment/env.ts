@@ -170,4 +170,8 @@ export abstract class Env {
 
   public static readonly LIMIT_QUERY_ORDERS: number =
     Number.parseInt(process.env.LIMIT_QUERY_ORDERS, 10) || 100;
+
+  public static readonly LIST_MICRO_STATUS_FINISHER: string[] = (
+    process.env.LIST_MICRO_STATUS_FINISHER || ''
+  ).split(',');
 }

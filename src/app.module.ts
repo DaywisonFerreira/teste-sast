@@ -15,6 +15,7 @@ import { InvoiceModule } from './invoice/invoice.module';
 import { DefaultExceptionsFilter } from './commons/filters/default-exception.filter';
 import { StatusCodeModule } from './status-code/status-code.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
+import { ShipmentModule } from './shipment/shipment.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     InvoiceModule,
     StatusCodeModule,
     SchedulerModule,
+    ShipmentModule,
   ],
   controllers: [AppController],
   providers: [

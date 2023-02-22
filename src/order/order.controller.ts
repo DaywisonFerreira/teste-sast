@@ -40,6 +40,7 @@ import {
   HeadersConsolidatedReportOrdersDTO,
 } from './dto/consolidated-report-orders.dto';
 import { NotificationTypes } from '../commons/enums/notification.enum';
+import { buildOrderNotFoundMessage } from './utils/helpers';
 
 @Controller('orders')
 @ApiTags('Orders')
@@ -79,11 +80,20 @@ export class OrderController {
         shippingEstimateDateFrom,
         shippingEstimateDateTo,
         statusCode,
+        orderNumbers,
       } = filterPaginateDto;
+      let filterPartnerOrdersOrOrderSale = [];
+      let partnerOrdersOrOrderSaleNotFound = [];
 
       const pageNumber = Number(page);
       const pageSize = Number(perPage);
       const sortBy = orderBy || 'orderCreatedAt';
+
+      if (orderNumbers && orderNumbers.length) {
+        filterPartnerOrdersOrOrderSale = orderNumbers
+          .split(',')
+          .map(partnerOrder => partnerOrder.trim());
+      }
 
       const [resultQuery, count] = await this.orderService.findAll({
         page,
@@ -97,6 +107,7 @@ export class OrderController {
         shippingEstimateDateFrom,
         shippingEstimateDateTo,
         statusCode,
+        filterPartnerOrdersOrOrderSale,
       });
 
       const result = resultQuery.map(order => ({
@@ -110,11 +121,28 @@ export class OrderController {
         logisticInfo: [order.logisticInfo?.length ? order.logisticInfo[0] : {}],
       }));
 
+      if (filterPartnerOrdersOrOrderSale.length) {
+        partnerOrdersOrOrderSaleNotFound =
+          filterPartnerOrdersOrOrderSale.filter(
+            order =>
+              !result.find(
+                el =>
+                  el.partnerOrder.toString() === order.toString() ||
+                  el.orderSale.toString() === order.toString(),
+              ),
+          );
+      }
+
+      const metatada = partnerOrdersOrOrderSaleNotFound.length
+        ? buildOrderNotFoundMessage(partnerOrdersOrOrderSaleNotFound)
+        : undefined;
+
       return new PaginateOrderDto(
         JSON.parse(JSON.stringify(result)),
         count,
         pageNumber,
         pageSize,
+        metatada,
       );
     } catch (error) {
       this.logger.error(error);

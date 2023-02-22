@@ -19,6 +19,7 @@ import { utils } from 'xlsx';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
 import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
+import { OriginEnum } from 'src/commons/enums/origin-enum';
 import { CsvMapper } from './mappers/csvMapper';
 import { OrderMapper } from './mappers/orderMapper';
 import {
@@ -27,6 +28,9 @@ import {
   OrderEntity,
   PublicFieldsOrder,
 } from './schemas/order.schema';
+import { OrderProducer } from './producer/order.producer';
+
+const originArray: Array<string> = Object.values(OriginEnum);
 
 interface xlsxWriteMetadata {
   filename: string;
@@ -74,6 +78,7 @@ export class OrderService {
     private OrderModel: Model<OrderDocument>,
     @Inject('LogProvider')
     private readonly logger: LogProvider,
+    private orderProducer: OrderProducer,
   ) {
     this.logger.instanceLogger(OrderService.name);
   }
@@ -90,8 +95,16 @@ export class OrderService {
     shippingEstimateDateFrom,
     shippingEstimateDateTo,
     statusCode,
+    filterPartnerOrdersOrOrderSale,
   }): Promise<[LeanDocument<OrderEntity[]>, number]> {
     const filter: any = {};
+
+    if (filterPartnerOrdersOrOrderSale.length) {
+      filter.$or = [
+        { partnerOrder: { $in: filterPartnerOrdersOrOrderSale } },
+        { orderSale: { $in: filterPartnerOrdersOrOrderSale } },
+      ];
+    }
 
     if (storeId) {
       filter.storeId = new Types.ObjectId(storeId);
@@ -187,6 +200,91 @@ export class OrderService {
     }
 
     return order;
+  }
+
+  async updateOrderStatus(
+    data: any,
+    headers: { [key: string]: any },
+    origin: string,
+  ) {
+    const configPK = {
+      'invoice.key': data?.tracking?.sequentialCode,
+    };
+
+    const dataToMerge: any = {
+      statusCode: data?.tracking?.statusCode ?? {},
+      partnerStatusId: data?.tracking?.provider?.status,
+      partnerMessage: data?.tracking?.provider?.status,
+      numberVolumes: 1,
+      i18n: data?.tracking?.statusCode.macro,
+      microStatus: data?.tracking?.provider?.status,
+      lastOccurrenceMacro: data?.tracking?.statusCode?.macro,
+      lastOccurrenceMicro: data?.tracking?.statusCode?.micro,
+      lastOccurrenceMessage: data?.tracking?.provider?.status,
+      partnerStatus:
+        data?.tracking?.provider?.status.toLowerCase() === 'dispatched'
+          ? 'shipped'
+          : data?.tracking?.provider?.status.toLowerCase(),
+      orderUpdatedAt: new Date(data?.tracking?.eventDate),
+      invoiceKeys: [data?.tracking?.sequentialCode],
+      invoice: {
+        key: data?.tracking?.sequentialCode,
+        // trackingNumber: data?.tracking?.provider?.trackingCode,
+      },
+    };
+
+    if (origin === OriginEnum.DELIVERY_HUB) {
+      dataToMerge.reason = data?.tracking?.reason;
+      dataToMerge.additionalInfo = data?.tracking?.additionalInfo;
+      dataToMerge.author = data?.tracking?.author;
+    }
+
+    if (
+      data?.tracking?.provider?.trackingCode !== undefined &&
+      data?.tracking?.provider?.trackingCode !== null
+    ) {
+      dataToMerge.invoice.trackingNumber =
+        data?.tracking?.provider?.trackingCode;
+    }
+
+    if (
+      data?.tracking?.provider?.trackingUrl !== undefined &&
+      data?.tracking?.provider?.trackingUrl !== null
+    ) {
+      dataToMerge.invoice.trackingUrl = data?.tracking?.provider?.trackingUrl;
+    }
+    if (
+      data?.tracking?.provider?.carrierName !== undefined &&
+      data?.tracking?.provider?.carrierName !== null
+    ) {
+      dataToMerge.invoice.carrierName = data?.tracking?.provider?.carrierName;
+    }
+
+    if (dataToMerge.statusCode.macro === 'delivered') {
+      dataToMerge.status = dataToMerge.statusCode.macro;
+      dataToMerge.deliveryDate = dataToMerge.orderUpdatedAt;
+    }
+
+    if (dataToMerge.statusCode.macro === 'order-dispatched') {
+      dataToMerge.status = 'dispatched';
+      dataToMerge.dispatchDate = dataToMerge.orderUpdatedAt;
+    }
+
+    const { success, order } = await this.merge(
+      headers,
+      configPK,
+      dataToMerge,
+      origin,
+    );
+
+    if (success) {
+      await this.orderProducer.sendStatusTrackingToIHub(order);
+    }
+
+    return {
+      success,
+      order,
+    };
   }
 
   async updateOrderInvoiceData(
@@ -538,17 +636,8 @@ export class OrderService {
       return { ignore: true, history: [] };
     }
 
-    if (origin === 'intelipost' || origin === 'freight-connector') {
-      const history =
-        origin === 'intelipost'
-          ? OrderMapper.mapPartnerHistoryToOrderHistory(data)
-          : {
-              statusCode: data?.statusCode,
-              partnerStatusId: data?.partnerStatusId,
-              partnerStatus: data?.partnerStatus,
-              orderUpdatedAt: data?.orderUpdatedAt,
-              dispatchDate: data?.dispatchDate,
-            };
+    if (originArray.includes(origin)) {
+      const history = this.getHistoryFromOrigin(origin, data);
 
       if (isCreate) {
         return { ignore: false, history: [history] };
@@ -561,6 +650,18 @@ export class OrderService {
     return { ignore: true, history: [] };
   }
 
+  private getHistoryFromOrigin(origin: string, data: any) {
+    let history: any;
+    if (origin === OriginEnum.INTELIPOST) {
+      history = OrderMapper.mapPartnerHistoryToOrderHistory(data);
+    } else if (origin === OriginEnum.FREIGHT_CONNECTOR) {
+      history = OrderMapper.mapFreightConnectorHistoryToOrderHistory(data);
+    } else if (origin === OriginEnum.DELIVERY_HUB) {
+      history = OrderMapper.mapDeliveryHubHistoryToOrderHistory(data);
+    }
+    return history;
+  }
+
   public async createOrder(data, origin) {
     const orderFinded = await this.OrderModel.find({
       orderSale: data.orderSale,
@@ -569,7 +670,7 @@ export class OrderService {
     if (!orderFinded.length) {
       const { history } = this.generateHistory(data, origin, true);
       const attachments =
-        origin === 'intelipost'
+        origin === OriginEnum.INTELIPOST
           ? await this.generateAttachments(data, true)
           : [];
 
@@ -604,7 +705,9 @@ export class OrderService {
 
     const { history } = this.generateHistory(data, origin, true);
     const attachments =
-      origin === 'intelipost' ? await this.generateAttachments(data, true) : [];
+      origin === OriginEnum.INTELIPOST
+        ? await this.generateAttachments(data, true)
+        : [];
 
     const order = await this.OrderModel.create({
       ...data,
@@ -659,7 +762,7 @@ export class OrderService {
     );
 
     const attachments =
-      origin === 'intelipost'
+      origin === OriginEnum.INTELIPOST
         ? await this.generateAttachments(data, false, oldOrder)
         : [];
 
@@ -736,13 +839,13 @@ export class OrderService {
     );
 
     const attachments =
-      origin === 'intelipost'
+      origin === OriginEnum.INTELIPOST
         ? await this.generateAttachments(data, false, oldOrder)
         : [];
 
     const newDataToSave = { ...data };
 
-    if (!shouldUpdateSourceOfOrder && origin === 'ihub') {
+    if (!shouldUpdateSourceOfOrder && origin === OriginEnum.IHUB) {
       shouldUpdateSourceOfOrder = true;
       newDataToSave.statusCode = oldOrder.statusCode;
       newDataToSave.orderUpdatedAt = oldOrder.orderUpdatedAt;
@@ -1114,8 +1217,7 @@ export class OrderService {
   }
 
   private checkIfOrderAlreadyFinished(microStatus: string): boolean {
-    const microStatusCodeFinisher = ['delivered-success'];
-    return microStatusCodeFinisher.includes(microStatus);
+    return Env.LIST_MICRO_STATUS_FINISHER.includes(microStatus);
   }
 
   public async updateIntegrations(

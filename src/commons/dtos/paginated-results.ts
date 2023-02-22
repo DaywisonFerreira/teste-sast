@@ -18,12 +18,24 @@ export abstract class PaginatedResults<T> {
   @ApiProperty()
   total: number;
 
-  constructor(data: T[], totalItems: number, page: number, pageSize: number) {
+  @ApiProperty()
+  meta: any;
+
+  constructor(
+    data: T[],
+    totalItems: number,
+    page: number,
+    pageSize: number,
+    metadata?: any,
+  ) {
     this.data = data;
     this.count = data.length;
     this.currentPage = page;
     this.perPage = pageSize;
     this.total = totalItems;
     this.pages = Math.ceil(this.total / this.perPage);
+    if (metadata) {
+      this.meta = metadata;
+    }
   }
 }
