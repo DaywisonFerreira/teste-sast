@@ -1,7 +1,7 @@
 /* eslint-disable no-prototype-builtins */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { LeanDocument, Model } from 'mongoose';
+import { LeanDocument, Model, QueryOptions } from 'mongoose';
 import { IFilterObject } from '../commons/interfaces/filter-object.interface';
 import {
   AccountDocument,
@@ -164,8 +164,8 @@ export class AccountService {
     return [result, count];
   }
 
-  async find(filter: Record<string, any>) {
-    return this.accountModel.find(filter);
+  async find(filter: Record<string, any>, options?: QueryOptions) {
+    return this.accountModel.find(filter, {}, options);
   }
 
   async findOneAccountOrLocation(id: string, accountType: string) {

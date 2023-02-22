@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsNotEmpty } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsString } from 'class-validator';
 
 export class ConsolidatedReportOrdersDTO {
   @ApiProperty({
@@ -21,6 +21,13 @@ export class ConsolidatedReportOrdersDTO {
   @IsDateString()
   @IsNotEmpty()
   orderCreatedAtTo: string;
+
+  @ApiProperty({
+    description: 'List of tenants',
+    type: Array,
+  })
+  @IsString({ each: true })
+  tenants?: string[];
 }
 
 export class HeadersConsolidatedReportOrdersDTO {

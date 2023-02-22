@@ -214,7 +214,7 @@ export class OrderController {
     );
     const { userId, userName, email } = request;
     try {
-      const { orderCreatedAtFrom, orderCreatedAtTo } = reportDTO;
+      const { orderCreatedAtFrom, orderCreatedAtTo, tenants } = reportDTO;
 
       if (
         isBefore(
@@ -235,11 +235,12 @@ export class OrderController {
       }
 
       const accounts = await this.accountService.find({
+        id: { $in: tenants },
         useDeliveryHubStandalone: true,
       });
 
       if (!accounts.length) {
-        throw new Error('No account available to create report');
+        throw new Error('No accounts available to create report');
       }
 
       const filter = {

@@ -78,13 +78,10 @@ export class AccountController {
   @Get(':id')
   @ApiOkResponse({ type: GetAccountDto })
   async findOneAccount(@Param('id') id: string): Promise<GetAccountDto> {
-    this.logger.log(
-      {
-        key: 'ifc.freight.api.order.account-controller.findOneAccount',
-        message: `Find account ${id}`,
-      },
-      {},
-    );
+    this.logger.log({
+      key: 'ifc.freight.api.order.account-controller.findOneAccount',
+      message: `Find account ${id}`,
+    });
     const account = await this.accountService.findOneAccountOrLocation(
       id,
       'account',
@@ -176,5 +173,19 @@ export class AccountController {
       this.logger.error(error);
       throw error;
     }
+  }
+
+  @Get('/accounts/deliveryhub-standalone')
+  @ApiOkResponse({ type: GetAccountDto })
+  async findAccountsDeliveryHubStandalone(): Promise<GetAccountDto[]> {
+    this.logger.log({
+      key: 'ifc.freight.api.order.account-controller.findAccountsDeliveryHubStandalone',
+      message: `Find all accounts with Delivery Hub Standalone`,
+    });
+
+    return this.accountService.find(
+      { useDeliveryHubStandalone: true },
+      { projection: { id: 1, name: 1 } },
+    );
   }
 }
