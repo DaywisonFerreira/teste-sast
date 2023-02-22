@@ -636,7 +636,11 @@ export class OrderService {
       return { ignore: true, history: [] };
     }
 
-    if (originArray.includes(origin)) {
+    if (
+      originArray.includes(OriginEnum.INTELIPOST) ||
+      originArray.includes(OriginEnum.FREIGHT_CONNECTOR) ||
+      originArray.includes(OriginEnum.DELIVERY_HUB)
+    ) {
       const history = this.getHistoryFromOrigin(origin, data);
 
       if (isCreate) {
