@@ -19,6 +19,7 @@ import { GetAccountDto } from './dto/get-account.dto';
 import { PaginateAccountDto } from './dto/paginate-account.dto';
 import { UpdateWarehouseCodeDto } from './dto/update-warehousecode.dto';
 import { UpdateGenerateNotfisFile } from './dto/update-generatenotfisfile.dto';
+import { AccountTypeEnum } from './schemas/account.schema';
 
 @Controller('accounts')
 @ApiTags('Accounts')
@@ -184,7 +185,7 @@ export class AccountController {
     });
 
     return this.accountService.find(
-      { useDeliveryHubStandalone: true },
+      { useDeliveryHubStandalone: true, accountType: AccountTypeEnum.account },
       { projection: { id: 1, name: 1 } },
     );
   }
