@@ -1,6 +1,7 @@
+/* eslint-disable no-prototype-builtins */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { LeanDocument, Model } from 'mongoose';
+import { LeanDocument, Model, QueryOptions } from 'mongoose';
 import { IFilterObject } from '../commons/interfaces/filter-object.interface';
 import {
   AccountDocument,
@@ -42,6 +43,8 @@ export class AccountService {
     id: string,
     accountData: any,
   ): Promise<LeanDocument<AccountEntity>> {
+    const account = await this.accountModel.findOne({ id });
+
     const mapData = {
       ...accountData,
       document: accountData.fiscalCode
@@ -49,6 +52,14 @@ export class AccountService {
         .replace(/\./g, '')
         .replace(/\//g, ''),
       zipCode: accountData.address.zipCode.replace(/-/g, '').replace(/\./g, ''),
+      useDeliveryHub:
+        account && account?.toJSON().hasOwnProperty('useDeliveryHub')
+          ? account.useDeliveryHub
+          : false,
+      useDeliveryHubStandalone:
+        account && account?.toJSON().hasOwnProperty('useDeliveryHubStandalone')
+          ? account.useDeliveryHubStandalone
+          : false,
     };
 
     return this.accountModel
@@ -153,6 +164,10 @@ export class AccountService {
     return [result, count];
   }
 
+  async find(filter: Record<string, any>, options?: QueryOptions) {
+    return this.accountModel.find(filter, {}, options);
+  }
+
   async findOneAccountOrLocation(id: string, accountType: string) {
     const account = await this.accountModel
       .findOne(
@@ -163,13 +178,6 @@ export class AccountService {
         },
       )
       .lean();
-
-    if (!account) {
-      throw new HttpException(
-        'Account or Location not found.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
 
     return account;
   }

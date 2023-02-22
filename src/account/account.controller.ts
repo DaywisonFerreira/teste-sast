@@ -8,6 +8,8 @@ import {
   Query,
   ValidationPipe,
   Inject,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
@@ -17,6 +19,7 @@ import { GetAccountDto } from './dto/get-account.dto';
 import { PaginateAccountDto } from './dto/paginate-account.dto';
 import { UpdateWarehouseCodeDto } from './dto/update-warehousecode.dto';
 import { UpdateGenerateNotfisFile } from './dto/update-generatenotfisfile.dto';
+import { AccountTypeEnum } from './schemas/account.schema';
 
 @Controller('accounts')
 @ApiTags('Accounts')
@@ -76,17 +79,22 @@ export class AccountController {
   @Get(':id')
   @ApiOkResponse({ type: GetAccountDto })
   async findOneAccount(@Param('id') id: string): Promise<GetAccountDto> {
-    this.logger.log(
-      {
-        key: 'ifc.freight.api.order.account-controller.findOneAccount',
-        message: `Find account ${id}`,
-      },
-      {},
-    );
+    this.logger.log({
+      key: 'ifc.freight.api.order.account-controller.findOneAccount',
+      message: `Find account ${id}`,
+    });
     const account = await this.accountService.findOneAccountOrLocation(
       id,
       'account',
     );
+
+    if (!account) {
+      throw new HttpException(
+        'Account or Location not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     // @ts-ignore
     return GetAccountDto.factory(account) as GetAccountDto;
   }
@@ -130,6 +138,14 @@ export class AccountController {
       id,
       'location',
     );
+
+    if (!account) {
+      throw new HttpException(
+        'Account or Location not found.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     // @ts-ignore
     return GetAccountDto.factory(account) as GetAccountDto;
   }
@@ -158,5 +174,19 @@ export class AccountController {
       this.logger.error(error);
       throw error;
     }
+  }
+
+  @Get('/accounts/deliveryhub-standalone')
+  @ApiOkResponse({ type: GetAccountDto })
+  async findAccountsDeliveryHubStandalone(): Promise<GetAccountDto[]> {
+    this.logger.log({
+      key: 'ifc.freight.api.order.account-controller.findAccountsDeliveryHubStandalone',
+      message: `Find all accounts with Delivery Hub Standalone`,
+    });
+
+    return this.accountService.find(
+      { useDeliveryHubStandalone: true, accountType: AccountTypeEnum.account },
+      { projection: { id: 1, name: 1 } },
+    );
   }
 }

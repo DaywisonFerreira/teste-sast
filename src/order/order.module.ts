@@ -17,6 +17,7 @@ import { HandleStatusCode } from './scripts/handle-status-code.service';
 import { RabbitMqModule } from '../rabbitmq/rabbit.module';
 import { NestjsEventEmitter } from '../commons/providers/event/nestjs-event-emitter';
 import { OrderProducer } from './producer/order.producer';
+import { AccountService } from '../account/account.service';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { OrderProducer } from './producer/order.producer';
   ],
   controllers: [OrderController, ConsumerOrderController],
   providers: [
+    AccountService,
     OrderService,
     OrderProducer,
     UpdateStructureOrder,
