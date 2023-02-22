@@ -10,6 +10,7 @@ import {
   Inject,
   HttpException,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
@@ -20,6 +21,7 @@ import { PaginateAccountDto } from './dto/paginate-account.dto';
 import { UpdateWarehouseCodeDto } from './dto/update-warehousecode.dto';
 import { UpdateGenerateNotfisFile } from './dto/update-generatenotfisfile.dto';
 import { AccountTypeEnum } from './schemas/account.schema';
+import { JWTGuard } from '../commons/guards/jwt.guard';
 
 @Controller('accounts')
 @ApiTags('Accounts')
@@ -35,6 +37,7 @@ export class AccountController {
 
   @Get()
   @ApiOkResponse({ type: PaginateAccountDto })
+  @UseGuards(JWTGuard)
   async findAll(
     @Query(ValidationPipe) filterPaginateDto: FilterPaginateAccountDto,
   ): Promise<PaginateAccountDto> {
@@ -78,6 +81,7 @@ export class AccountController {
 
   @Get(':id')
   @ApiOkResponse({ type: GetAccountDto })
+  @UseGuards(JWTGuard)
   async findOneAccount(@Param('id') id: string): Promise<GetAccountDto> {
     this.logger.log({
       key: 'ifc.freight.api.order.account-controller.findOneAccount',
@@ -100,6 +104,7 @@ export class AccountController {
   }
 
   @Patch(':id')
+  @UseGuards(JWTGuard)
   async updateGenerateNotfisFile(
     @Param('id') id: string,
     @Body() update: UpdateGenerateNotfisFile,
@@ -125,6 +130,7 @@ export class AccountController {
   }
 
   @Get('locations/:id')
+  @UseGuards(JWTGuard)
   @ApiOkResponse({ type: GetAccountDto })
   async findOneLocation(@Param('id') id: string): Promise<GetAccountDto> {
     this.logger.log(
@@ -151,6 +157,7 @@ export class AccountController {
   }
 
   @Patch('locations/:id')
+  @UseGuards(JWTGuard)
   @ApiOkResponse({ type: GetAccountDto })
   async updateExternalWarehouseCode(
     @Param('id') id: string,
@@ -176,7 +183,8 @@ export class AccountController {
     }
   }
 
-  @Get('/accounts/deliveryhub-standalone')
+  @Get('/deliveryhub-standalone')
+  @UseGuards(JWTGuard)
   @ApiOkResponse({ type: GetAccountDto })
   async findAccountsDeliveryHubStandalone(): Promise<GetAccountDto[]> {
     this.logger.log({
