@@ -141,6 +141,7 @@
     "eslint-plugin-tsdoc": "^0.2.14",
     "husky": "^7.0.1",
     "jest": "^27.0.6",
+    "jest-mock-extended": "^3.0.1",
     "prettier": "^2.3.2",
     "prettier-eslint": "^13.0.0",
     "supertest": "^6.1.5",

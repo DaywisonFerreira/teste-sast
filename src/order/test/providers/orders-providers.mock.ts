@@ -1,5 +1,6 @@
 import { getModelToken } from '@nestjs/mongoose';
 import { InfraLogger } from 'src/commons/providers/log/infra-logger';
+import { OrderProducer } from 'src/order/producer/order.producer';
 
 import { AccountEntity } from '../../../account/schemas/account.schema';
 import { OrderService } from '../../order.service';
@@ -21,4 +22,8 @@ export const OrdersProvidersMock = [
     useClass: InfraLogger,
   },
   { provide: 'KafkaService', useValue: { send: () => null } },
+  {
+    provide: OrderProducer,
+    useValue: {},
+  },
 ];
