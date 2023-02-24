@@ -1,5 +1,21 @@
 import { v4 as uuidV4 } from 'uuid';
 
+// KAFKA_TOPIC_INTELIPOST_ORDER_COMPENSATOR
+export const MessageIntelipostToIntegrate = payload => {
+  return {
+    headers: {
+      'X-Correlation-Id': uuidV4(),
+      'X-Version': '1.0',
+    },
+    key: uuidV4(),
+    value: JSON.stringify({
+      data: {
+        ...payload,
+      },
+    }),
+  };
+};
+
 // KAFKA_TOPIC_INTELIPOST_CREATED
 export const MessageIntelipostCreated = content => {
   const { createIntelipost, headers } = content;
