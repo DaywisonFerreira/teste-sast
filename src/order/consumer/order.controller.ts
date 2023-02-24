@@ -16,6 +16,7 @@ import { Controller, Inject, Logger } from '@nestjs/common';
 import { Channel } from 'amqplib';
 import { existsSync, promises } from 'fs';
 import { NotificationTypes } from 'src/commons/enums/notification.enum';
+import { OriginEnum } from 'src/commons/enums/origin-enum';
 import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { v4 as uuidV4 } from 'uuid';
 import { AccountService } from '../../account/account.service';
@@ -24,7 +25,6 @@ import { EventProvider } from '../../commons/providers/event/nestjs-event-provid
 import { IHubOrder } from '../interfaces/order.interface';
 import { OrderMapper } from '../mappers/orderMapper';
 import { OrderService } from '../order.service';
-import { OrderProducer } from '../producer/order.producer';
 
 @Controller()
 export class ConsumerOrderController {
@@ -34,7 +34,6 @@ export class ConsumerOrderController {
     private readonly accountService: AccountService,
     @Inject('EventProvider')
     private readonly eventEmitter: EventProvider,
-    private orderProducer: OrderProducer,
     @Inject('LogProvider')
     private readonly logger: LogProvider,
   ) {
@@ -95,7 +94,7 @@ export class ConsumerOrderController {
                 'invoice.key': orderToSave.invoice.key,
               },
               { ...orderToSave },
-              'ihub',
+              OriginEnum.IHUB,
             );
           }),
         );
@@ -214,73 +213,11 @@ export class ConsumerOrderController {
         headers,
       );
 
-      const configPK = {
-        'invoice.key': data?.tracking?.sequentialCode,
-      };
-
-      const dataToMerge: any = {
-        statusCode: data?.tracking?.statusCode ?? {},
-        partnerStatusId: data?.tracking?.provider?.status,
-        partnerMessage: data?.tracking?.provider?.status,
-        numberVolumes: 1,
-        i18n: data?.tracking?.statusCode.macro,
-        microStatus: data?.tracking?.provider?.status,
-        lastOccurrenceMacro: data?.tracking?.statusCode?.macro,
-        lastOccurrenceMicro: data?.tracking?.statusCode?.micro,
-        lastOccurrenceMessage: data?.tracking?.provider?.status,
-        partnerStatus:
-          data?.tracking?.provider?.status.toLowerCase() === 'dispatched'
-            ? 'shipped'
-            : data?.tracking?.provider?.status.toLowerCase(),
-        orderUpdatedAt: new Date(data?.tracking?.eventDate),
-        invoiceKeys: [data?.tracking?.sequentialCode],
-        invoice: {
-          key: data?.tracking?.sequentialCode,
-          // trackingNumber: data?.tracking?.provider?.trackingCode,
-        },
-      };
-
-      if (
-        data?.tracking?.provider?.trackingCode !== undefined &&
-        data?.tracking?.provider?.trackingCode !== null
-      ) {
-        dataToMerge.invoice.trackingNumber =
-          data?.tracking?.provider?.trackingCode;
-      }
-
-      if (
-        data?.tracking?.provider?.trackingUrl !== undefined &&
-        data?.tracking?.provider?.trackingUrl !== null
-      ) {
-        dataToMerge.invoice.trackingUrl = data?.tracking?.provider?.trackingUrl;
-      }
-      if (
-        data?.tracking?.provider?.carrierName !== undefined &&
-        data?.tracking?.provider?.carrierName !== null
-      ) {
-        dataToMerge.invoice.carrierName = data?.tracking?.provider?.carrierName;
-      }
-
-      if (dataToMerge.statusCode.macro === 'delivered') {
-        dataToMerge.status = dataToMerge.statusCode.macro;
-        dataToMerge.deliveryDate = dataToMerge.orderUpdatedAt;
-      }
-
-      if (dataToMerge.statusCode.macro === 'order-dispatched') {
-        dataToMerge.status = 'dispatched';
-        dataToMerge.dispatchDate = dataToMerge.orderUpdatedAt;
-      }
-
-      const { success, order } = await this.orderService.merge(
+      await this.orderService.updateOrderStatus(
+        data,
         headers,
-        configPK,
-        dataToMerge,
-        'freight-connector',
+        OriginEnum.FREIGHT_CONNECTOR,
       );
-
-      if (success) {
-        await this.orderProducer.sendStatusTrackingToIHub(order);
-      }
     } catch (error) {
       this.logger.error(error);
     } finally {

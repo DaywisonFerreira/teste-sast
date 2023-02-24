@@ -30,6 +30,7 @@ export const PublicFieldsOrder = {
   'logisticInfo.deliveryCompany': 1,
   'logisticInfo.shippingEstimateDate': 1,
   integrations: 1,
+  partnerOrder: 1,
 };
 
 export class Total {
@@ -240,6 +241,15 @@ export class History {
   i18n: string;
 
   statusCode: StatusCode;
+
+  reason?: string;
+
+  additionalInfo?: string;
+
+  author?: {
+    id: string;
+    name: string;
+  };
 }
 
 export class BillingData {

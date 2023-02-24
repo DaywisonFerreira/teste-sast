@@ -3,6 +3,7 @@ import { OrderService } from 'src/order/order.service';
 import { OrderProducer } from 'src/order/producer/order.producer';
 import { OrderDocument } from 'src/order/schemas/order.schema';
 import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
+import { OriginEnum } from 'src/commons/enums/origin-enum';
 import { OrderMapper } from '../order/mappers/orderMapper';
 import { CreateIntelipost } from './dto/create-intelipost.dto';
 
@@ -45,7 +46,7 @@ export class InteliPostService {
           invoiceKeys: order.invoice.key,
         },
         { ...order, attachments: payload.history.attachments },
-        'intelipost',
+        OriginEnum.INTELIPOST,
       );
 
       if (success) {

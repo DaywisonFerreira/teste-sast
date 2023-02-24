@@ -4,6 +4,7 @@ import { CarrierService } from 'src/carrier/carrier.service';
 import { CarrierEntity } from 'src/carrier/schemas/carrier.schema';
 import { NestjsEventEmitter } from 'src/commons/providers/event/nestjs-event-emitter';
 import { InfraLogger } from 'src/commons/providers/log/infra-logger';
+import { OrderProducer } from 'src/order/producer/order.producer';
 import { TrackingCodeEntity } from '../schemas/tracking-code.schema';
 import { AccountEntity } from '../../account/schemas/account.schema';
 import { ConsumerInvoiceController } from '../consumer/invoice.controller';
@@ -52,6 +53,10 @@ describe('ConsumerInvoiceController', () => {
         {
           provide: 'LogProvider',
           useClass: InfraLogger,
+        },
+        {
+          provide: OrderProducer,
+          useValue: {},
         },
       ],
     }).compile();

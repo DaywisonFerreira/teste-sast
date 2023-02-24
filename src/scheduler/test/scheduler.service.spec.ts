@@ -3,10 +3,10 @@ import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as fs from 'fs/promises';
 import { InfraLogger } from 'src/commons/providers/log/infra-logger';
+import { OrderService } from 'src/order/order.service';
 import { AccountService } from '../../account/account.service';
 import { AccountEntity } from '../../account/schemas/account.schema';
 import { NestjsEventEmitter } from '../../commons/providers/event/nestjs-event-emitter';
-import { OrderService } from '../../order/order.service';
 import { OrderEntity } from '../../order/schemas/order.schema';
 import { SchedulerService } from '../scheduler.service';
 
@@ -26,7 +26,6 @@ describe('Scheduler Service Tests', () => {
         },
         SchedulerService,
         AccountService,
-        OrderService,
         {
           provide: NestjsEventEmitter,
           useValue: {
@@ -38,6 +37,10 @@ describe('Scheduler Service Tests', () => {
           useClass: InfraLogger,
         },
         { provide: 'KafkaService', useValue: { send: () => null } },
+        {
+          provide: OrderService,
+          useValue: {},
+        },
       ],
     }).compile();
 
