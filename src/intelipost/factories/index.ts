@@ -7,10 +7,14 @@ export const MessageIntelipostToIntegrate = payload => {
       'X-Correlation-Id': uuidV4(),
       'X-Version': '1.0',
     },
-    key: uuidV4(),
+    key: JSON.stringify({
+      accountId: payload.accountId,
+      orderNumber: payload.order.internalOrderId,
+    }),
     value: JSON.stringify({
       data: {
-        ...payload,
+        accountId: payload.accountId,
+        orderNumber: payload.order.internalOrderId,
       },
     }),
   };

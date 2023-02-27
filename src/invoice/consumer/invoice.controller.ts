@@ -227,7 +227,10 @@ export class ConsumerInvoiceController {
     headers,
   }: KafkaResponse<string>) {
     const { data } = JSON.parse(value);
-    const invoice = await this.invoiceService.findById(data.id, data.accountId);
+    const invoice = await this.invoiceService.findByOrderNumber(
+      data.orderNumber,
+      data.accountId,
+    );
 
     try {
       this.logger.log(
