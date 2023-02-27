@@ -635,11 +635,10 @@ export class OrderService {
       );
       return { ignore: true, history: [] };
     }
-
     if (
-      originArray.includes(OriginEnum.INTELIPOST) ||
-      originArray.includes(OriginEnum.FREIGHT_CONNECTOR) ||
-      originArray.includes(OriginEnum.DELIVERY_HUB)
+      origin === OriginEnum.INTELIPOST ||
+      origin === OriginEnum.FREIGHT_CONNECTOR ||
+      origin === OriginEnum.DELIVERY_HUB
     ) {
       const history = this.getHistoryFromOrigin(origin, data);
 
@@ -817,7 +816,6 @@ export class OrderService {
     const OrderAlreadyFinished = this.checkIfOrderAlreadyFinished(
       oldOrder.statusCode.micro,
     );
-
     if (OrderAlreadyFinished) {
       this.logger.log(
         {
@@ -834,14 +832,12 @@ export class OrderService {
       data.statusCode.macro,
       oldOrder.statusCode.macro,
     );
-
     const { ignore, history } = this.generateHistory(
       data,
       origin,
       false,
       oldOrder,
     );
-
     const attachments =
       origin === OriginEnum.INTELIPOST
         ? await this.generateAttachments(data, false, oldOrder)
