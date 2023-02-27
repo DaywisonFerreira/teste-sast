@@ -229,6 +229,14 @@ export class InvoiceService {
     );
   }
 
+  public async findByOrderNumber(orderNumber: string, accountId: string) {
+    return this.InvoiceModel.findOne(
+      { 'order.internalOrderId': orderNumber, accountId },
+      { key: 1, order: 1 },
+      { lean: true },
+    );
+  }
+
   async findByStatus(status: string[]): Promise<LeanDocument<InvoiceEntity[]>> {
     return this.InvoiceModel.find({
       status: { $in: status },
