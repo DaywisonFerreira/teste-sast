@@ -2,35 +2,33 @@ import { KafkaService } from '@infralabs/infra-nestjs-kafka';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { differenceInDays, isBefore, lightFormat } from 'date-fns';
+import { stream } from 'exceljs';
 import { appendFileSync } from 'graceful-fs';
 import * as moment from 'moment';
 import { LeanDocument, Model, Types } from 'mongoose';
 import {
   AccountDocument,
-  AccountEntity,
+  AccountEntity
 } from 'src/account/schemas/account.schema';
 import { Env } from 'src/commons/environment/env';
 import { MessageOrderNotified } from 'src/intelipost/factories';
-import { stream } from 'exceljs';
 
 import { createWriteStream, existsSync, mkdirSync } from 'fs';
 import { utils } from 'xlsx';
 
+import { OriginEnum } from 'src/commons/enums/origin-enum';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
-import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
-import { OriginEnum } from 'src/commons/enums/origin-enum';
 import { CsvMapper } from './mappers/csvMapper';
 import { OrderMapper } from './mappers/orderMapper';
+import { OrderProducer } from './producer/order.producer';
 import {
   Attachments,
   OrderDocument,
   OrderEntity,
-  PublicFieldsOrder,
+  PublicFieldsOrder
 } from './schemas/order.schema';
-import { OrderProducer } from './producer/order.producer';
-
-const originArray: Array<string> = Object.values(OriginEnum);
 
 interface xlsxWriteMetadata {
   filename: string;
@@ -454,9 +452,8 @@ export class OrderService {
       this.logger.log(
         {
           key: 'ifc.freight.api.order.order-service.exportData.progress',
-          message: `Order report in progress: ${page + 1}/${pages}, with ${
-            result.length
-          } records`,
+          message: `Order report in progress: ${page + 1}/${pages}, with ${result.length
+            } records`,
         },
         {},
       );
@@ -491,9 +488,8 @@ export class OrderService {
         const folder = Env.NODE_ENV !== 'local' ? 'dist' : 'src';
         const path = `${process.cwd()}/${folder}/tmp`;
 
-        const fileName = `Status_Entregas_${
-          storeCode || ''
-        }_${from}-${to}.xlsx`;
+        const fileName = `Status_Entregas_${storeCode || ''
+          }_${from}-${to}.xlsx`;
 
         const columns = Object.keys(dataFormatted[0]) || [];
 
@@ -777,21 +773,21 @@ export class OrderService {
     const newContent = {
       ...(shouldUpdateSourceOfOrder
         ? {
-            statusCode: data.statusCode,
-            orderUpdatedAt: data.orderUpdatedAt,
-            partnerMessage: data.partnerMessage,
-            partnerStatusId: data.partnerStatusId,
-            partnerMacroStatusId: data.partnerMacroStatusId,
-            microStatus: data.microStatus,
-            lastOccurrenceMacro: data.lastOccurrenceMacro,
-            lastOccurrenceMicro: data.lastOccurrenceMicro,
-            lastOccurrenceMessage: data.lastOccurrenceMessage,
-            i18n: data.i18n,
-            partnerStatus: data.partnerStatus,
-            status: data.status,
-            deliveryDate: data.deliveryDate,
-            dispatchDate: data.dispatchDate,
-          }
+          statusCode: data.statusCode,
+          orderUpdatedAt: data.orderUpdatedAt,
+          partnerMessage: data.partnerMessage,
+          partnerStatusId: data.partnerStatusId,
+          partnerMacroStatusId: data.partnerMacroStatusId,
+          microStatus: data.microStatus,
+          lastOccurrenceMacro: data.lastOccurrenceMacro,
+          lastOccurrenceMicro: data.lastOccurrenceMicro,
+          lastOccurrenceMessage: data.lastOccurrenceMessage,
+          i18n: data.i18n,
+          partnerStatus: data.partnerStatus,
+          status: data.status,
+          deliveryDate: data.deliveryDate,
+          dispatchDate: data.dispatchDate,
+        }
         : {}),
       invoiceKeys: [...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys])],
       invoice: {

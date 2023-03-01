@@ -95,8 +95,8 @@ export class CsvMapper {
           ...acc,
           [statusMapper[status]]:
             matchHistory &&
-              matchHistory.orderUpdatedAt &&
-              matchHistory.orderUpdatedAt instanceof Date
+            matchHistory.orderUpdatedAt &&
+            matchHistory.orderUpdatedAt instanceof Date
               ? matchHistory?.orderUpdatedAt?.toISOString()
               : '',
         };
@@ -132,7 +132,7 @@ export class CsvMapper {
         'Previsão Entrega Cliente': estimateDeliveryDateClient,
         'Previsão Entrega Transp.':
           estimateDeliveryDateDeliveryCompany &&
-            estimateDeliveryDateDeliveryCompany instanceof Date
+          estimateDeliveryDateDeliveryCompany instanceof Date
             ? estimateDeliveryDateDeliveryCompany.toISOString()
             : '',
         'Mensagem Intelipost': partnerMessage,
