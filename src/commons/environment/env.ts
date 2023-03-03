@@ -181,6 +181,10 @@ export abstract class Env {
     process.env.LIST_MICRO_STATUS_FINISHER || ''
   ).split(',');
 
+  public static readonly LIST_ACCOUNT_DOCUMENT_DONT_CONVERT_WEIGHT: string[] = (
+    process.env.LIST_ACCOUNT_DOCUMENT_DONT_CONVERT_WEIGHT || ''
+  ).split(',');
+
   public static readonly LIMIT_QUERY_USELESS_ORDERS: number =
     Number.parseInt(process.env.LIMIT_QUERY_USELESS_ORDERS, 10) || 1000;
 }

@@ -1,15 +1,19 @@
 import { Injectable } from '@nestjs/common';
+import { Env } from 'src/commons/environment/env';
 
 import { CreateInvoiceDto } from '../../invoice/dto/create-invoice.dto';
 
 @Injectable()
 export class IntelipostMapper {
   async mapInvoiceToIntelipost(data: CreateInvoiceDto, location: any) {
+    const dontConvertWeight: boolean =
+      Env.LIST_ACCOUNT_DOCUMENT_DONT_CONVERT_WEIGHT.includes(location.document);
+
     const shipmentOrderVolumeArray = data.packages.map((item, index) => {
       return {
         shipment_order_volume_number: index + 1,
         name: 'CAIXA',
-        weight: item.netWeight,
+        weight: dontConvertWeight ? item.netWeight : item.netWeight / 1000,
         volume_type_code: 'box',
         width: item.width,
         height: item.height,
