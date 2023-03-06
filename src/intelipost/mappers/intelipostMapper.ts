@@ -9,7 +9,7 @@ export class IntelipostMapper {
       return {
         shipment_order_volume_number: index + 1,
         name: 'CAIXA',
-        weight: item.netWeight,
+        weight: item.netWeight / 1000,
         volume_type_code: 'box',
         width: item.width,
         height: item.height,
