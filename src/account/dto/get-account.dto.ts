@@ -19,9 +19,6 @@ export class GetAccountDto {
   @ApiProperty({ example: '03201080' })
   zipCode: string;
 
-  @ApiProperty({ example: 'FBLOCATION' })
-  code: string;
-
   @ApiProperty({ example: true })
   active: boolean;
 
@@ -38,7 +35,7 @@ export class GetAccountDto {
   shipToAddress: boolean;
 
   @ApiProperty({ example: ['717de48e8b1e23aa6ec8204d'] })
-  accounts: IAccounts[];
+  accountId: string;
 
   @ApiProperty({ example: ['60d4904ddc917230fb5b5a60'] })
   salesChannels: any[];

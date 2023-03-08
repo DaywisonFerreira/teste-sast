@@ -1,5 +1,6 @@
 /* eslint-disable no-prototype-builtins */
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { LeanDocument, Model, QueryOptions } from 'mongoose';
 import { IFilterObject } from '../commons/interfaces/filter-object.interface';
@@ -8,15 +9,21 @@ import {
   AccountEntity,
   AccountTypeEnum,
 } from './schemas/account.schema';
+import { AccountMapper } from './mappers/accountMapper';
 
 @Injectable()
 export class AccountService {
   constructor(
     @InjectModel(AccountEntity.name)
     private accountModel: Model<AccountDocument>,
-  ) {}
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
+  ) {
+    this.logger.instanceLogger(AccountService.name);
+  }
 
   async create(accountData): Promise<void> {
+    this.logger.log(`Create Account with --- Request received: ${accountData}`);
     const mapData = {
       ...accountData,
       document: accountData.fiscalCode
@@ -31,6 +38,7 @@ export class AccountService {
       .lean();
 
     if (alreadyExist) {
+      this.logger.error(new Error(`Account ${accountData.id} already exists`));
       return;
     }
 
@@ -71,6 +79,45 @@ export class AccountService {
       .lean();
   }
 
+  async createLocation(accountId: string, locationData): Promise<void> {
+    this.logger.log(
+      `Create Location with X-Tenant-Id: ${accountId} -- Request received: ${locationData}`,
+    );
+
+    const mapData = AccountMapper.mapAccount(accountId, locationData);
+
+    const account = await this.accountModel.findOne(
+      {
+        id: accountId,
+        accountType: AccountTypeEnum.account,
+      },
+      { id: 1, name: 1 },
+    );
+
+    if (!account) {
+      this.logger.error(new Error(`Account ${accountId} not found`));
+      throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
+    }
+
+    const alreadyExist = await this.accountModel
+      .findOne({ id: locationData.id })
+      .lean();
+
+    if (alreadyExist) {
+      this.logger.error(
+        new Error(`Location ${locationData.id} already exists`),
+      );
+      throw new HttpException(
+        'Location already exists',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // eslint-disable-next-line new-cap
+    const accountToSave = new this.accountModel(mapData);
+    await accountToSave.save();
+  }
+
   async associateLocation(
     accountId: string,
     locationId: string,
@@ -92,13 +139,13 @@ export class AccountService {
       throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
     }
 
-    const alreadyHasAccount = location.accounts.find(
-      accountAssociated => accountAssociated.id === account.id,
-    );
+    // const alreadyHasAccount = location.accounts.find(
+    //   accountAssociated => accountAssociated.id === account.id,
+    // );
 
-    if (alreadyHasAccount) {
-      throw new HttpException('Already associated', HttpStatus.BAD_REQUEST);
-    }
+    // if (alreadyHasAccount) {
+    //   throw new HttpException('Already associated', HttpStatus.BAD_REQUEST);
+    // }
 
     return this.accountModel.findOneAndUpdate(
       { id: location.id, accountType: AccountTypeEnum.location },

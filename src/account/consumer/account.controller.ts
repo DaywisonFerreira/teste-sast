@@ -91,7 +91,7 @@ export class ConsumerAccountController {
     );
     const { data } = JSON.parse(value);
     try {
-      await this.accountService.create(data);
+      await this.accountService.createLocation(headers['X-Tenant-Id'], data);
     } catch (error) {
       this.logger.error(error);
     } finally {

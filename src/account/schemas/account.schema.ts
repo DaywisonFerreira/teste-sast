@@ -22,9 +22,6 @@ export class AccountEntity extends Document {
   @Prop({ type: String, required: false })
   zipCode: string;
 
-  @Prop({ type: String, required: false })
-  code: string;
-
   @Prop({ default: false, required: false })
   active: boolean;
 
@@ -43,8 +40,8 @@ export class AccountEntity extends Document {
   @Prop({ default: true, required: false })
   shipToAddress: boolean;
 
-  @Prop({ default: [], required: false })
-  accounts: any[];
+  @Prop({ default: '', required: false })
+  accountId: string;
 
   @Prop({
     default: [],
