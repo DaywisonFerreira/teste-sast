@@ -207,6 +207,8 @@ export class UpdateDuplicatedOrders {
 
     const toSave = {
       ...result,
+      migrated: false,
+      migrationLog: null,
       invoice,
       customer,
       delivery,

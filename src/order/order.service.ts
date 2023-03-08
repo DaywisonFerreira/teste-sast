@@ -8,7 +8,7 @@ import * as moment from 'moment';
 import { LeanDocument, Model, Types } from 'mongoose';
 import {
   AccountDocument,
-  AccountEntity
+  AccountEntity,
 } from 'src/account/schemas/account.schema';
 import { Env } from 'src/commons/environment/env';
 import { MessageOrderNotified } from 'src/intelipost/factories';
@@ -27,7 +27,7 @@ import {
   Attachments,
   OrderDocument,
   OrderEntity,
-  PublicFieldsOrder
+  PublicFieldsOrder,
 } from './schemas/order.schema';
 
 interface xlsxWriteMetadata {
@@ -302,6 +302,8 @@ export class OrderService {
           'invoice.trackingUrl': trackingUrl,
           'invoice.carrierName': carrierName,
           'invoice.trackingNumber': trackingNumber,
+          migrated: false,
+          migrationLog: null,
         },
       },
     ).lean();
@@ -452,8 +454,9 @@ export class OrderService {
       this.logger.log(
         {
           key: 'ifc.freight.api.order.order-service.exportData.progress',
-          message: `Order report in progress: ${page + 1}/${pages}, with ${result.length
-            } records`,
+          message: `Order report in progress: ${page + 1}/${pages}, with ${
+            result.length
+          } records`,
         },
         {},
       );
@@ -488,8 +491,9 @@ export class OrderService {
         const folder = Env.NODE_ENV !== 'local' ? 'dist' : 'src';
         const path = `${process.cwd()}/${folder}/tmp`;
 
-        const fileName = `Status_Entregas_${storeCode || ''
-          }_${from}-${to}.xlsx`;
+        const fileName = `Status_Entregas_${
+          storeCode || ''
+        }_${from}-${to}.xlsx`;
 
         const columns = Object.keys(dataFormatted[0]) || [];
 
@@ -688,6 +692,10 @@ export class OrderService {
           'invoice.key': order.invoice.key,
         },
         {
+          $set: {
+            migrated: false,
+            migrationLog: null,
+          },
           $push: {
             invoiceKeys: data.invoice.key,
           },
@@ -697,7 +705,7 @@ export class OrderService {
           runValidators: true,
           useFindAndModify: false,
         },
-      );
+      ).exec();
     }
 
     data.invoiceKeys.push(...orderFinded[0].invoiceKeys);
@@ -773,23 +781,25 @@ export class OrderService {
     const newContent = {
       ...(shouldUpdateSourceOfOrder
         ? {
-          statusCode: data.statusCode,
-          orderUpdatedAt: data.orderUpdatedAt,
-          partnerMessage: data.partnerMessage,
-          partnerStatusId: data.partnerStatusId,
-          partnerMacroStatusId: data.partnerMacroStatusId,
-          microStatus: data.microStatus,
-          lastOccurrenceMacro: data.lastOccurrenceMacro,
-          lastOccurrenceMicro: data.lastOccurrenceMicro,
-          lastOccurrenceMessage: data.lastOccurrenceMessage,
-          i18n: data.i18n,
-          partnerStatus: data.partnerStatus,
-          status: data.status,
-          deliveryDate: data.deliveryDate,
-          dispatchDate: data.dispatchDate,
-        }
+            statusCode: data.statusCode,
+            orderUpdatedAt: data.orderUpdatedAt,
+            partnerMessage: data.partnerMessage,
+            partnerStatusId: data.partnerStatusId,
+            partnerMacroStatusId: data.partnerMacroStatusId,
+            microStatus: data.microStatus,
+            lastOccurrenceMacro: data.lastOccurrenceMacro,
+            lastOccurrenceMicro: data.lastOccurrenceMicro,
+            lastOccurrenceMessage: data.lastOccurrenceMessage,
+            i18n: data.i18n,
+            partnerStatus: data.partnerStatus,
+            status: data.status,
+            deliveryDate: data.deliveryDate,
+            dispatchDate: data.dispatchDate,
+          }
         : {}),
       invoiceKeys: [...new Set([...data.invoiceKeys, ...oldOrder.invoiceKeys])],
+      migrated: false,
+      migrationLog: null,
       invoice: {
         ...data.invoice,
         ...oldOrder.invoice,
@@ -861,6 +871,8 @@ export class OrderService {
         ...newDataToSave.invoice,
         ...oldOrder.invoice,
       },
+      migrated: false,
+      migrationLog: null,
       invoiceKeys: [
         ...new Set([...newDataToSave.invoiceKeys, ...oldOrder.invoiceKeys]),
       ],
@@ -1240,10 +1252,13 @@ export class OrderService {
         await this.OrderModel.updateOne(filter, {
           $set: {
             integrations: order.integrations,
+            migrated: false,
+            migrationLog: null,
           },
         });
       } else {
         await this.OrderModel.updateOne(filter, {
+          $set: { migrated: false, migrationLog: null },
           $push: { integrations: newIntegration },
         });
       }
@@ -1258,6 +1273,8 @@ export class OrderService {
             orderSale: invoice.order.externalOrderId,
             partnerOrder: invoice.order.internalOrderId,
             integrations: [newIntegration],
+            migrated: false,
+            migrationLog: null,
           },
         },
         {
@@ -1268,6 +1285,8 @@ export class OrderService {
       await this.OrderModel.updateOne(filter, {
         $set: {
           integrations: [newIntegration],
+          migrated: false,
+          migrationLog: null,
         },
       });
     }

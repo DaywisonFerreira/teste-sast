@@ -446,6 +446,12 @@ export class OrderEntity extends Document {
   @Prop({ type: Number, required: false })
   quantityOccurrences?: number; // campo só usado no relatorio
 
+  @Prop({ type: Boolean, required: false })
+  migrated: boolean;
+
+  @Prop({ type: String, required: false })
+  migrationLog: string;
+
   @Prop({ type: Array, required: false })
   integrations?: Array<Integrations>;
 }
