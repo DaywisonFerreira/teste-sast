@@ -29,7 +29,7 @@ export const mockAccount = (): AccountEntity =>
         Math.floor(Math.random() * Object.keys(AccountTypeEnum).length)
       ],
     shipToAddress: faker.datatype.boolean(),
-    accountId: '',
+    accounts: [],
     salesChannels: [faker.datatype.string()],
   } as AccountEntity);
 

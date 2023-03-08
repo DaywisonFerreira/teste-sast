@@ -17,11 +17,15 @@ export const mockAccount = (): AccountEntity =>
     icon: '',
     name: 'Account Name',
     zipCode: '41545-874',
-    active: true,
     document: '20.612.212/0001-37',
     accountType: AccountTypeEnum.account,
     shipToAddress: false,
-    accountId: '0a2fe1ed-4148-4838-a1f1-18ef13284374',
+    accounts: [
+      {
+        id: '0a2fe1ed-4148-4838-a1f1-18ef13284374',
+        name: 'Account Name',
+      },
+    ],
     salesChannels: ['0a2fe1ed-4148-4838-a1f1-18ef13284374'],
   } as AccountEntity);
 

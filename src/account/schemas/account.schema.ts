@@ -40,8 +40,8 @@ export class AccountEntity extends Document {
   @Prop({ default: true, required: false })
   shipToAddress: boolean;
 
-  @Prop({ default: '', required: false })
-  accountId: string;
+  @Prop({ default: [], required: false })
+  accounts: any[];
 
   @Prop({
     default: [],

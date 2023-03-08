@@ -139,13 +139,13 @@ export class AccountService {
       throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
     }
 
-    // const alreadyHasAccount = location.accounts.find(
-    //   accountAssociated => accountAssociated.id === account.id,
-    // );
+    const alreadyHasAccount = location.accounts.find(
+      accountAssociated => accountAssociated.id === account.id,
+    );
 
-    // if (alreadyHasAccount) {
-    //   throw new HttpException('Already associated', HttpStatus.BAD_REQUEST);
-    // }
+    if (alreadyHasAccount) {
+      throw new HttpException('Already associated', HttpStatus.BAD_REQUEST);
+    }
 
     return this.accountModel.findOneAndUpdate(
       { id: location.id, accountType: AccountTypeEnum.location },
