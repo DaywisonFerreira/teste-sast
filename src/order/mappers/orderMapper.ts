@@ -240,7 +240,6 @@ export class OrderMapper {
         '134',
         '138',
         '254',
-        '78',
         '205',
         '213',
         '222',
@@ -433,6 +432,7 @@ export class OrderMapper {
       'waiting-post-office-pickup': ['261', '124', '22', '108', '122', '223'],
       damage: ['278', '62', '119', '137'],
       'unknown-customer': ['33', '38', '26', '236', '238'],
+      canceled: ['78'],
       invoiced: [],
     };
     const statusCode = { micro: '', macro: '' };
@@ -455,7 +455,7 @@ export class OrderMapper {
       'in-transit': ['12', '30000'],
       'delivery-failed': ['10', '13', '2'],
       delivered: ['14'],
-      canceled: ['7', '19'],
+      canceled: ['7', '19', '78'],
       'out-of-delivery': ['16'],
       'order-dispatched': ['9'],
     };
@@ -492,6 +492,29 @@ export class OrderMapper {
       statusCode: payload.statusCode,
       orderUpdatedAt: payload.orderUpdatedAt,
       i18n: payload.i18n,
+    };
+  }
+
+  static mapFreightConnectorHistoryToOrderHistory(data: any): any {
+    return {
+      statusCode: data?.statusCode,
+      partnerStatusId: data?.partnerStatusId,
+      partnerStatus: data?.partnerStatus,
+      orderUpdatedAt: data?.orderUpdatedAt,
+      dispatchDate: data?.dispatchDate,
+    };
+  }
+
+  static mapDeliveryHubHistoryToOrderHistory(data: any): any {
+    return {
+      statusCode: data?.statusCode,
+      partnerStatusId: data?.partnerStatusId,
+      partnerStatus: data?.partnerStatus,
+      orderUpdatedAt: data?.orderUpdatedAt,
+      dispatchDate: data?.dispatchDate,
+      reason: data?.reason,
+      additionalInfo: data?.additionalInfo,
+      author: data?.author,
     };
   }
 

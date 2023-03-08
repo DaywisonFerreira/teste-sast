@@ -7,7 +7,8 @@ export class PaginateOrderDto extends PaginatedResults<GetOrderDto> {
     count: number,
     page: number,
     pageSize: number,
+    metadata?: any,
   ) {
-    super(data, count, page, pageSize);
+    super(data, count, page, pageSize, metadata);
   }
 }

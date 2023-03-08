@@ -219,6 +219,52 @@ export class ConsumerInvoiceController {
     }
   }
 
+  @SubscribeTopic(Env.KAFKA_TOPIC_INTELIPOST_ORDER_COMPENSATOR)
+  async intelipostOrderCompensator({
+    value,
+    partition,
+    offset,
+    headers,
+  }: KafkaResponse<string>) {
+    const { data } = JSON.parse(value);
+    const invoice = await this.invoiceService.findByOrderNumber(
+      data.orderNumber,
+      data.accountId,
+    );
+
+    try {
+      this.logger.log(
+        {
+          key: 'ifc.freight.api.order.consumer-invoice-controller.intelipostOrderCompensator',
+          message: `Reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId} status: ${invoice.status}`,
+        },
+        headers,
+      );
+      try {
+        await this.generateIntegration(invoice, invoice.accountId, headers);
+      } catch (error) {
+        await this.setInvoiceStatusError(invoice, error);
+        this.logger.error(
+          new Error(
+            `Error reprocessing invoice - key: ${invoice.key} orderSale: ${invoice.order.externalOrderId} order: ${invoice.order.internalOrderId} -- errorMessage: ${error.message}`,
+          ),
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        new Error(
+          `Error integrated invoice - orderSale: ${data.order.externalOrderId}, order: ${data.order.internalOrderId}, invoiceKey: ${invoice.key} -- errorMessage: ${error.message}`,
+        ),
+      );
+    } finally {
+      await this.removeFromQueue(
+        Env.KAFKA_TOPIC_INVOICE_INTEGRATED,
+        partition,
+        offset,
+      );
+    }
+  }
+
   @OnEvent('invoice.reprocess', { async: true })
   async reprocess(filter?: {
     key: string;

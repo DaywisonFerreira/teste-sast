@@ -56,4 +56,15 @@ export class FilterPaginateOrderDto extends RequestPaginateDto {
   @IsOptional()
   @IsString()
   statusCode?: string | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Search for one or multiple orderSale or partnerOrder separated by comma.',
+    type: String,
+    required: false,
+    example: '220048180, 220048190, 220048200',
+  })
+  @IsOptional()
+  @IsString()
+  orderNumbers?: string | null;
 }

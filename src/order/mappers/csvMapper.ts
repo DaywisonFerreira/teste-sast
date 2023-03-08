@@ -43,7 +43,7 @@ export class CsvMapper {
       const statusMapper = {
         created: 'Criado',
         dispatched: 'Despachado',
-        'waiting-for-collection': 'Aguardando coleta',
+        'waiting-for-collection': 'Aguardando despacho',
         'hub-transfer': 'Em processo de entrega (hub-transfer)',
         'carrier-possession': 'Em processo de entrega (carrier-possession)',
         'delivery-route': 'Em rota de entrega',

@@ -1,13 +1,35 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { v4 as uuidV4 } from 'uuid';
+import { classToClass, plainToClass } from 'class-transformer';
 
-export class GetStatusCodeDto {
-  @ApiProperty({ example: '616de48e7b1e23aa6ec7204d' })
-  id: string;
+export class GetStatusCodeMacroDto {
+  @ApiProperty({ example: 'order-dispatched' })
+  code: string;
 
-  @ApiProperty({ example: uuidV4() || null })
-  parentId: string;
+  public static factory(
+    resultQuery: GetStatusCodeMacroDto | GetStatusCodeMacroDto[],
+  ): GetStatusCodeMacroDto | GetStatusCodeMacroDto[] {
+    const resultQueryDto = plainToClass(GetStatusCodeMacroDto, resultQuery, {
+      ignoreDecorators: true,
+    });
 
-  @ApiProperty({ example: 'Status Code Name' })
-  name: string;
+    return classToClass(resultQueryDto, { excludePrefixes: ['_', '__'] });
+  }
+}
+
+export class GetStatusCodeMicroDto {
+  @ApiProperty({ example: 'order-dispatched' })
+  code: string;
+
+  @ApiProperty({ example: 'Aguardando coleta' })
+  description: string;
+
+  public static factory(
+    resultQuery: GetStatusCodeMicroDto | GetStatusCodeMicroDto[],
+  ): GetStatusCodeMicroDto | GetStatusCodeMicroDto[] {
+    const resultQueryDto = plainToClass(GetStatusCodeMicroDto, resultQuery, {
+      ignoreDecorators: true,
+    });
+
+    return classToClass(resultQueryDto, { excludePrefixes: ['_', '__'] });
+  }
 }
