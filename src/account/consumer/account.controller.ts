@@ -132,68 +132,6 @@ export class ConsumerAccountController {
     }
   }
 
-  @SubscribeTopic(Env.KAFKA_TOPIC_ACCOUNT_LOCATION_ASSOCIATED)
-  async locationAssociated({
-    value,
-    partition,
-    headers,
-    offset,
-  }: KafkaResponse<string>) {
-    const { data } = JSON.parse(value);
-    this.logger.log(
-      {
-        key: 'ifc.freight.api.order.consumer-account-controller.createAccount',
-        message: `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_ASSOCIATED} - Account consumer was received ${data.id}`,
-      },
-      headers,
-    );
-    try {
-      await this.accountService.associateLocation(
-        headers['X-Tenant-Id'],
-        data.id,
-      );
-    } catch (error) {
-      this.logger.error(error);
-    } finally {
-      await this.removeFromQueue(
-        Env.KAFKA_TOPIC_ACCOUNT_LOCATION_ASSOCIATED,
-        partition,
-        offset,
-      );
-    }
-  }
-
-  @SubscribeTopic(Env.KAFKA_TOPIC_ACCOUNT_LOCATION_UNASSOCIATED)
-  async locationUnassociated({
-    value,
-    partition,
-    headers,
-    offset,
-  }: KafkaResponse<string>) {
-    const { data } = JSON.parse(value);
-    this.logger.log(
-      {
-        key: 'ifc.freight.api.order.consumer-account-controller.createAccount',
-        message: `${Env.KAFKA_TOPIC_ACCOUNT_LOCATION_UNASSOCIATED} - Account consumer was received ${data.id}`,
-      },
-      headers,
-    );
-    try {
-      await this.accountService.unassociateLocation(
-        headers['X-Tenant-Id'],
-        data.id,
-      );
-    } catch (error) {
-      this.logger.error(error);
-    } finally {
-      await this.removeFromQueue(
-        Env.KAFKA_TOPIC_ACCOUNT_LOCATION_UNASSOCIATED,
-        partition,
-        offset,
-      );
-    }
-  }
-
   private async removeFromQueue(
     topic: string,
     partition: number,

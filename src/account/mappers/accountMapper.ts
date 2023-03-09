@@ -1,10 +1,10 @@
 import { AccountEntity } from '../schemas/account.schema';
 
 export class AccountMapper {
-  static mapAccount(accountId, payload): AccountEntity {
+  static mapAccount(account, payload): AccountEntity {
     return {
       ...payload,
-      accounts: payload.accountIDs,
+      accounts: account,
       document: payload.fiscalCode
         .replace(/-/g, '')
         .replace(/\./g, '')

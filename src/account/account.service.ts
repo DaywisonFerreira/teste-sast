@@ -84,8 +84,6 @@ export class AccountService {
       `Create Location with X-Tenant-Id: ${accountId} -- Request received: ${locationData}`,
     );
 
-    const mapData = AccountMapper.mapAccount(accountId, locationData);
-
     const account = await this.accountModel.findOne(
       {
         id: accountId,
@@ -98,6 +96,8 @@ export class AccountService {
       this.logger.error(new Error(`Account ${accountId} not found`));
       throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
     }
+
+    const mapData = AccountMapper.mapAccount(account, locationData);
 
     const alreadyExist = await this.accountModel
       .findOne({ id: locationData.id })
@@ -116,56 +116,6 @@ export class AccountService {
     // eslint-disable-next-line new-cap
     const accountToSave = new this.accountModel(mapData);
     await accountToSave.save();
-  }
-
-  async associateLocation(
-    accountId: string,
-    locationId: string,
-  ): Promise<AccountEntity> {
-    const location = await this.accountModel.findOne({
-      id: locationId,
-      accountType: AccountTypeEnum.location,
-    });
-
-    const account = await this.accountModel.findOne(
-      {
-        id: accountId,
-        accountType: AccountTypeEnum.account,
-      },
-      { id: 1, name: 1 },
-    );
-
-    if (!location || !account) {
-      throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
-    }
-
-    const alreadyHasAccount = location.accounts.find(
-      accountAssociated => accountAssociated.id === account.id,
-    );
-
-    if (alreadyHasAccount) {
-      throw new HttpException('Already associated', HttpStatus.BAD_REQUEST);
-    }
-
-    return this.accountModel.findOneAndUpdate(
-      { id: location.id, accountType: AccountTypeEnum.location },
-      {
-        $push: {
-          accounts: account,
-        },
-      },
-    );
-  }
-
-  async unassociateLocation(accountId: string, locationId: string) {
-    await this.accountModel.findOneAndUpdate(
-      { id: locationId, accountType: AccountTypeEnum.location },
-      {
-        $pull: {
-          accounts: { id: accountId },
-        },
-      },
-    );
   }
 
   async findAll(

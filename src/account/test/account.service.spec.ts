@@ -155,64 +155,6 @@ describe('AccountService', () => {
     expect(response).toEqual(mockedAccount);
   });
 
-  test('should associate a location with success', async () => {
-    const { sut, AccountModel } = await makeSut();
-
-    const mockedAccount = mockAccount();
-
-    jest.spyOn(AccountModel, 'findOne').mockReturnValueOnce({
-      ...mockedAccount,
-      accountType: 'location',
-      accounts: [],
-    } as any);
-
-    jest
-      .spyOn(AccountModel, 'findOneAndUpdate')
-      .mockImplementationOnce((): any => mockedAccount);
-
-    const response = await sut.associateLocation(
-      mockedAccount.id,
-      mockedAccount.id,
-    );
-
-    expect(response).toEqual(mockedAccount);
-  });
-
-  test('Should not associate a location and return an error: Account not found', async () => {
-    const { sut, AccountModel } = await makeSut();
-
-    const mockedAccount = mockAccount();
-
-    jest.spyOn(AccountModel, 'findOne').mockImplementationOnce((): any => null);
-
-    try {
-      await sut.associateLocation(mockedAccount.id, mockedAccount.id);
-    } catch (error) {
-      expect(error).toStrictEqual(
-        new HttpException('Account not found', HttpStatus.NOT_FOUND),
-      );
-    }
-  });
-
-  test('Should not associate a location and return an error: Already associated', async () => {
-    const { sut, AccountModel } = await makeSut();
-
-    const mockedAccount = mockAccount();
-
-    jest.spyOn(AccountModel, 'findOne').mockReturnValueOnce({
-      ...mockedAccount,
-      accountType: 'location',
-    } as any);
-
-    try {
-      await sut.associateLocation(mockedAccount.id, mockedAccount.id);
-    } catch (error) {
-      expect(error).toStrictEqual(
-        new HttpException('Already associated', HttpStatus.BAD_REQUEST),
-      );
-    }
-  });
-
   test('should return an array of accounts and countDocuments', async () => {
     const { sut } = await makeSut();
 
@@ -257,6 +199,6 @@ describe('AccountService', () => {
       );
     }
 
-    expect(spyAccountFindOne).toBeCalledTimes(11);
+    expect(spyAccountFindOne).toBeCalledTimes(5);
   });
 });
