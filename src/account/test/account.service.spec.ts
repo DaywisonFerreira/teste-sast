@@ -17,6 +17,7 @@ export const mockAccount = (): AccountEntity =>
     icon: '',
     name: 'Account Name',
     zipCode: '41545-874',
+    active: true,
     document: '20.612.212/0001-37',
     accountType: AccountTypeEnum.account,
     shipToAddress: false,
