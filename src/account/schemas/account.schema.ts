@@ -34,6 +34,9 @@ export class AccountEntity extends Document {
   @Prop({ type: String, required: true })
   document: string;
 
+  @Prop({ type: String, required: false })
+  stateInscription: string;
+
   @Prop({ type: Object, required: true })
   address: any;
 
