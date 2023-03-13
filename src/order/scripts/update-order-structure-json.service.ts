@@ -97,6 +97,9 @@ export class UpdateStructureOrder {
     const missingData: Partial<OrderEntity> = {};
     let document = '';
 
+    missingData.migrated = false;
+    missingData.migrationLog = null;
+
     Object.keys(validation).forEach(error => {
       // eslint-disable-next-line
       switch (error) {

@@ -53,7 +53,14 @@ export class UpdateHistoryOrders {
 
       await this.OrderModel.findOneAndUpdate(
         { _id: order._id },
-        { ...order, history, statusCode, status },
+        {
+          ...order,
+          history,
+          statusCode,
+          status,
+          migrated: false,
+          migrationLog: null,
+        },
         { useFindAndModify: false },
       );
 

@@ -162,6 +162,8 @@ export const ordersEntityMock: LeanDocument<OrderEntity> & {
   __v: 0,
   dispatchDate: new Date('2022-09-15T20:07:01.000+00:00'),
   status: 'delivered',
+  migrated: false,
+  migrationLog: null,
   billingData: [
     {
       pickupInfo: {
