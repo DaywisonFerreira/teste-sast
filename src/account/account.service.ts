@@ -24,14 +24,7 @@ export class AccountService {
 
   async create(accountData): Promise<void> {
     this.logger.log(`Create Account with --- Request received: ${accountData}`);
-    const mapData = {
-      ...accountData,
-      document: accountData.fiscalCode
-        .replace(/-/g, '')
-        .replace(/\./g, '')
-        .replace(/\//g, ''),
-      zipCode: accountData.address.zipCode.replace(/-/g, '').replace(/\./g, ''),
-    };
+    const mapData = AccountMapper.mapAccountCreated(accountData);
 
     const alreadyExist = await this.accountModel
       .findOne({ id: accountData.id })
@@ -97,7 +90,10 @@ export class AccountService {
       throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
     }
 
-    const mapData = AccountMapper.mapAccount(account, locationData);
+    const mapData = AccountMapper.mapAccountLocationCreated(
+      account,
+      locationData,
+    );
 
     const alreadyExist = await this.accountModel
       .findOne({ id: locationData.id })
