@@ -64,6 +64,7 @@ export class CsvMapper {
         'unknown-customer': 'Destinatário desconhecido',
         'first-delivery-failed': 'Problema operacional (first-delivery-failed)',
         'delivered-success': 'Entregue',
+        canceled: 'Cancelado',
       };
 
       let statusCode = '';
