@@ -165,9 +165,22 @@ export abstract class Env {
   public static readonly KAFKA_TOPIC_PARTNER_ORDER_TRACKING: string =
     process.env.KAFKA_TOPIC_PARTNER_ORDER_TRACKING;
 
+  public static readonly KAFKA_TOPIC_INTELIPOST_ORDER_COMPENSATOR: string =
+    process.env.KAFKA_TOPIC_INTELIPOST_ORDER_COMPENSATOR;
+
   public static readonly CRON_TIME_REPROCESS_INVOICES_ERROR_STATUS: string =
     process.env.CRON_TIME_REPROCESS_INVOICES_ERROR_STATUS;
 
+  public static readonly CRON_TIME_REMOVE_USELESS_ORDERS: string =
+    process.env.CRON_TIME_REMOVE_USELESS_ORDERS;
+
   public static readonly LIMIT_QUERY_ORDERS: number =
     Number.parseInt(process.env.LIMIT_QUERY_ORDERS, 10) || 100;
+
+  public static readonly LIST_MICRO_STATUS_FINISHER: string[] = (
+    process.env.LIST_MICRO_STATUS_FINISHER || ''
+  ).split(',');
+
+  public static readonly LIMIT_QUERY_USELESS_ORDERS: number =
+    Number.parseInt(process.env.LIMIT_QUERY_USELESS_ORDERS, 10) || 1000;
 }

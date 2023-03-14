@@ -40,6 +40,8 @@ import {
   HeadersConsolidatedReportOrdersDTO,
 } from './dto/consolidated-report-orders.dto';
 import { NotificationTypes } from '../commons/enums/notification.enum';
+import { buildOrderNotFoundMessage } from './utils/helpers';
+import { AccountService } from '../account/account.service';
 
 @Controller('orders')
 @ApiTags('Orders')
@@ -47,6 +49,7 @@ import { NotificationTypes } from '../commons/enums/notification.enum';
 export class OrderController {
   constructor(
     private readonly orderService: OrderService,
+    private readonly accountService: AccountService,
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     @Inject('LogProvider')
     private readonly logger: LogProvider,
@@ -79,11 +82,20 @@ export class OrderController {
         shippingEstimateDateFrom,
         shippingEstimateDateTo,
         statusCode,
+        orderNumbers,
       } = filterPaginateDto;
+      let filterPartnerOrdersOrOrderSale = [];
+      let partnerOrdersOrOrderSaleNotFound = [];
 
       const pageNumber = Number(page);
       const pageSize = Number(perPage);
       const sortBy = orderBy || 'orderCreatedAt';
+
+      if (orderNumbers && orderNumbers.length) {
+        filterPartnerOrdersOrOrderSale = orderNumbers
+          .split(',')
+          .map(partnerOrder => partnerOrder.trim());
+      }
 
       const [resultQuery, count] = await this.orderService.findAll({
         page,
@@ -97,6 +109,7 @@ export class OrderController {
         shippingEstimateDateFrom,
         shippingEstimateDateTo,
         statusCode,
+        filterPartnerOrdersOrOrderSale,
       });
 
       const result = resultQuery.map(order => ({
@@ -110,11 +123,28 @@ export class OrderController {
         logisticInfo: [order.logisticInfo?.length ? order.logisticInfo[0] : {}],
       }));
 
+      if (filterPartnerOrdersOrOrderSale.length) {
+        partnerOrdersOrOrderSaleNotFound =
+          filterPartnerOrdersOrOrderSale.filter(
+            order =>
+              !result.find(
+                el =>
+                  el.partnerOrder.toString() === order.toString() ||
+                  el.orderSale.toString() === order.toString(),
+              ),
+          );
+      }
+
+      const metatada = partnerOrdersOrOrderSaleNotFound.length
+        ? buildOrderNotFoundMessage(partnerOrdersOrOrderSaleNotFound)
+        : undefined;
+
       return new PaginateOrderDto(
         JSON.parse(JSON.stringify(result)),
         count,
         pageNumber,
         pageSize,
+        metatada,
       );
     } catch (error) {
       this.logger.error(error);
@@ -232,10 +262,19 @@ export class OrderController {
         throw new Error('Date difference greater than 4 months');
       }
 
+      const accounts = await this.accountService.find({
+        id: { $in: tenants },
+        useDeliveryHubStandalone: true,
+      });
+
+      if (!accounts.length) {
+        throw new Error('No accounts available to create report');
+      }
+
       const filter = {
         orderCreatedAtFrom,
         orderCreatedAtTo,
-        tenants,
+        tenants: accounts.map(acc => acc.id),
       };
 
       await this.kafkaProducer.send(

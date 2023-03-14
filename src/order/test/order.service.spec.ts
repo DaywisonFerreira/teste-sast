@@ -49,6 +49,7 @@ describe('OrderService', () => {
         shippingEstimateDateFrom: '2022-09-19',
         shippingEstimateDateTo: undefined,
         statusCode: 'delivered',
+        filterPartnerOrdersOrOrderSale: [],
       };
 
       expect(await service.findAll(data)).toStrictEqual([

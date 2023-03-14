@@ -30,6 +30,7 @@ export const PublicFieldsOrder = {
   'logisticInfo.deliveryCompany': 1,
   'logisticInfo.shippingEstimateDate': 1,
   integrations: 1,
+  partnerOrder: 1,
 };
 
 export class Total {
@@ -240,6 +241,15 @@ export class History {
   i18n: string;
 
   statusCode: StatusCode;
+
+  reason?: string;
+
+  additionalInfo?: string;
+
+  author?: {
+    id: string;
+    name: string;
+  };
 }
 
 export class BillingData {
@@ -435,6 +445,12 @@ export class OrderEntity extends Document {
 
   @Prop({ type: Number, required: false })
   quantityOccurrences?: number; // campo só usado no relatorio
+
+  @Prop({ type: Boolean, required: false })
+  migrated: boolean;
+
+  @Prop({ type: String, required: false })
+  migrationLog: string;
 
   @Prop({ type: Array, required: false })
   integrations?: Array<Integrations>;
