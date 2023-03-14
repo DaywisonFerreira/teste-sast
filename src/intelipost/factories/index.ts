@@ -40,7 +40,11 @@ export const MessageIntelipostCreated = content => {
 
 // KAFKA_TOPIC_ORDER_NOTIFIED
 export const MessageOrderNotified = content => {
-  const { order: payload, account, headers } = content;
+  const { payload, account, headers } = content;
+
+  const dispatchedEvent = payload.history?.find(
+    x => x.microStatus === 'DESPACHADO',
+  );
 
   const orderMapper: any = {};
 
@@ -54,13 +58,13 @@ export const MessageOrderNotified = content => {
   orderMapper.statusCode = {
     micro: payload.statusCode?.micro || '',
     macro: payload.statusCode?.macro || '',
+    eventDate: dispatchedEvent ? dispatchedEvent.orderUpdatedAt : '',
   };
 
   orderMapper.invoice = {
     value: payload.invoice?.value || 0,
     number: payload.invoice?.number || '',
     trackingUrl: payload.invoice?.trackingUrl || '',
-    customerDocument: payload.invoice?.customerDocument || '',
   };
 
   orderMapper.carrier = {
@@ -68,26 +72,75 @@ export const MessageOrderNotified = content => {
     document: payload.invoice?.carrierDocument || '',
   };
 
+  orderMapper.deliveryMode = {
+    name: payload.logisticInfo?.length
+      ? payload.logisticInfo[0].logisticContract
+      : '',
+  };
+
   orderMapper.deliveryDate = payload.deliveryDate;
   orderMapper.accountName = account?.name || '';
   orderMapper.accountId = String(account?.id || '');
 
-  if (payload.customer) {
+  if (payload.invoice?.receiver) {
     orderMapper.customer = {
-      firstName: payload.customer?.firstName || '',
-      lastName: payload.customer?.lastName || '',
+      firstName: payload.invoice?.name.split(' ').slice(0, -1).join(' ') || '',
+      lastName: payload.invoice?.name.split(' ').slice(-1).join(' ') || '',
+      fullName: payload.invoice?.name || '',
+      document: payload.invoice?.document || '',
+      documentType: payload.invoice?.documentType || '',
+      address: {
+        city: payload?.invoice?.receiver?.city || '',
+        state: payload?.invoice?.receiver?.state || '',
+        zipcode: payload?.invoice?.receiver?.zipCode || '',
+        neighborhood: payload?.invoice?.receiver?.country || '',
+      },
+    };
+  } else if (payload.customer) {
+    orderMapper.customer = {
+      firstName: payload.customer?.firstName,
+      lastName: payload.customer?.lastName,
       fullName: payload.customer?.fullName || '',
       document: payload.customer?.document || '',
       documentType: payload.customer?.documentType || '',
+      address: {
+        city: payload?.delivery?.city || '',
+        state: payload?.delivery?.state || '',
+        zipcode: payload?.delivery?.zipCode || '',
+        neighborhood: payload?.delivery?.neighborhood || '',
+      },
     };
+  }
+
+  orderMapper.location = {
+    id: account.id,
+    name: account.name,
+    document: account.document,
+    address: {
+      city: account.address?.city,
+      state: account.address?.state,
+      zipcode: account.address?.zipcode,
+      neighborhood: account.address?.neighborhood,
+    },
+  };
+
+  if (payload?.invoice?.packages.length) {
+    orderMapper.packages = payload?.invoice?.packages?.map(item => {
+      return {
+        productsQuantity: item?.productsQuantity,
+        volume: item?.volume,
+        grossWeight: item?.grossWeight,
+        netWeight: item?.netWeight,
+        width: item?.width,
+        height: item?.height,
+        length: item?.length,
+        trackingCode: item?.trackingCode,
+      };
+    });
   }
 
   orderMapper.shippingEstimateDate =
     payload.estimateDeliveryDateDeliveryCompany;
-
-  orderMapper.deliveryCompany = payload.logisticInfo?.length
-    ? payload.logisticInfo[0].deliveryCompany || ''
-    : '';
 
   return {
     headers: {
