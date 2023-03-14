@@ -22,9 +22,6 @@ export class AccountEntity extends Document {
   @Prop({ type: String, required: false })
   zipCode: string;
 
-  @Prop({ type: String, required: false })
-  code: string;
-
   @Prop({ default: false, required: false })
   active: boolean;
 

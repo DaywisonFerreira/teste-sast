@@ -22,7 +22,6 @@ export const mockAccount = (): AccountEntity =>
     icon: faker.datatype.string(),
     name: faker.datatype.string(),
     zipCode: faker.datatype.string(),
-    code: faker.datatype.string(),
     active: faker.datatype.boolean(),
     document: faker.datatype.string(),
     accountType:
