@@ -183,4 +183,8 @@ export abstract class Env {
 
   public static readonly LIMIT_QUERY_USELESS_ORDERS: number =
     Number.parseInt(process.env.LIMIT_QUERY_USELESS_ORDERS, 10) || 1000;
+
+  public static readonly LIST_MACRO_STATUS: string[] = (
+    process.env.LIST_MACRO_STATUS || ''
+  ).split(',');
 }
