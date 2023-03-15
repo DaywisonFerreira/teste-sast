@@ -1,6 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { classToClass, plainToClass } from 'class-transformer';
 
+export class GetStatusCodeDto {
+  @ApiProperty({ example: 'Status Code Name' })
+  name: string;
+}
+
 export class GetStatusCodeMacroDto {
   @ApiProperty({ example: 'order-dispatched' })
   code: string;
