@@ -11,9 +11,9 @@ export class IntelipostMapper {
         name: 'CAIXA',
         weight: item.netWeight / 1000,
         volume_type_code: 'box',
-        width: item.width,
-        height: item.height,
-        length: item.length,
+        width: parseFloat((item.width / 100).toFixed(2)),
+        height: parseFloat((item.height / 100).toFixed(2)),
+        length: parseFloat((item.length / 100).toFixed(2)),
         products_quantity: item.productsQuantity,
         tracking_code: item.trackingCode,
         shipment_order_volume_invoice: {
