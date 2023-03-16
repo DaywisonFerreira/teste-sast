@@ -19,9 +19,6 @@ export class GetAccountDto {
   @ApiProperty({ example: '03201080' })
   zipCode: string;
 
-  @ApiProperty({ example: 'FBLOCATION' })
-  code: string;
-
   @ApiProperty({ example: true })
   active: boolean;
 
