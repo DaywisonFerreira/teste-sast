@@ -864,6 +864,8 @@ export class OrderService {
         newDataToSave.deliveryDate = oldOrder.deliveryDate;
     }
 
+    oldOrder.invoice.trackingUrl = newDataToSave.invoice.trackingUrl;
+
     // repensar em como ignorar um historico novo, porém tbm não enviar para o IHUB
     const newContent = {
       ...(shouldUpdateSourceOfOrder ? newDataToSave : {}),
