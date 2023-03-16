@@ -40,54 +40,103 @@ export const MessageIntelipostCreated = content => {
 
 // KAFKA_TOPIC_ORDER_NOTIFIED
 export const MessageOrderNotified = content => {
-  const { order: payload, account, headers } = content;
+  const { order, invoice, account, headers } = content;
 
   const orderMapper: any = {};
 
-  orderMapper.id = payload.id;
-  orderMapper.orderSale = payload.orderSale;
-  orderMapper.orderUpdatedAt = payload.orderUpdatedAt;
-  orderMapper.orderCreatedAt = payload.orderCreatedAt;
-  orderMapper.internalOrderId = payload.internalOrderId;
-  orderMapper.partnerOrder = payload.partnerOrder;
+  orderMapper.id = order.id;
+  orderMapper.orderSale = order.orderSale;
+  orderMapper.orderUpdatedAt = order.orderUpdatedAt;
+  orderMapper.orderCreatedAt = order.orderCreatedAt;
+  orderMapper.internalOrderId = order.internalOrderId;
+  orderMapper.partnerOrder = order.partnerOrder;
 
   orderMapper.statusCode = {
-    micro: payload.statusCode?.micro || '',
-    macro: payload.statusCode?.macro || '',
+    micro: order.statusCode?.micro || '',
+    macro: order.statusCode?.macro || '',
+    eventDate: order.dispatchDate || '',
   };
 
   orderMapper.invoice = {
-    value: payload.invoice?.value || 0,
-    number: payload.invoice?.number || '',
-    trackingUrl: payload.invoice?.trackingUrl || '',
-    customerDocument: payload.invoice?.customerDocument || '',
+    value: order.invoice?.value || 0,
+    number: order.invoice?.number || '',
+    trackingUrl: order.invoice?.trackingUrl || '',
   };
 
   orderMapper.carrier = {
-    name: payload.invoice?.carrierName || '',
-    document: payload.invoice?.carrierDocument || '',
+    name: order.invoice?.carrierName || '',
+    document: order.invoice?.carrierDocument || '',
   };
 
-  orderMapper.deliveryDate = payload.deliveryDate;
+  orderMapper.deliveryMode = {
+    name: order.logisticInfo?.length
+      ? order.logisticInfo[0].logisticContract
+      : '',
+  };
+
+  orderMapper.deliveryDate = order.deliveryDate;
   orderMapper.accountName = account?.name || '';
   orderMapper.accountId = String(account?.id || '');
 
-  if (payload.customer) {
+  if (invoice?.receiver) {
     orderMapper.customer = {
-      firstName: payload.customer?.firstName || '',
-      lastName: payload.customer?.lastName || '',
-      fullName: payload.customer?.fullName || '',
-      document: payload.customer?.document || '',
-      documentType: payload.customer?.documentType || '',
+      firstName:
+        invoice?.receiver?.name.split(' ').slice(0, -1).join(' ') || '',
+      lastName: invoice?.receiver?.name.split(' ').slice(-1).join(' ') || '',
+      fullName: invoice?.receiver?.name || '',
+      document: invoice?.receiver?.document || '',
+      documentType: invoice?.receiver?.documentType || '',
+      address: {
+        city: invoice?.receiver?.address?.city || '',
+        state: invoice?.receiver?.address?.state || '',
+        zipcode: invoice?.receiver?.address?.zipCode || '',
+        neighborhood: invoice?.receiver?.address?.country || '',
+      },
+    };
+  } else if (order.customer) {
+    orderMapper.customer = {
+      firstName: order.customer?.firstName,
+      lastName: order.customer?.lastName,
+      fullName: order.customer?.fullName || '',
+      document: order.customer?.document || '',
+      documentType: order.customer?.documentType || '',
+      address: {
+        city: order?.delivery?.city || '',
+        state: order?.delivery?.state || '',
+        zipcode: order?.delivery?.zipCode || '',
+        neighborhood: order?.delivery?.neighborhood || '',
+      },
     };
   }
 
-  orderMapper.shippingEstimateDate =
-    payload.estimateDeliveryDateDeliveryCompany;
+  orderMapper.location = {
+    id: account.id,
+    name: account.name,
+    document: account.document,
+    address: {
+      city: account.address?.city || '',
+      state: account.address?.state || '',
+      zipcode: account.address?.zipcode || '',
+      neighborhood: account.address?.neighborhood || '',
+    },
+  };
 
-  orderMapper.deliveryCompany = payload.logisticInfo?.length
-    ? payload.logisticInfo[0].deliveryCompany || ''
-    : '';
+  if (invoice?.packages.length) {
+    orderMapper.packages = invoice?.packages?.map(item => {
+      return {
+        productsQuantity: item?.productsQuantity,
+        volume: item?.volume,
+        grossWeight: item?.grossWeight,
+        netWeight: item?.netWeight,
+        width: item?.width,
+        height: item?.height,
+        length: item?.length,
+        trackingCode: item?.trackingCode,
+      };
+    });
+  }
+
+  orderMapper.shippingEstimateDate = order.estimateDeliveryDateDeliveryCompany;
 
   return {
     headers: {

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { InfraLogger } from 'src/commons/providers/log/infra-logger';
-import { AccountService } from './account.service';
-import { AccountEntity, AccountSchema } from './schemas/account.schema';
 import { AccountController } from './account.controller';
+import { AccountService } from './account.service';
 import { ConsumerAccountController } from './consumer/account.controller';
+import { AccountEntity, AccountSchema } from './schemas/account.schema';
 
 @Module({
   imports: [

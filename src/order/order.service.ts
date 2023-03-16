@@ -8,7 +8,7 @@ import * as moment from 'moment';
 import { LeanDocument, Model, Types } from 'mongoose';
 import {
   AccountDocument,
-  AccountEntity,
+  AccountEntity
 } from 'src/account/schemas/account.schema';
 import { Env } from 'src/commons/environment/env';
 import { MessageOrderNotified } from 'src/intelipost/factories';
@@ -18,6 +18,10 @@ import { utils } from 'xlsx';
 
 import { OriginEnum } from 'src/commons/enums/origin-enum';
 import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
+import {
+  InvoiceDocument,
+  InvoiceEntity
+} from 'src/invoice/schemas/invoice.schema';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
 import { CsvMapper } from './mappers/csvMapper';
@@ -27,7 +31,7 @@ import {
   Attachments,
   OrderDocument,
   OrderEntity,
-  PublicFieldsOrder,
+  PublicFieldsOrder
 } from './schemas/order.schema';
 
 interface xlsxWriteMetadata {
@@ -72,6 +76,8 @@ export class OrderService {
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     @InjectModel(AccountEntity.name)
     private accountModel: Model<AccountDocument>,
+    @InjectModel(InvoiceEntity.name)
+    private invoiceModel: Model<InvoiceDocument>,
     @InjectModel(OrderEntity.name)
     private OrderModel: Model<OrderDocument>,
     @Inject('LogProvider')
@@ -931,6 +937,10 @@ export class OrderService {
         .findOne({ id: operationStatus.order.storeId })
         .lean();
 
+      const invoice: Partial<InvoiceEntity> = await this.invoiceModel
+        .findOne({ key: operationStatus.order.invoice.key })
+        .lean();
+
       if (!account) {
         account = { id: operationStatus.order.storeId };
       }
@@ -939,6 +949,7 @@ export class OrderService {
         Env.KAFKA_TOPIC_ORDER_NOTIFIED,
         MessageOrderNotified({
           order: operationStatus.order,
+          invoice,
           account,
           headers,
         }),
