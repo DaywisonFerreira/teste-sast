@@ -58,6 +58,7 @@ export const MessageOrderNotified = content => {
   };
 
   orderMapper.invoice = {
+    key: order.invoice?.key || '',
     value: order.invoice?.value || 0,
     number: order.invoice?.number || '',
     trackingUrl: order.invoice?.trackingUrl || '',
@@ -75,8 +76,6 @@ export const MessageOrderNotified = content => {
   };
 
   orderMapper.deliveryDate = order.deliveryDate;
-  orderMapper.accountName = account?.name || '';
-  orderMapper.accountId = String(account?.id || '');
 
   if (invoice?.receiver) {
     orderMapper.customer = {
@@ -145,7 +144,7 @@ export const MessageOrderNotified = content => {
         headers['X-Correlation-Id'] || headers['x-correlation-id'] || uuidV4(),
       'X-Version': '1.0',
     },
-    key: uuidV4(),
+    key: { 'X-Tenant-Id': account.id, orderNumber: order.partnerOrder },
     value: JSON.stringify({
       data: orderMapper,
     }),
