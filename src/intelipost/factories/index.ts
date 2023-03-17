@@ -139,7 +139,7 @@ export const MessageOrderNotified = content => {
 
   return {
     headers: {
-      'X-Tenant-Id': orderMapper.accountId,
+      'X-Tenant-Id': account.id,
       'X-Correlation-Id':
         headers['X-Correlation-Id'] || headers['x-correlation-id'] || uuidV4(),
       'X-Version': '1.0',
