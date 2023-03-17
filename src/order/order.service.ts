@@ -46,6 +46,7 @@ async function* getDataAsStream(filter, collection) {
   const PAGE_SIZE = Env.CHUNK_SIZE_WRITE;
   let page = 1;
   let countDocuments = 0;
+  let setHeaders = true;
 
   while (true) {
     const data = await collection
@@ -55,10 +56,17 @@ async function* getDataAsStream(filter, collection) {
 
     if (data.length === 0) break;
 
+    if (setHeaders) {
+      setHeaders = false;
+      yield Object.keys(CsvMapper.mapOrderToCsv(data)[0])
+        .join(',')
+        .concat('\n');
+    }
+
     const adaptedData = CsvMapper.mapOrderToCsv(data);
 
     for (const item of adaptedData) {
-      yield item;
+      yield Object.values(item).join(',').concat('\n');
     }
     page += 1;
     countDocuments += adaptedData.length;
@@ -361,7 +369,7 @@ export class OrderService {
       // eslint-disable-next-line func-names
       async function* (source) {
         for await (const order of source) {
-          yield JSON.stringify(order).concat('\n');
+          yield order;
         }
       },
       createWriteStream(`${directory_path}/${fileName}`, {
