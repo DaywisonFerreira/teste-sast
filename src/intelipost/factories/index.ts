@@ -54,7 +54,7 @@ export const MessageOrderNotified = content => {
   orderMapper.statusCode = {
     micro: order.statusCode?.micro || '',
     macro: order.statusCode?.macro || '',
-    eventDate: order.dispatchDate || '',
+    eventDate: order.orderUpdatedAt || '',
   };
 
   orderMapper.invoice = {
@@ -75,6 +75,7 @@ export const MessageOrderNotified = content => {
       : '',
   };
 
+  orderMapper.dispatchDate = order.dispatchDate;
   orderMapper.deliveryDate = order.deliveryDate;
 
   if (invoice?.receiver) {
