@@ -5,7 +5,17 @@ import {
   AccountEntity,
   AccountSchema,
 } from 'src/account/schemas/account.schema';
+import { CarrierService } from 'src/carrier/carrier.service';
+import {
+  CarrierEntity,
+  CarrierSchema,
+} from 'src/carrier/schemas/carrier.schema';
 import { InfraLogger } from 'src/commons/providers/log/infra-logger';
+import { InvoiceService } from 'src/invoice/invoice.service';
+import {
+  InvoiceEntity,
+  InvoiceSchema,
+} from 'src/invoice/schemas/invoice.schema';
 import { OrderProducer } from 'src/order/producer/order.producer';
 import { AccountService } from '../account/account.service';
 
@@ -37,11 +47,21 @@ import { OrderEntity, OrderSchema } from '../order/schemas/order.schema';
         name: AccountEntity.name,
         schema: AccountSchema,
       },
+      {
+        name: InvoiceEntity.name,
+        schema: InvoiceSchema,
+      },
+      {
+        name: CarrierEntity.name,
+        schema: CarrierSchema,
+      },
     ]),
   ],
   providers: [
     ConsumerOrderController,
     OrderService,
+    CarrierService,
+    InvoiceService,
     OrderProducer,
     AccountService,
     { provide: 'EventProvider', useClass: NestjsEventEmitter },

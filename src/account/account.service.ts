@@ -1,15 +1,15 @@
 /* eslint-disable no-prototype-builtins */
-import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { LeanDocument, Model, QueryOptions } from 'mongoose';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { IFilterObject } from '../commons/interfaces/filter-object.interface';
+import { AccountMapper } from './mappers/accountMapper';
 import {
   AccountDocument,
   AccountEntity,
   AccountTypeEnum,
 } from './schemas/account.schema';
-import { AccountMapper } from './mappers/accountMapper';
 
 @Injectable()
 export class AccountService {
@@ -46,22 +46,7 @@ export class AccountService {
   ): Promise<LeanDocument<AccountEntity>> {
     const account = await this.accountModel.findOne({ id });
 
-    const mapData = {
-      ...accountData,
-      document: accountData.fiscalCode
-        .replace(/-/g, '')
-        .replace(/\./g, '')
-        .replace(/\//g, ''),
-      zipCode: accountData.address.zipCode.replace(/-/g, '').replace(/\./g, ''),
-      useDeliveryHub:
-        account && account?.toJSON().hasOwnProperty('useDeliveryHub')
-          ? account.useDeliveryHub
-          : false,
-      useDeliveryHubStandalone:
-        account && account?.toJSON().hasOwnProperty('useDeliveryHubStandalone')
-          ? account.useDeliveryHubStandalone
-          : false,
-    };
+    const mapData = AccountMapper.mapAccountUpdated(account, accountData);
 
     return this.accountModel
       .findOneAndUpdate({ id }, mapData as AccountDocument, {
