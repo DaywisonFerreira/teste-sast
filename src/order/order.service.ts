@@ -8,7 +8,7 @@ import * as moment from 'moment';
 import { LeanDocument, Model, Types } from 'mongoose';
 import {
   AccountDocument,
-  AccountEntity
+  AccountEntity,
 } from 'src/account/schemas/account.schema';
 import { Env } from 'src/commons/environment/env';
 import { MessageOrderNotified } from 'src/intelipost/factories';
@@ -20,7 +20,7 @@ import { OriginEnum } from 'src/commons/enums/origin-enum';
 import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import {
   InvoiceDocument,
-  InvoiceEntity
+  InvoiceEntity,
 } from 'src/invoice/schemas/invoice.schema';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
@@ -31,7 +31,7 @@ import {
   Attachments,
   OrderDocument,
   OrderEntity,
-  PublicFieldsOrder
+  PublicFieldsOrder,
 } from './schemas/order.schema';
 
 interface xlsxWriteMetadata {
@@ -58,12 +58,12 @@ async function* getDataAsStream(filter, collection) {
 
     if (setHeaders) {
       setHeaders = false;
-      yield Object.keys(CsvMapper.mapOrderToCsv(data)[0])
+      yield Object.keys(CsvMapper.mapOrderToConsolidatedCsv(data)[0])
         .join(',')
         .concat('\n');
     }
 
-    const adaptedData = CsvMapper.mapOrderToCsv(data);
+    const adaptedData = CsvMapper.mapOrderToConsolidatedCsv(data);
 
     for (const item of adaptedData) {
       yield Object.values(item).join(',').concat('\n');
