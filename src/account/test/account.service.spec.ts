@@ -1,8 +1,8 @@
+import faker from '@faker-js/faker';
+import { HttpException, HttpStatus } from '@nestjs/common';
 import { getModelToken } from '@nestjs/mongoose';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Model } from 'mongoose';
-import faker from '@faker-js/faker';
-import { HttpException, HttpStatus } from '@nestjs/common';
 import { InfraLogger } from 'src/commons/providers/log/infra-logger';
 import { AccountService } from '../account.service';
 import {
@@ -16,8 +16,13 @@ export const mockAccount = (): AccountEntity =>
     id: '0a2fe1ed-4148-4838-a1f1-18ef13284374',
     icon: '',
     name: 'Account Name',
-    zipCode: '41545-874',
-    code: '0548949684169',
+    zipCode: '18607220',
+    address: {
+      zipCode: '18607220',
+      city: 'Botucatu',
+      state: 'SP',
+      neighborhood: 'Vale do Sol',
+    },
     active: true,
     document: '20.612.212/0001-37',
     accountType: AccountTypeEnum.account,
@@ -114,6 +119,13 @@ describe('AccountService', () => {
         fiscalCode: faker.datatype.string(),
         address: {
           zipCode: faker.datatype.string(),
+          city: faker.datatype.string(),
+          state: faker.datatype.string(),
+          neighborhood: faker.datatype.string(),
+          country: faker.datatype.string(),
+          street: faker.datatype.string(),
+          number: faker.datatype.string(),
+          complement: faker.datatype.string(),
         },
       }),
     ).toBeUndefined();
@@ -136,6 +148,13 @@ describe('AccountService', () => {
         fiscalCode: faker.datatype.string(),
         address: {
           zipCode: faker.datatype.string(),
+          city: faker.datatype.string(),
+          state: faker.datatype.string(),
+          neighborhood: faker.datatype.string(),
+          country: faker.datatype.string(),
+          street: faker.datatype.string(),
+          number: faker.datatype.string(),
+          complement: faker.datatype.string(),
         },
       }),
     ).toBeUndefined();
@@ -151,68 +170,17 @@ describe('AccountService', () => {
       fiscalCode: faker.datatype.string(),
       address: {
         zipCode: faker.datatype.string(),
+        city: faker.datatype.string(),
+        state: faker.datatype.string(),
+        neighborhood: faker.datatype.string(),
+        country: faker.datatype.string(),
+        street: faker.datatype.string(),
+        number: faker.datatype.string(),
+        complement: faker.datatype.string(),
       },
     });
 
     expect(response).toEqual(mockedAccount);
-  });
-
-  test('should associate a location with success', async () => {
-    const { sut, AccountModel } = await makeSut();
-
-    const mockedAccount = mockAccount();
-
-    jest.spyOn(AccountModel, 'findOne').mockReturnValueOnce({
-      ...mockedAccount,
-      accountType: 'location',
-      accounts: [],
-    } as any);
-
-    jest
-      .spyOn(AccountModel, 'findOneAndUpdate')
-      .mockImplementationOnce((): any => mockedAccount);
-
-    const response = await sut.associateLocation(
-      mockedAccount.id,
-      mockedAccount.id,
-    );
-
-    expect(response).toEqual(mockedAccount);
-  });
-
-  test('Should not associate a location and return an error: Account not found', async () => {
-    const { sut, AccountModel } = await makeSut();
-
-    const mockedAccount = mockAccount();
-
-    jest.spyOn(AccountModel, 'findOne').mockImplementationOnce((): any => null);
-
-    try {
-      await sut.associateLocation(mockedAccount.id, mockedAccount.id);
-    } catch (error) {
-      expect(error).toStrictEqual(
-        new HttpException('Account not found', HttpStatus.NOT_FOUND),
-      );
-    }
-  });
-
-  test('Should not associate a location and return an error: Already associated', async () => {
-    const { sut, AccountModel } = await makeSut();
-
-    const mockedAccount = mockAccount();
-
-    jest.spyOn(AccountModel, 'findOne').mockReturnValueOnce({
-      ...mockedAccount,
-      accountType: 'location',
-    } as any);
-
-    try {
-      await sut.associateLocation(mockedAccount.id, mockedAccount.id);
-    } catch (error) {
-      expect(error).toStrictEqual(
-        new HttpException('Already associated', HttpStatus.BAD_REQUEST),
-      );
-    }
   });
 
   test('should return an array of accounts and countDocuments', async () => {
@@ -259,6 +227,6 @@ describe('AccountService', () => {
       );
     }
 
-    expect(spyAccountFindOne).toBeCalledTimes(11);
+    expect(spyAccountFindOne).toBeCalledTimes(5);
   });
 });

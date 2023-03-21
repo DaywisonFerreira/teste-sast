@@ -1,8 +1,10 @@
 /* eslint-disable no-prototype-builtins */
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { LeanDocument, Model, QueryOptions } from 'mongoose';
+import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import { IFilterObject } from '../commons/interfaces/filter-object.interface';
+import { AccountMapper } from './mappers/accountMapper';
 import {
   AccountDocument,
   AccountEntity,
@@ -14,23 +16,22 @@ export class AccountService {
   constructor(
     @InjectModel(AccountEntity.name)
     private accountModel: Model<AccountDocument>,
-  ) {}
+    @Inject('LogProvider')
+    private readonly logger: LogProvider,
+  ) {
+    this.logger.instanceLogger(AccountService.name);
+  }
 
   async create(accountData): Promise<void> {
-    const mapData = {
-      ...accountData,
-      document: accountData.fiscalCode
-        .replace(/-/g, '')
-        .replace(/\./g, '')
-        .replace(/\//g, ''),
-      zipCode: accountData.address.zipCode.replace(/-/g, '').replace(/\./g, ''),
-    };
+    this.logger.log(`Create Account with --- Request received: ${accountData}`);
+    const mapData = AccountMapper.mapAccountCreated(accountData);
 
     const alreadyExist = await this.accountModel
       .findOne({ id: accountData.id })
       .lean();
 
     if (alreadyExist) {
+      this.logger.error(new Error(`Account ${accountData.id} already exists`));
       return;
     }
 
@@ -45,22 +46,7 @@ export class AccountService {
   ): Promise<LeanDocument<AccountEntity>> {
     const account = await this.accountModel.findOne({ id });
 
-    const mapData = {
-      ...accountData,
-      document: accountData.fiscalCode
-        .replace(/-/g, '')
-        .replace(/\./g, '')
-        .replace(/\//g, ''),
-      zipCode: accountData.address.zipCode.replace(/-/g, '').replace(/\./g, ''),
-      useDeliveryHub:
-        account && account?.toJSON().hasOwnProperty('useDeliveryHub')
-          ? account.useDeliveryHub
-          : false,
-      useDeliveryHubStandalone:
-        account && account?.toJSON().hasOwnProperty('useDeliveryHubStandalone')
-          ? account.useDeliveryHubStandalone
-          : false,
-    };
+    const mapData = AccountMapper.mapAccountUpdated(account, accountData);
 
     return this.accountModel
       .findOneAndUpdate({ id }, mapData as AccountDocument, {
@@ -71,14 +57,10 @@ export class AccountService {
       .lean();
   }
 
-  async associateLocation(
-    accountId: string,
-    locationId: string,
-  ): Promise<AccountEntity> {
-    const location = await this.accountModel.findOne({
-      id: locationId,
-      accountType: AccountTypeEnum.location,
-    });
+  async createLocation(accountId: string, locationData): Promise<void> {
+    this.logger.log(
+      `Create Location with X-Tenant-Id: ${accountId} -- Request received: ${locationData}`,
+    );
 
     const account = await this.accountModel.findOne(
       {
@@ -88,37 +70,33 @@ export class AccountService {
       { id: 1, name: 1 },
     );
 
-    if (!location || !account) {
+    if (!account) {
+      this.logger.error(new Error(`Account ${accountId} not found`));
       throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
     }
 
-    const alreadyHasAccount = location.accounts.find(
-      accountAssociated => accountAssociated.id === account.id,
+    const mapData = AccountMapper.mapAccountLocationCreated(
+      account,
+      locationData,
     );
 
-    if (alreadyHasAccount) {
-      throw new HttpException('Already associated', HttpStatus.BAD_REQUEST);
+    const alreadyExist = await this.accountModel
+      .findOne({ id: locationData.id })
+      .lean();
+
+    if (alreadyExist) {
+      this.logger.error(
+        new Error(`Location ${locationData.id} already exists`),
+      );
+      throw new HttpException(
+        'Location already exists',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    return this.accountModel.findOneAndUpdate(
-      { id: location.id, accountType: AccountTypeEnum.location },
-      {
-        $push: {
-          accounts: account,
-        },
-      },
-    );
-  }
-
-  async unassociateLocation(accountId: string, locationId: string) {
-    await this.accountModel.findOneAndUpdate(
-      { id: locationId, accountType: AccountTypeEnum.location },
-      {
-        $pull: {
-          accounts: { id: accountId },
-        },
-      },
-    );
+    // eslint-disable-next-line new-cap
+    const accountToSave = new this.accountModel(mapData);
+    await accountToSave.save();
   }
 
   async findAll(

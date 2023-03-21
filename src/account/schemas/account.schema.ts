@@ -8,6 +8,24 @@ export enum AccountTypeEnum {
   service = 'service',
 }
 
+export class Address {
+  city: string;
+
+  state: string;
+
+  zipCode: string;
+
+  neighborhood: string;
+
+  country: string;
+
+  street: string;
+
+  number: string;
+
+  complement: string;
+}
+
 @Schema({ collection: 'accounts', timestamps: true })
 export class AccountEntity extends Document {
   @Prop({ required: true })
@@ -22,8 +40,8 @@ export class AccountEntity extends Document {
   @Prop({ type: String, required: false })
   zipCode: string;
 
-  @Prop({ type: String, required: false })
-  code: string;
+  @Prop({ type: Object, required: false })
+  address: Address;
 
   @Prop({ default: false, required: false })
   active: boolean;
@@ -36,9 +54,6 @@ export class AccountEntity extends Document {
 
   @Prop({ type: String, required: false })
   stateInscription: string;
-
-  @Prop({ type: Object, required: true })
-  address: any;
 
   @Prop({ type: String, required: false, default: '' })
   externalWarehouseCode: string;

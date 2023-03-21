@@ -6,6 +6,17 @@ interface IAccounts {
   name: string;
 }
 
+interface IAddress {
+  city: string;
+  state: string;
+  zipCode: string;
+  neighborhood: string;
+  country: string;
+  street: string;
+  number: string;
+  complement: string;
+}
+
 export class GetAccountDto {
   @ApiProperty({ example: '616de48e7b1e23aa6ec7204d' })
   id: string;
@@ -16,11 +27,22 @@ export class GetAccountDto {
   @ApiProperty({ example: 'Faber Castell Location' })
   name: string;
 
-  @ApiProperty({ example: '03201080' })
+  @ApiProperty({ example: '06807000' })
   zipCode: string;
 
-  @ApiProperty({ example: 'FBLOCATION' })
-  code: string;
+  @ApiProperty({
+    example: {
+      zipCode: '06807000',
+      city: 'Embu das Artes',
+      state: 'SP',
+      country: 'BRA',
+      street: 'Avenida Hélio Ossamu Daikuara - de 839/840 a 3227/3228',
+      neighborhood: 'Jardim Vista Alegre',
+      number: '100',
+      complement: 'casa',
+    },
+  })
+  address: IAddress;
 
   @ApiProperty({ example: true })
   active: boolean;

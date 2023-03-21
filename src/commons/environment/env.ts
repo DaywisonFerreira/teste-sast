@@ -18,12 +18,6 @@ export abstract class Env {
   public static readonly KAFKA_TOPIC_ACCOUNT_LOCATION_CHANGED: string =
     process.env.KAFKA_TOPIC_ACCOUNT_LOCATION_CHANGED;
 
-  public static readonly KAFKA_TOPIC_ACCOUNT_LOCATION_ASSOCIATED: string =
-    process.env.KAFKA_TOPIC_ACCOUNT_LOCATION_ASSOCIATED;
-
-  public static readonly KAFKA_TOPIC_ACCOUNT_LOCATION_UNASSOCIATED: string =
-    process.env.KAFKA_TOPIC_ACCOUNT_LOCATION_UNASSOCIATED;
-
   public static readonly APPLICATION_PORT: string =
     process.env.APPLICATION_PORT;
 
@@ -183,4 +177,8 @@ export abstract class Env {
 
   public static readonly LIMIT_QUERY_USELESS_ORDERS: number =
     Number.parseInt(process.env.LIMIT_QUERY_USELESS_ORDERS, 10) || 1000;
+
+  public static readonly LIST_MACRO_STATUS: string[] = (
+    process.env.LIST_MACRO_STATUS || ''
+  ).split(',');
 }

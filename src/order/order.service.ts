@@ -8,7 +8,7 @@ import * as moment from 'moment';
 import { LeanDocument, Model, Types } from 'mongoose';
 import {
   AccountDocument,
-  AccountEntity,
+  AccountEntity
 } from 'src/account/schemas/account.schema';
 import { Env } from 'src/commons/environment/env';
 import { MessageOrderNotified } from 'src/intelipost/factories';
@@ -18,6 +18,10 @@ import { utils } from 'xlsx';
 
 import { OriginEnum } from 'src/commons/enums/origin-enum';
 import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
+import {
+  InvoiceDocument,
+  InvoiceEntity
+} from 'src/invoice/schemas/invoice.schema';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
 import { CsvMapper } from './mappers/csvMapper';
@@ -27,7 +31,7 @@ import {
   Attachments,
   OrderDocument,
   OrderEntity,
-  PublicFieldsOrder,
+  PublicFieldsOrder
 } from './schemas/order.schema';
 
 interface xlsxWriteMetadata {
@@ -42,6 +46,7 @@ async function* getDataAsStream(filter, collection) {
   const PAGE_SIZE = Env.CHUNK_SIZE_WRITE;
   let page = 1;
   let countDocuments = 0;
+  let setHeaders = true;
 
   while (true) {
     const data = await collection
@@ -51,10 +56,17 @@ async function* getDataAsStream(filter, collection) {
 
     if (data.length === 0) break;
 
+    if (setHeaders) {
+      setHeaders = false;
+      yield Object.keys(CsvMapper.mapOrderToCsv(data)[0])
+        .join(',')
+        .concat('\n');
+    }
+
     const adaptedData = CsvMapper.mapOrderToCsv(data);
 
     for (const item of adaptedData) {
-      yield item;
+      yield Object.values(item).join(',').concat('\n');
     }
     page += 1;
     countDocuments += adaptedData.length;
@@ -72,6 +84,8 @@ export class OrderService {
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     @InjectModel(AccountEntity.name)
     private accountModel: Model<AccountDocument>,
+    @InjectModel(InvoiceEntity.name)
+    private invoiceModel: Model<InvoiceDocument>,
     @InjectModel(OrderEntity.name)
     private OrderModel: Model<OrderDocument>,
     @Inject('LogProvider')
@@ -355,7 +369,7 @@ export class OrderService {
       // eslint-disable-next-line func-names
       async function* (source) {
         for await (const order of source) {
-          yield JSON.stringify(order).concat('\n');
+          yield order;
         }
       },
       createWriteStream(`${directory_path}/${fileName}`, {
@@ -864,6 +878,8 @@ export class OrderService {
         newDataToSave.deliveryDate = oldOrder.deliveryDate;
     }
 
+    oldOrder.invoice.trackingUrl = newDataToSave.invoice.trackingUrl;
+
     // repensar em como ignorar um historico novo, porém tbm não enviar para o IHUB
     const newContent = {
       ...(shouldUpdateSourceOfOrder ? newDataToSave : {}),
@@ -929,6 +945,10 @@ export class OrderService {
         .findOne({ id: operationStatus.order.storeId })
         .lean();
 
+      const invoice: Partial<InvoiceEntity> = await this.invoiceModel
+        .findOne({ key: operationStatus.order.invoice.key })
+        .lean();
+
       if (!account) {
         account = { id: operationStatus.order.storeId };
       }
@@ -937,6 +957,7 @@ export class OrderService {
         Env.KAFKA_TOPIC_ORDER_NOTIFIED,
         MessageOrderNotified({
           order: operationStatus.order,
+          invoice,
           account,
           headers,
         }),

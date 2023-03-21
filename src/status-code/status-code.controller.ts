@@ -1,7 +1,9 @@
-import { Controller, Get, Inject, Param, Response } from '@nestjs/common';
+import { Controller, Get, Inject, Param, Req, Response } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Env } from 'src/commons/environment/env';
 import { LogProvider } from 'src/commons/providers/log/log-provider.interface';
 import {
+  GetStatusCodeDto,
   GetStatusCodeMacroDto,
   GetStatusCodeMicroDto,
 } from './dto/status-code.dto';
@@ -16,6 +18,21 @@ export class StatusCodeController {
     private readonly logger: LogProvider,
   ) {
     this.logger.instanceLogger(StatusCodeController.name);
+  }
+
+  @Get('get-list')
+  @ApiOkResponse({ type: [GetStatusCodeDto] })
+  async getStatusCode(@Req() req: any): Promise<Array<GetStatusCodeDto>> {
+    try {
+      return Env.LIST_MACRO_STATUS.map(status => {
+        return {
+          name: status,
+        };
+      });
+    } catch (error) {
+      req.logger.error(error);
+      throw error;
+    }
   }
 
   @Get('macro')
