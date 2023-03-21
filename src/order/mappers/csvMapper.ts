@@ -180,4 +180,61 @@ export class CsvMapper {
       };
     });
   }
+
+  static mapOrderToConsolidatedCsv(csvData: unknown[]) {
+    return csvData.map((data: any) => {
+      const {
+        receiverName,
+        deliveryCity,
+        deliveryState,
+        deliveryZipCode,
+        orderCreatedAt,
+        dispatchDate,
+        orderSale,
+        order,
+        invoice,
+        totals,
+        storeCode,
+      } = data;
+
+      return {
+        Loja: storeCode,
+        'Nome do Destinatário': receiverName,
+        'Cidade do Destinatário': deliveryCity,
+        UF: deliveryState,
+        'CEP do destinatário': deliveryZipCode,
+        'Pedido de Venda': orderSale,
+        Pedido: order,
+        'Código de rastreio': invoice.trackingNumber,
+        'Serie Nota': invoice.serie,
+        'Nota Fiscal': invoice.number,
+        'Peso bruto': 'N/A',
+        'Data emissão da NF': invoice.issuanceDate,
+        'Data criação da NF': 'N/A',
+        'Método de envio': invoice.carrierName,
+        Transportadora: invoice.deliveryCompany
+          ? invoice.deliveryCompany
+          : invoice.carrierName,
+        'Data Despacho':
+          dispatchDate && dispatchDate instanceof Date
+            ? dispatchDate?.toISOString()
+            : '',
+        'Preço Frete': `"${totals
+          ?.find(total => total?.id === 'Shipping')
+          ?.value?.toLocaleString('pt-br', {
+            style: 'currency',
+            currency: 'BRL',
+          })}"`,
+        'Data Criação Pedido':
+          orderCreatedAt && orderCreatedAt instanceof Date
+            ? orderCreatedAt?.toISOString()
+            : '',
+        'Valor da Nota': `"${invoice?.value?.toLocaleString('pt-br', {
+          style: 'currency',
+          currency: 'BRL',
+        })}"`,
+        'Chave da Nota': invoice.key,
+      };
+    });
+  }
 }
