@@ -208,9 +208,9 @@ export class CsvMapper {
         'Código de rastreio': invoice.trackingNumber,
         'Serie Nota': invoice.serie,
         'Nota Fiscal': invoice.number,
-        'Peso bruto': '', //
-        'Data emissão da NF': '', //
-        'Data criação da NF': '', //
+        'Peso bruto': 'N/A',
+        'Data emissão da NF': invoice.issuanceDate,
+        'Data criação da NF': 'N/A',
         'Método de envio': invoice.carrierName,
         Transportadora: invoice.deliveryCompany
           ? invoice.deliveryCompany
@@ -219,20 +219,20 @@ export class CsvMapper {
           dispatchDate && dispatchDate instanceof Date
             ? dispatchDate?.toISOString()
             : '',
-        'Preço Frete': totals
+        'Preço Frete': `"${totals
           ?.find(total => total?.id === 'Shipping')
           ?.value?.toLocaleString('pt-br', {
             style: 'currency',
             currency: 'BRL',
-          }),
+          })}"`,
         'Data Criação Pedido':
           orderCreatedAt && orderCreatedAt instanceof Date
             ? orderCreatedAt?.toISOString()
             : '',
-        'Valor da Nota': invoice?.value?.toLocaleString('pt-br', {
+        'Valor da Nota': `"${invoice?.value?.toLocaleString('pt-br', {
           style: 'currency',
           currency: 'BRL',
-        }),
+        })}"`,
         'Chave da Nota': invoice.key,
       };
     });
