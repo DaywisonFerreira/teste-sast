@@ -177,36 +177,50 @@ describe('OrderService', () => {
 
     it('Should return statusScale given statusCode', async () => {
       expect(
-        await (service as any).getStatusScale('order-created'),
+        await (service as any).getStatusScale('order-created', 'created'),
       ).toStrictEqual(0);
 
-      expect(await (service as any).getStatusScale('')).toStrictEqual(1);
+      expect(await (service as any).getStatusScale('', '')).toStrictEqual(1);
 
       expect(
-        await (service as any).getStatusScale('order-dispatched'),
+        await (service as any).getStatusScale('order-dispatched', 'dispatched'),
       ).toStrictEqual(2);
 
-      expect(await (service as any).getStatusScale('in-transit')).toStrictEqual(
-        3,
-      );
+      expect(
+        await (service as any).getStatusScale(
+          'in-transit',
+          'carrier-possession',
+        ),
+      ).toStrictEqual(3);
 
       expect(
-        await (service as any).getStatusScale('out-of-delivery'),
+        await (service as any).getStatusScale(
+          'out-of-delivery',
+          'delivery-route',
+        ),
       ).toStrictEqual(4);
 
       expect(
-        await (service as any).getStatusScale('check-delivery-failed'),
+        await (service as any).getStatusScale(
+          'check-delivery-failed',
+          'operational-problem',
+        ),
       ).toStrictEqual(5);
 
-      expect(await (service as any).getStatusScale('delivered')).toStrictEqual(
-        6,
-      );
-
       expect(
-        await (service as any).getStatusScale('delivery-failed'),
+        await (service as any).getStatusScale('delivered', 'delivered-success'),
       ).toStrictEqual(6);
 
-      expect((service as any).getStatusScale('canceled')).toStrictEqual(6);
+      expect(
+        await (service as any).getStatusScale(
+          'delivery-failed',
+          'shippment-returned',
+        ),
+      ).toStrictEqual(6);
+
+      expect(
+        (service as any).getStatusScale('canceled', 'canceled'),
+      ).toStrictEqual(6);
     });
 
     // it('Should return file xlsx generated', async () => {
