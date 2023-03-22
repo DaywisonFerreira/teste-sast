@@ -540,27 +540,20 @@ export class OrderService {
     return file;
   }
 
-  private getStatusScale(status: string) {
-    switch (status) {
-      case 'order-created':
-        return 0;
-      case 'order-dispatched':
-        return 2;
-      case 'in-transit':
-        return 3;
-      case 'out-of-delivery':
-        return 4;
-      case 'check-delivery-failed':
-        return 5;
-      case 'delivered':
-        return 6;
-      case 'delivery-failed':
-        return 6;
-      case 'canceled':
-        return 6;
-      default:
-        return 1;
+  private getStatusScale(macroStatus: string, microStatus: string) {
+    if (macroStatus === 'order-created' && microStatus === 'created') return 0;
+    if (macroStatus === 'order-dispatched') return 2;
+    if (macroStatus === 'in-transit') return 3;
+    if (macroStatus === 'out-of-delivery') return 4;
+    if (macroStatus === 'check-delivery-failed') return 5;
+    if (
+      macroStatus === 'delivered' ||
+      macroStatus === 'delivery-failed' ||
+      macroStatus === 'canceled'
+    ) {
+      return 6;
     }
+    return 1;
   }
 
   private async generateAttachments(
@@ -615,14 +608,26 @@ export class OrderService {
   private generateHistory(data, origin, isCreate, oldOrder?: any) {
     const sortHistory = (HistoryOne, HistoryTwo) => {
       if (
-        this.getStatusScale(HistoryOne?.statusCode?.macro) >
-        this.getStatusScale(HistoryTwo?.statusCode?.macro)
+        this.getStatusScale(
+          HistoryOne?.statusCode?.macro,
+          HistoryOne?.statusCode?.micro,
+        ) >
+        this.getStatusScale(
+          HistoryTwo?.statusCode?.macro,
+          HistoryTwo?.statusCode?.micro,
+        )
       ) {
         return 1;
       }
       if (
-        this.getStatusScale(HistoryOne?.statusCode?.macro) <
-        this.getStatusScale(HistoryTwo?.statusCode?.macro)
+        this.getStatusScale(
+          HistoryOne?.statusCode?.macro,
+          HistoryOne?.statusCode?.micro,
+        ) <
+        this.getStatusScale(
+          HistoryTwo?.statusCode?.macro,
+          HistoryTwo?.statusCode?.micro,
+        )
       ) {
         return -1;
       }
@@ -788,8 +793,8 @@ export class OrderService {
         : [];
 
     const shouldUpdateSourceOfOrder = this.shouldUpdateSourceOfOrder(
-      data.statusCode.macro,
-      oldOrder.statusCode.macro,
+      data.statusCode,
+      oldOrder.statusCode,
     );
 
     const newContent = {
@@ -849,8 +854,8 @@ export class OrderService {
     }
 
     let shouldUpdateSourceOfOrder = this.shouldUpdateSourceOfOrder(
-      data.statusCode.macro,
-      oldOrder.statusCode.macro,
+      data.statusCode,
+      oldOrder.statusCode,
     );
     const { ignore, history } = this.generateHistory(
       data,
@@ -878,7 +883,9 @@ export class OrderService {
         newDataToSave.deliveryDate = oldOrder.deliveryDate;
     }
 
-    oldOrder.invoice.trackingUrl = newDataToSave.invoice.trackingUrl;
+    if (newDataToSave?.invoice?.trackingUrl) {
+      oldOrder.invoice.trackingUrl = newDataToSave.invoice.trackingUrl;
+    }
 
     // repensar em como ignorar um historico novo, porém tbm não enviar para o IHUB
     const newContent = {
@@ -994,6 +1001,7 @@ export class OrderService {
       internalOrderId,
       statusCode,
       attachments,
+      integrations,
     } = order;
 
     /**
@@ -1098,6 +1106,7 @@ export class OrderService {
       steppers,
       historyOrderByASC,
       attachments,
+      integrations,
     };
 
     return data;
@@ -1236,12 +1245,15 @@ export class OrderService {
   }
 
   private shouldUpdateSourceOfOrder(
-    intelipostStatusCodeMacro: string,
-    oldOrderStatusCodeMacro: string,
+    intelipostStatusCode: any,
+    oldOrderStatusCode: any,
   ): boolean {
     return (
-      this.getStatusScale(intelipostStatusCodeMacro) >=
-      this.getStatusScale(oldOrderStatusCodeMacro)
+      this.getStatusScale(
+        intelipostStatusCode.macro,
+        intelipostStatusCode.micro,
+      ) >=
+      this.getStatusScale(oldOrderStatusCode.macro, oldOrderStatusCode.micro)
     );
   }
 
