@@ -24,10 +24,14 @@ export class AccountMapper {
     };
   }
 
-  static mapAccountLocationCreated(account, payload): AccountEntity {
+  static mapAccountLocationCreated(account, payload, accountId): AccountEntity {
     return {
       ...payload,
-      accounts: account,
+      accounts: account || [],
+      account: {
+        id: accountId,
+        name: account?.name || '',
+      },
       accountType: AccountTypeEnum.location,
       document: payload.fiscalCode
         .replace(/-/g, '')

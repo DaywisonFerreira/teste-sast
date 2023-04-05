@@ -227,6 +227,6 @@ describe('AccountService', () => {
       );
     }
 
-    expect(spyAccountFindOne).toBeCalledTimes(5);
+    expect(spyAccountFindOne).toBeCalledTimes(7);
   });
 });
