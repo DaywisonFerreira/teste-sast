@@ -75,7 +75,6 @@ export class AccountService {
 
     if (!account) {
       this.logger.error(new Error(`Account ${accountId} not found`));
-      throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
     }
 
     const mapData = AccountMapper.mapAccountLocationCreated(
