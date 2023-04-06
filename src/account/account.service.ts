@@ -38,6 +38,7 @@ export class AccountService {
     // eslint-disable-next-line new-cap
     const accountToSave = new this.accountModel(mapData);
     await accountToSave.save();
+    await this.findAndUpdateLocation(accountData.id);
   }
 
   async update(
@@ -47,6 +48,8 @@ export class AccountService {
     const account = await this.accountModel.findOne({ id });
 
     const mapData = AccountMapper.mapAccountUpdated(account, accountData);
+
+    await this.findAndUpdateLocation(id);
 
     return this.accountModel
       .findOneAndUpdate({ id }, mapData as AccountDocument, {
@@ -72,12 +75,12 @@ export class AccountService {
 
     if (!account) {
       this.logger.error(new Error(`Account ${accountId} not found`));
-      throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
     }
 
     const mapData = AccountMapper.mapAccountLocationCreated(
       account,
       locationData,
+      accountId,
     );
 
     const alreadyExist = await this.accountModel
@@ -140,6 +143,44 @@ export class AccountService {
       .sort(sortBy);
 
     return [result, count];
+  }
+
+  async findAndUpdateLocation(accountId: string) {
+    this.logger.log(
+      `Update location without association - X-Tenant-Id: ${accountId}`,
+    );
+
+    try {
+      const account = await this.accountModel.findOne(
+        {
+          id: accountId,
+          accountType: AccountTypeEnum.account,
+        },
+        { id: 1, name: 1 },
+      );
+
+      if (account) {
+        const findAndUpdateLocation = await this.accountModel
+          .findOneAndUpdate(
+            {
+              account: { id: accountId, name: '' },
+              accounts: [],
+            },
+            {
+              $push: {
+                accounts: account,
+              },
+              $set: {
+                account,
+              },
+            },
+          )
+          .lean();
+        this.logger.log(`Updated location: ${findAndUpdateLocation.id}`);
+      }
+    } catch (error) {
+      this.logger.error(new Error(`Error when update location - ${error}`));
+    }
   }
 
   async find(filter: Record<string, any>, options?: QueryOptions) {

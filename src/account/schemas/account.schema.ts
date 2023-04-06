@@ -67,6 +67,9 @@ export class AccountEntity extends Document {
   @Prop({ default: [], required: false })
   accounts: any[];
 
+  @Prop({ type: Object, required: false })
+  account?: any;
+
   @Prop({
     default: [],
     required: false,
