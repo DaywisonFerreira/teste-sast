@@ -95,6 +95,22 @@ export class OrderService {
     this.logger.instanceLogger(OrderService.name);
   }
 
+  // orders para criar o status despachado
+  async findOrdersToDispatch(ordersSale: string[]) {
+    const orders = await this.OrderModel.find({
+      orderSale: { $in: ordersSale },
+    }).lean();
+    return orders;
+  }
+
+  async findOrdersToDelivered(ordersSale: string[]) {
+    const orders = await this.OrderModel.find({
+      orderSale: { $in: ordersSale },
+      'statusCode.micro': 'delivered-success',
+    }).lean();
+    return orders;
+  }
+
   async findAll({
     page,
     pageSize,

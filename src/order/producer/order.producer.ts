@@ -25,7 +25,6 @@ export class OrderProducer {
       const exchange = 'order';
       const routeKey = 'orderTrackingUpdated';
       const exportingOrder: any = OrderMapper.mapPartnerToExportingOrder(order);
-
       await this.amqpConnection.publish(exchange, routeKey, exportingOrder);
 
       this.logger.log(

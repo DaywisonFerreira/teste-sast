@@ -42,6 +42,7 @@ import {
 import { NotificationTypes } from '../commons/enums/notification.enum';
 import { buildOrderNotFoundMessage } from './utils/helpers';
 import { AccountService } from '../account/account.service';
+import { OrderProducer } from './producer/order.producer';
 
 @Controller('orders')
 @ApiTags('Orders')
@@ -53,6 +54,7 @@ export class OrderController {
     @Inject('KafkaService') private kafkaProducer: KafkaService,
     @Inject('LogProvider')
     private readonly logger: LogProvider,
+    private orderProducer: OrderProducer,
   ) {
     this.logger.instanceLogger(OrderController.name);
   }
@@ -399,4 +401,66 @@ export class OrderController {
   private async deleteFileLocally(path: string) {
     await promises.unlink(path);
   }
+
+  // update ihub
+  @Post('ihub/send-dispatched-status')
+  async sendDispatchedEvent(@Body() ordersSale: string[]) {
+
+    const ordersList = await this.orderService.findOrdersToDispatch(ordersSale);
+
+    for await (const order of ordersList) {
+      if(order.history.length > 1) {
+        const dispatchedDate = order.history[1].orderUpdatedAt;
+
+        const data = {
+          ...order,
+          orderUpdatedAt: dispatchedDate,
+          partnerMessage: 'DESPACHADO',
+          microStatus: 'DESPACHADO',
+          lastOccurrenceMacro: 'order-dispatched',
+          lastOccurrenceMicro: 'dispatched',
+          lastOccurrenceMessage: 'DESPACHADO',
+          partnerStatus: 'DESPACHADO'.toLowerCase(),
+          i18n: 'order-dispatched',
+          statusCode: {
+            micro: 'dispatched',
+            macro: 'order-dispatched',
+          },
+      }
+      this.logger.log(`Send dispatched status to Ihub from orderSale: ${order.orderSale}`)
+      await this.orderProducer.sendStatusTrackingToIHub(data);
+    }
+
+  }
+  }
+
+  @Post('ihub/send-delivered-status')
+  async sendDelivered(@Body() ordersSale: string[]) {
+
+    const ordersList = await this.orderService.findOrdersToDelivered(ordersSale);
+
+    for await (const order of ordersList) {
+      const deliveredDate = order.history[order.history.length - 1].orderUpdatedAt;
+
+      const data = {
+        ...order,
+        orderUpdatedAt: deliveredDate,
+        partnerMessage: 'ENTREGA REALIZADA',
+        microStatus: 'ENTREGA REALIZADA',
+        lastOccurrenceMacro: 'delivered',
+        lastOccurrenceMicro: 'delivered-success',
+        lastOccurrenceMessage: 'ENTREGA REALIZADA',
+        partnerStatus: 'ENTREGA REALIZADA'.toLowerCase(),
+        i18n: 'delivered',
+        statusCode: {
+          micro: 'delivered-success',
+          macro: 'delivered',
+        },
+    }
+    this.logger.log(`Send delivered success status to Ihub from orderSale: ${order.orderSale}`)
+    await this.orderProducer.sendStatusTrackingToIHub(data);
+  }
+  }
+
+
 }
