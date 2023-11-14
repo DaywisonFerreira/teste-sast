@@ -6,10 +6,12 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.action == 'opened' && github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
     steps:
-      - uses: AppThreat/sast-scan-action@master
+      - name: Self sast-scan
+        uses: AppThreat/sast-scan-action@master
         with:
           type: "nodejs"
-      - uses: actions/upload-artifact@v1
+      - name: Upload scan reports
+        uses: actions/upload-artifact@v1
         with:
-          name: reports
+          name: sast-scan-reports
           path: reports
