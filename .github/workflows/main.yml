@@ -9,7 +9,7 @@ jobs:
       - name: Self sast-scan
         uses: AppThreat/sast-scan-action@master
         with:
-          type: "nodejs"
+          type: "nodejs","credscan","depscan"
       - name: Upload scan reports
         uses: actions/upload-artifact@v1
         with:
