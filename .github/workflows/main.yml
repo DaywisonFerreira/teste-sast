@@ -16,7 +16,7 @@ jobs:
         continue-on-error: true
         with:
           output: reports
-          type: nodejs,credscan
+          type: nodejs,credscan,depscan
       - name: Upload scan reports
         uses: actions/upload-artifact@v1
         with:

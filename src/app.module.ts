@@ -67,5 +67,5 @@ import { JobsModule } from './jobs/jobs.module';
 })
 export class AppModule {
   // Atenção: Isso é apenas para fins de teste. Remova isso antes de implantar em produção!
-  private readonly hardcodedPassword = 'senha_muito_insegura';
+  private readonly hardcodedPassword = 'senha_muito_insegura-uhul';
 }
