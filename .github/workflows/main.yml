@@ -6,7 +6,11 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.action == 'opened' && github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+            ref: ${{ github.sha }}
+
       - name: Self sast-scan
         uses: AppThreat/sast-scan-action@master
         continue-on-error: true
