@@ -12,7 +12,7 @@ jobs:
             ref: ${{ github.sha }}
 
       - name: Self sast-scan
-        uses: AppThreat/sast-scan-action@master
+        uses: AppThreat/sast-scan-action@1.0.2
         continue-on-error: true
         with:
           output: reports
