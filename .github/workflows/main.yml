@@ -6,33 +6,20 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.action == 'opened' && github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
     steps:
-      # - name: Check out code
-      #   uses: actions/checkout@v3
-      #   with:
-      #       ref: ${{ github.sha }}
+      - name: Check out code
+        uses: actions/checkout@v1
 
-      # - name: Self sast-scan
-      #   uses: AppThreat/sast-scan-action@1.0.2
-      #   continue-on-error: true
-      #   with:
-      #     output: reports
-      #     type: nodejs,credscan,depscan
-      #   env:
-      #     SCAN_ID: ${{ github.sha }}
-      #     WORKSPACE: https://github.com/${{ github.repository }}/blob/${{ github.sha }}
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # - name: Upload scan reports
-      #   uses: actions/upload-artifact@v1
-      #   with:
-      #     name: sast-scan-reports
-      #     path: reports
-      - uses: actions/checkout@v1
-
-      - name: Perform ShiftLeft Scan
-        uses: ShiftLeftSecurity/scan-action@master
-        env:
-          WORKSPACE: https://github.com/${{ github.repository }}/blob/${{ github.sha }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SCAN_AUTO_BUILD: true
+      - name: Self sast-scan
+        uses: AppThreat/sast-scan-action@v1.0.0
+        continue-on-error: true
         with:
           output: reports
+        env:
+          SCAN_ID: ${{ github.sha }}
+          WORKSPACE: https://github.com/${{ github.repository }}/blob/${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload scan reports
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: sast-scan-reports
+          path: reports
