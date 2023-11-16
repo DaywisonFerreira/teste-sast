@@ -17,6 +17,10 @@ jobs:
         with:
           output: reports
           type: nodejs,credscan,depscan
+        env:
+          SCAN_ID: ${{ github.sha }}
+          WORKSPACE: https://github.com/${{ github.repository }}/blob/${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload scan reports
         uses: actions/upload-artifact@v1
         with:
