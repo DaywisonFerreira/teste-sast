@@ -21,11 +21,14 @@ import { JobsModule } from './jobs/jobs.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    MongooseModule.forRoot(Env.DATABASE_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useCreateIndex: true,
-    }),
+    MongooseModule.forRoot(
+      'mongodb+srv://johan:teste123@cluster0.vb6mt.mongodb.net/test',
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useCreateIndex: true,
+      },
+    ),
     EventEmitterModule.forRoot(),
     KafkaModule.forRoot({
       name: 'KafkaService',
