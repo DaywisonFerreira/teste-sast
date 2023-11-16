@@ -1,16 +1,25 @@
-name: GitHub Actions Demo
+name: GitHub Actions Demo - updated
 run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
 on: [pull_request]
 jobs:
   sast_scan:
     if: github.event_name == 'pull_request' && github.event.action == 'opened' && github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
-    name: SAST Scan
     steps:
-      - uses: AppThreat/sast-scan-action@master
+      - name: Check out code
+        uses: actions/checkout@v1
+
+      - name: Self sast-scan
+        uses: AppThreat/sast-scan-action@v1.0.0
+        continue-on-error: true
         with:
-          type: "nodejs"
-      - uses: actions/upload-artifact@v1
+          output: reports
+        env:
+          SCAN_ID: ${{ github.sha }}
+          WORKSPACE: https://github.com/${{ github.repository }}/blob/${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload scan reports
+        uses: actions/upload-artifact@v1.0.0
         with:
-          name: reports
+          name: sast-scan-reports
           path: reports

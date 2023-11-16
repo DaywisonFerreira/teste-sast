@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { KafkaModule } from '@infralabs/infra-nestjs-kafka';
-
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_FILTER } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -21,11 +20,14 @@ import { JobsModule } from './jobs/jobs.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    MongooseModule.forRoot(Env.DATABASE_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useCreateIndex: true,
-    }),
+    MongooseModule.forRoot(
+      'mongodb+srv://johan:teste123@cluster0.vb6mt.mongodb.net/test',
+      {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useCreateIndex: true,
+      },
+    ),
     EventEmitterModule.forRoot(),
     KafkaModule.forRoot({
       name: 'KafkaService',
@@ -63,4 +65,7 @@ import { JobsModule } from './jobs/jobs.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  // Atenção: Isso é apenas para fins de teste. Remova isso antes de implantar em produção!
+  private readonly hardcodedPassword = 'senha_muito_insegura-uhul';
+}

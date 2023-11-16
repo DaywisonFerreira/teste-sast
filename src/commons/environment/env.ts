@@ -114,8 +114,7 @@ export abstract class Env {
   public static readonly INTELIPOST_USERNAME: string =
     process.env.INTELIPOST_USERNAME;
 
-  public static readonly INTELIPOST_PASSWORD: string =
-    process.env.INTELIPOST_PASSWORD;
+  public static readonly INTELIPOST_PASSWORD: string = '12345678910';
 
   public static readonly INTELIPOST_TOTAL_RESEND: number =
     Number.parseInt(process.env.INTELIPOST_TOTAL_RESEND, 10) || 6;
